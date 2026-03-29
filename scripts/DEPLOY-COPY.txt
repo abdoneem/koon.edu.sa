@@ -1,0 +1,18 @@
+KOON — what to copy on the server (2 steps)
+==============================================
+
+1) HOME DIRECTORY (same level as public_html)
+   Upload the ENTIRE "koon-hosting" folder here, e.g.
+   /home/kooneduroot/koon-hosting/
+   You must see: artisan, vendor/, app/, public/, ...
+
+2) public_html (web root)
+   Copy EVERYTHING that is INSIDE koon-hosting/public/
+   into public_html/ (overwrite). Do not upload the whole koon-hosting zip into
+   public_html — only the inner "public" files.
+
+Optional: if your folder is not named "koon-hosting", edit public_html/index.php
+and change $laravelFolder to match.
+
+Then: .env in koon-hosting, php artisan key:generate, migrate, storage:link.
+See HOSTING.txt for details.

@@ -1,3 +1,8 @@
+# Prefer Laravel entry so / hits index.php (not static index.html first).
+<IfModule mod_dir.c>
+    DirectoryIndex index.php index.html
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

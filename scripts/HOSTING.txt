@@ -1,0 +1,77 @@
+KOON - Replace WordPress in cPanel (public_html)
+=================================================
+
+Your site root is public_html. Laravel must NOT live entirely inside public_html
+(or app code would be downloadable). Use this layout:
+
+  /home/kooneduroot/koon-hosting/     <- full Laravel (app, bootstrap, vendor, ...)
+  /home/kooneduroot/public_html/      <- ONLY what is inside Laravel's public/ folder
+
+A) Backup and clear WordPress
+-----------------------------
+  - Keep your zips / __old folder as backup.
+  - In File Manager, move or delete old WP files inside public_html (wp-admin,
+    wp-content, wp-includes, wp-*.php, old index.php, etc.) into __old.
+
+B) Upload Laravel (full project)
+--------------------------------
+  - Upload the whole koon-hosting folder to your HOME directory (same level as
+    public_html), e.g. /home/kooneduroot/koon-hosting/
+  - You must see: artisan, app/, vendor/, public/, .env.example, ...
+
+C) Configure environment
+------------------------
+  - In koon-hosting: copy .env.example to .env
+  - Set APP_URL=https://koon.edu.sa (or your real domain, https)
+  - Set DB_* for MySQL (host is often localhost on cPanel)
+  - APP_DEBUG=false
+  - In Terminal (SSH): cd ~/koon-hosting
+      php artisan key:generate
+      php artisan migrate --force
+      php artisan storage:link
+  - chmod -R 775 storage bootstrap/cache (if needed)
+
+D) Put the web root files into public_html
+--------------------------------------------
+  This publish bundle already has the correct index.php and .htaccess for cPanel.
+
+  - Copy EVERYTHING inside koon-hosting/public into public_html (merge/overwrite).
+    You should end up with: index.php, .htaccess, assets/, index.html, images/, ...
+
+E) index.php (already done in this bundle)
+------------------------------------------
+  public/index.php is built for cPanel: it loads Laravel from the folder next to
+  public_html (default name: koon-hosting). If your uploaded folder is NOT named
+  koon-hosting, edit ONE line in public_html/index.php:
+
+      $laravelFolder = 'koon-hosting';
+
+  Local development still uses the normal Laravel index in the git repo; only this
+  published copy uses the cPanel paths.
+
+F) Permissions and security
+---------------------------
+  - Do not leave old wp-config.php or WP core in public_html after cutover.
+  - Tighten permissions on sensitive files after it works.
+
+G) SPA API URL (this build)
+---------------------------
+  Re-run publish-hosting.ps1 sets VITE_API_BASE_URL (default https://koon.edu.sa).
+  If you use www only, set env before build and republish.
+
+H) "Oops! Something went wrong" / blank or broken site
+-------------------------------------------------------
+  - public_html must contain ONLY the contents of koon-hosting/public — do not put
+    an extra "public" folder inside public_html (no public_html/public/...).
+  - public_html/index.php must be the one from this bundle (points to ~/koon-hosting).
+    Do not leave an old WordPress index.php.
+  - The bundled .htaccess sets DirectoryIndex index.php index.html — upload it as-is.
+  - In ~/koon-hosting, vendor/ must exist. If you uploaded without vendor, run SSH:
+      cd ~/koon-hosting && composer install --no-dev --optimize-autoloader
+  - Check PHP version is 8.2+ (cPanel "Select PHP Version").
+  - WordPress + Wordfence: if public_html/.user.ini sets auto_prepend_file to
+    wordfence-waf.php but that file is missing (e.g. after replacing the site with
+    Laravel), every PHP request returns HTTP 500 with an empty body. Remove or fix
+    that line in .user.ini (see scripts/upload-public-user-ini-clean.py).
+  - Open ~/errors.log or cPanel Errors, or temporarily APP_DEBUG=true in .env to see
+    the real exception (then set back to false).

@@ -3,23 +3,19 @@
 use Illuminate\Support\Facades\Route;
 
 /*
-| When the Vite build is deployed as public/index.html, serve it for browser
-| navigation (React Router). API and Sanctum routes stay on /api and /sanctum.
-| Local dev without index.html in public keeps the Laravel welcome page on /.
+| API routes load before web routes. This catch-all serves the React SPA for
+| browser URLs when public/index.html exists (production). Otherwise "/" shows
+| the default Laravel welcome (local API-only dev).
 */
 Route::get('/{any?}', function (?string $any = null) {
-    $path = request()->path();
-
-    if ($path === 'up' || str_starts_with($path, 'api/') || str_starts_with($path, 'sanctum/')) {
-        abort(404);
-    }
-
     $index = public_path('index.html');
     if (is_file($index)) {
         return response()->file($index, [
             'Content-Type' => 'text/html; charset=UTF-8',
         ]);
     }
+
+    $path = request()->path();
 
     return $path === '' || $path === '/'
         ? view('welcome')
