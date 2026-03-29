@@ -12,6 +12,7 @@ const NAV = [
   { to: "/student-life", i18n: "nav.studentLife" as const },
   { to: "/facilities", i18n: "nav.facilities" as const },
   { to: "/admissions", i18n: "nav.admissions" as const },
+  { to: "/registration", i18n: "nav.registration" as const },
   { to: "/news", i18n: "nav.news" as const },
   { to: "/contact", i18n: "nav.contact" as const },
 ] as const
@@ -58,8 +59,8 @@ export function Header() {
         </nav>
 
         <div className="header-actions">
-          <NavLink to="/contact" className="btn-header desktop-only-inline">
-            {t("nav.bookTour")}
+          <NavLink to="/registration" className="btn-header desktop-only-inline">
+            {t("nav.registration")}
           </NavLink>
           <LanguageSwitcher />
           <button
@@ -99,8 +100,8 @@ export function Header() {
                   {t(item.i18n)}
                 </NavLink>
               ))}
-              <NavLink to="/contact" className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>
-                {t("nav.bookTour")}
+              <NavLink to="/registration" className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>
+                {t("nav.registration")}
               </NavLink>
             </nav>
           </motion.div>

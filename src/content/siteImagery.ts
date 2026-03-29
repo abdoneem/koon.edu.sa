@@ -3,7 +3,7 @@ import { photoUrls } from "./photoUrls"
 const svg = (file: string) => `/images/${file}`
 
 /**
- * Saudi-context generated art in /images/saudi plus SVG where abstraction fits (virtual tour UI, WhatsApp).
+ * Saudi-context generated art in /images/saudi plus SVG where abstraction fits (e.g. virtual tour UI).
  */
 export const siteImagery = {
   hero: photoUrls.campusExterior,
@@ -27,20 +27,15 @@ export const siteImagery = {
     ey: photoUrls.youngWriters,
     el: photoUrls.elementaryClass,
     im: photoUrls.studentStudyTech,
-    se: photoUrls.graduationGowns,
+    se: photoUrls.scienceLab,
   },
   highlights: [
     photoUrls.classroomDesks,
-    svg("illustr-highlight-b.svg"),
+    photoUrls.highlightIdentity,
     photoUrls.studentsStudying,
-    svg("illustr-highlight-b.svg"),
+    photoUrls.highlightCommunity,
   ],
   faculty: photoUrls.teamworkTable,
-  quickLinks: [
-    photoUrls.campusWalkway,
-    svg("illustr-quick-whatsapp.svg"),
-    photoUrls.receptionLobby,
-  ],
   about: photoUrls.campusExterior,
   pageHero: {
     academics: photoUrls.classroomStudents,
@@ -83,8 +78,15 @@ export function highlightImageForIndex(i: number): string {
   return siteImagery.highlights[i] ?? siteImagery.highlights[0]
 }
 
-export function quickLinkImageForIndex(i: number): string {
-  return siteImagery.quickLinks[i] ?? siteImagery.quickLinks[0]
+/** Home quick-link cards: all photographic backgrounds (no SVG) for visual consistency. */
+export function quickLinkImageForId(id: "register" | "whatsapp" | "admissions"): string {
+  const map = {
+    admissions: photoUrls.receptionLobby,
+    whatsapp: photoUrls.meetingHandshake,
+    register: photoUrls.buildingEntrance,
+  } as const
+
+  return map[id]
 }
 
 export function facilitiesTeaserImageForIndex(i: number): string {

@@ -1,5 +1,19 @@
 # React + TypeScript + Vite
 
+## CMS API (Laravel)
+
+The `backend/` directory is a Laravel 12 **API** (`/api/content/...`, `/api/admin/...`, `/api/auth/login`). The **React** app includes the CMS at **`/admin`** (same Vite site as the public pages). MySQL and phpMyAdmin can be started from the repository root:
+
+```bash
+docker compose up -d
+```
+
+In `backend/`, copy `.env.example` to `.env`, run `php artisan key:generate`, `php artisan migrate`, `php artisan storage:link`, and `php artisan db:seed`, then `php artisan serve`.
+
+For the Vite app, copy `.env.example` to `.env.local` and set `VITE_API_BASE_URL` to your API base (for example `http://127.0.0.1:8000`). Open **`/admin`** to sign in and edit CMS pages. If a public API call returns 404, the site falls back to static i18n copy.
+
+---
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

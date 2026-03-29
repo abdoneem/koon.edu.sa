@@ -12,7 +12,13 @@ async function fetchCmsContent<T>(path: string, locale: Locale): Promise<T | nul
     return null
   }
 
-  const response = await fetch(`${env.apiBaseUrl}${path}?locale=${locale}`)
+  const response = await fetch(`${env.apiBaseUrl}${path}?locale=${locale}`, {
+    headers: { Accept: "application/json" },
+  })
+
+  if (response.status === 404) {
+    return null
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to load content from ${path}`)

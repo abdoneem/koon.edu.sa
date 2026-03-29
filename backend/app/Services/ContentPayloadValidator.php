@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+
+class ContentPayloadValidator
+{
+    public function validate(string $slug, array $payload): void
+    {
+        $rules = match ($slug) {
+            'landing-page' => [
+                'hero' => 'required|array',
+                'hero.title' => 'required|string|max:500',
+                'hero.subtitle' => 'required|string|max:2000',
+                'hero.primaryCta' => 'required|string|max:200',
+                'hero.secondaryCta' => 'required|string|max:200',
+                'hero.location' => 'required|string|max:500',
+                'hero.backgroundImage' => 'nullable|array',
+                'hero.backgroundImage.url' => 'nullable|string|max:2000',
+                'hero.backgroundImage.alt' => 'nullable|string|max:500',
+                'programs' => 'required|array|min:1',
+                'programs.*.id' => 'nullable|string|max:32',
+                'programs.*.name' => 'required|string|max:200',
+                'programs.*.description' => 'required|string|max:5000',
+                'programs.*.annualFee' => 'required|string|max:100',
+                'highlights' => 'required|array|min:1',
+                'highlights.*.id' => 'nullable|string|max:32',
+                'highlights.*.title' => 'required|string|max:300',
+                'highlights.*.description' => 'required|string|max:5000',
+            ],
+            'about-page' => [
+                'title' => 'required|string|max:300',
+                'description' => 'required|string|max:10000',
+                'pillars' => 'required|array|min:1',
+                'pillars.*.id' => 'required|string|max:32',
+                'pillars.*.title' => 'required|string|max:200',
+                'pillars.*.description' => 'required|string|max:5000',
+            ],
+            'admissions-page' => [
+                'title' => 'required|string|max:300',
+                'description' => 'required|string|max:10000',
+                'steps' => 'required|array|min:1',
+                'steps.*.id' => 'required|string|max:32',
+                'steps.*.title' => 'required|string|max:200',
+                'steps.*.description' => 'required|string|max:5000',
+            ],
+            'contact-page' => [
+                'title' => 'required|string|max:300',
+                'description' => 'required|string|max:10000',
+                'phone' => 'required|string|max:100',
+                'email' => 'required|string|email|max:200',
+                'address' => 'required|string|max:1000',
+            ],
+            default => throw ValidationException::withMessages(['slug' => 'Unknown content slug.']),
+        };
+
+        $validator = Validator::make($payload, $rules);
+
+        if ($validator->fails()) {
+            throw ValidationException::withMessages($validator->errors()->toArray());
+        }
+    }
+}

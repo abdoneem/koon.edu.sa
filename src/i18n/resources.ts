@@ -7,7 +7,7 @@ export const resources = {
         about: "About",
         contact: "Contact",
         admissions: "Admissions",
-        bookTour: "Book a Tour",
+        registration: "Register now",
         academics: "Programs",
         studentLife: "Student Life",
         facilities: "Facilities",
@@ -21,7 +21,7 @@ export const resources = {
         title: "Shaping Confident Learners with a Global Mindset",
         subtitle:
           "Where education meets passion, and identity meets innovation. Boys grow, belong, and lead.",
-        primaryCta: "Book a Tour",
+        primaryCta: "Register now",
         secondaryCta: "Explore Programs",
         location: "Riyadh - Al Nakhil, King Fahd Road",
       },
@@ -38,9 +38,9 @@ export const resources = {
         programImAlt: "Photograph of boys studying in a school library.",
         programSeAlt: "Photograph of secondary students in a science learning setting.",
         highlightH1Alt: "Bright classroom with desks ready for learning.",
-        highlightH2Alt: "Abstract decorative graphic in brand colours.",
+        highlightH2Alt: "Students in a bright school atrium blending modern architecture and cultural design.",
         highlightH3Alt: "Students studying together at a shared table.",
-        highlightH4Alt: "Abstract decorative graphic in brand colours.",
+        highlightH4Alt: "Students and mentors in a welcoming communal learning space.",
         facultyPanelAlt: "Photograph of a school community event in a bright atrium in Saudi Arabia.",
         quickTourAlt: "Photograph of a modern school campus exterior in Riyadh.",
         quickWhatsappAlt: "Stylized chat and messaging illustration.",
@@ -147,8 +147,31 @@ export const resources = {
       },
       cta: {
         title: "Empowering boys from their first backpack to graduation.",
-        hint: "Ask for a campus tour—see classrooms, meet leaders, and get clear next steps.",
-        action: "Start Registration",
+        hint:
+          "Submit the registration form with your son’s details—our admissions team will contact you to complete next steps, including a campus visit if you wish.",
+        action: "Register now",
+      },
+      registrationPage: {
+        title: "Register now",
+        heroTitle: "Registration",
+        heroLead:
+          "Join KOON International School — complete the form below and our team will contact you.",
+        lead:
+          "One simple step: complete your son’s details below. We will reach out to confirm placement, assessments, and—if you like—a walk-through of campus.",
+        notesLabel: "Notes (optional)",
+        notesPlaceholder: "e.g. preferred visit times, questions for admissions, or any additional context.",
+        submit: "Submit",
+        gradePlaceholder: "Select grade",
+        genderPlaceholder: "Select gender",
+        optionsLoadError: "Could not load grade and nationality lists. Check the API and try again.",
+        optionsLoading: "Loading grade and nationality lists…",
+        successTitle: "Received",
+        successBody: "Thank you. Your application has been received.",
+        errorNoApi: "API address is not configured (VITE_API_BASE_URL).",
+        errorNetwork: "Network error.",
+        nationalityPlaceholder: "Choose nationality",
+        nationalitySearch: "Search nationalities…",
+        nationalityNothingFound: "No matching nationality",
       },
       aboutPage: {
         title: "A School Community Built Around Purpose",
@@ -205,10 +228,11 @@ export const resources = {
           aria: "Quick actions",
           items: [
             {
-              id: "tour",
-              title: "Book a campus tour",
-              description: "Walk the corridors, see learning spaces, and ask questions in person.",
-              action: "Schedule visit",
+              id: "register",
+              title: "Register your son",
+              description:
+                "Submit the student registration form—our team will follow up with placement, assessments, and a campus visit when you are ready.",
+              action: "Register now",
             },
             {
               id: "whatsapp",
@@ -218,9 +242,9 @@ export const resources = {
             },
             {
               id: "admissions",
-              title: "Start registration",
-              description: "Begin the admissions journey with clear steps and timely guidance.",
-              action: "View admissions",
+              title: "Admissions journey",
+              description: "See the full pathway from inquiry through enrollment and what to expect at each step.",
+              action: "View steps",
             },
           ],
         },
@@ -269,9 +293,9 @@ export const resources = {
         virtualTour: {
           title: "Take a virtual walk through campus",
           lead:
-            "Preview our learning spaces and how KOON feels on a normal day—then book an in-person visit to meet the team.",
+            "Preview our learning spaces and how KOON feels on a normal day—when you register, we can arrange an in-person visit with the team.",
           hint: "360° and immersive tours can be linked here when your media partner is ready.",
-          primaryCta: "Book a visit",
+          primaryCta: "Register now",
           secondaryCta: "Admissions",
         },
         facilitiesTeaser: {
@@ -307,7 +331,7 @@ export const resources = {
           items: [
             {
               q: "How do I book a tour or visit?",
-              a: "Use Book a Tour on the contact page or message us through WhatsApp—we will confirm a slot that suits your schedule.",
+              a: "Use Register now to submit your details; our admissions team will call you to schedule a campus tour. You can also message us on WhatsApp.",
             },
             {
               q: "What is included in the annual fee?",
@@ -479,7 +503,7 @@ export const resources = {
         about: "من نحن",
         contact: "تواصل معنا",
         admissions: "القبول والتسجيل",
-        bookTour: "احجز زيارة",
+        registration: "سجل الآن",
         academics: "البرامج",
         studentLife: "حياة الطلاب",
         facilities: "المرافق",
@@ -493,7 +517,7 @@ export const resources = {
         title: "نربي جيلاً واثقاً، يفكر بعقلٍ مفتوح على العالم",
         subtitle:
           "تعليم يجمع بين الشغف والهوية: نهيئ أبناءكم لغدٍ أفضل، في بيئة يشعرون فيها بالانتماء والمسؤولية.",
-        primaryCta: "احجز زيارة",
+        primaryCta: "سجل الآن",
         secondaryCta: "تعرّف على البرامج",
         location: "الرياض - حي النخيل، طريق الملك فهد",
       },
@@ -510,9 +534,9 @@ export const resources = {
         programImAlt: "صورة فوتوغرافية لطلاب يدرسون في المكتبة بتركيز.",
         programSeAlt: "صورة فوتوغرافية لطلاب ثانويين في بيئة تعلّم علمي.",
         highlightH1Alt: "صف دراسي مرتب ومستعد للحصة.",
-        highlightH2Alt: "شكل بياني تعبيري بألوان الهوية.",
+        highlightH2Alt: "طلاب في بهو مدرسي مشرق يجمع العمارة الحديثة واللمسات الثقافية.",
         highlightH3Alt: "طلاب يدرسون معاً حول طاولة.",
-        highlightH4Alt: "شكل بياني تعبيري بألوان الهوية.",
+        highlightH4Alt: "طلاب ومرشدون في فضاء تعلم جماعي دافئ.",
         facultyPanelAlt: "صورة فوتوغرافية لفعالية مجتمعية في بهو مدرسي في السعودية.",
         quickTourAlt: "صورة فوتوغرافية لواجهة مدرسة عصرية في الرياض.",
         quickWhatsappAlt: "رسم تعبيري لأيقونة محادثة ومراسلة.",
@@ -619,8 +643,31 @@ export const resources = {
       },
       cta: {
         title: "نرافق أبناءكم من أول يوم مدرسي حتى التخرج.",
-        hint: "احجزوا جولة في الحرم المدرسي، التقوا الفريق، وتعرّفوا على خطوات التسجيل بوضوح.",
+        hint:
+          "قدّموا نموذج التسجيل ببيانات ابنكم—يتواصل فريق القبول معكم لاستكمال الخطوات، بما في ذلك جدولة زيارة للحرم إن رغبتُم.",
         action: "سجل الآن",
+      },
+      registrationPage: {
+        title: "سجل الآن",
+        heroTitle: "التسجيل",
+        heroLead:
+          "انضم إلى مدارس كون الدولية — عبّئوا النموذج أدناه وسيتواصل معكم فريقنا.",
+        lead:
+          "خطوة واحدة واضحة: عبّئوا البيانات أدناه. سنتواصل معكم لتأكيد الصف والتقييم، ولتحديد موعد زيارة عند الرغبة.",
+        notesLabel: "ملاحظات (اختياري)",
+        notesPlaceholder: "مثال: أوقات تفضّلونها للزيارة، أو استفسارات لقسم القبول، أو أي معلومة إضافية.",
+        submit: "تسجيل",
+        gradePlaceholder: "اختر الصف",
+        genderPlaceholder: "اختر الجنس",
+        optionsLoadError: "تعذر تحميل قوائم الصفوف والجنسية. تحقق من الاتصال بالخادم.",
+        optionsLoading: "جاري تحميل قوائم الصف والجنسية…",
+        successTitle: "تم الاستلام",
+        successBody: "شكرًا لكم. تم استلام الطلب بنجاح.",
+        errorNoApi: "لم يُضبط عنوان الخادم (VITE_API_BASE_URL).",
+        errorNetwork: "خطأ في الاتصال.",
+        nationalityPlaceholder: "اختر الجنسية",
+        nationalitySearch: "ابحث عن الجنسية…",
+        nationalityNothingFound: "لا توجد نتيجة مطابقة",
       },
       aboutPage: {
         title: "مدرسة بروحٍ واضحة",
@@ -677,10 +724,11 @@ export const resources = {
           aria: "روابط سريعة",
           items: [
             {
-              id: "tour",
-              title: "زيارة مرتبة للحرم المدرسي",
-              description: "شاهدوا المرافق والأجواء اليومية للتعلّم، وطرحوا أسئلتكم بحرية.",
-              action: "اختر الموعد",
+              id: "register",
+              title: "تسجيل الطالب",
+              description:
+                "قدّموا نموذج التسجيل عبر الموقع—يتابعكم فريق القبول للصف والتقييم، ويمكن جدولة زيارة للحرم عندما تكونون مستعدين.",
+              action: "سجل الآن",
             },
             {
               id: "whatsapp",
@@ -690,9 +738,9 @@ export const resources = {
             },
             {
               id: "admissions",
-              title: "سجل الآن",
-              description: "خطوات واضحة مع متابعة من فريق القبول حتى إتمام الإجراءات.",
-              action: "صفحة القبول",
+              title: "مسار القبول والتسجيل",
+              description: "اطلعوا على الخطوات من الطلب حتى إتمام الإجراءات وما يمكن توقّعه في كل مرحلة.",
+              action: "تعرّف على الخطوات",
             },
           ],
         },
@@ -741,9 +789,9 @@ export const resources = {
         virtualTour: {
           title: "جولة داخل الحرم المدرسي دون مغادرة المنزل",
           lead:
-            "شاهدوا كيف يمكن أن يبدو يوم ابنكم في كون، ثم أكملوا التجربة بزيارة شخصية ولقاء الفريق.",
+            "تعرّفوا على أجواء التعلّم في كون، ثم أكملوا التجربة بتسجيل الطلب؛ نرتّب معكم زيارة ولقاء الفريق حسب اختياركم.",
           hint: "عند توفر المحتوى، يمكن إضافة جولة 360° أو تجربة تفاعلية هنا.",
-          primaryCta: "احجز زيارة",
+          primaryCta: "سجل الآن",
           secondaryCta: "القبول والتسجيل",
         },
         facilitiesTeaser: {
@@ -779,7 +827,7 @@ export const resources = {
           items: [
             {
               q: "كيف أحجز زيارة للحرم المدرسي؟",
-              a: "من صفحة التواصل اختر «احجز جولة»، أو راسلنا على واتساب، ونحدد معكما وقتاً مناسباً.",
+              a: "اضغطوا «سجل الآن» وأرسلوا البيانات؛ يتواصل معكم قسم القبول لتحديد موعد الزيارة. يمكنكم أيضاً مراسلتنا عبر واتساب.",
             },
             {
               q: "ماذا تشتمل عليه الرسوم السنوية؟",

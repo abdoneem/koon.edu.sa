@@ -1,12 +1,16 @@
 import { motion, useReducedMotion } from "framer-motion"
+import { Link } from "react-router-dom"
+
+const MotionLink = motion(Link)
 
 interface CtaSectionProps {
   title: string
   action: string
   hint?: string
+  actionTo?: string
 }
 
-export function CtaSection({ title, action, hint }: CtaSectionProps) {
+export function CtaSection({ title, action, hint, actionTo = "/registration" }: CtaSectionProps) {
   const reduce = useReducedMotion()
 
   return (
@@ -23,14 +27,14 @@ export function CtaSection({ title, action, hint }: CtaSectionProps) {
           <h2>{title}</h2>
           {hint ? <p className="cta-band__hint">{hint}</p> : null}
         </div>
-        <motion.button
-          type="button"
+        <MotionLink
+          to={actionTo}
           className="btn btn-accent"
           whileHover={reduce ? undefined : { scale: 1.03 }}
           whileTap={reduce ? undefined : { scale: 0.98 }}
         >
           {action}
-        </motion.button>
+        </MotionLink>
       </div>
     </motion.section>
   )

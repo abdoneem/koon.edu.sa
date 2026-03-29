@@ -39,12 +39,12 @@ export function ProgramsSection({ title, lead, feeLabel, programs }: ProgramsSec
         </div>
         <div className="cards-grid programs-grid">
           {programs.map((program) => {
-            const Ic = (program.id && programIconById[program.id]) || IconBook
             const imgSrc = program.id ? programImageForId(program.id) : undefined
             const altKey = program.id ? PROGRAM_ALT_KEYS[program.id] : undefined
             const alt = altKey ? t(altKey) : ""
 
             if (!imgSrc) {
+              const Ic = (program.id && programIconById[program.id]) || IconBook
               return (
                 <article key={program.id || program.name} className="card program-card">
                   <IconBadge variant="default">
@@ -76,9 +76,6 @@ export function ProgramsSection({ title, lead, feeLabel, programs }: ProgramsSec
                   />
                   <div className="program-card__stage-scrim" aria-hidden="true" />
                   <div className="program-card__stage-content">
-                    <IconBadge variant="light">
-                      <Ic className="icon-badge__svg" size={22} />
-                    </IconBadge>
                     <h3>{program.name}</h3>
                     <p className="program-card__stage-desc">{program.description}</p>
                   </div>

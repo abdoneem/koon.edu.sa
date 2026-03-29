@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion"
+import { Link } from "react-router-dom"
 import type { HeroContent } from "../../types/cms"
 
 interface HeroSectionProps {
@@ -28,11 +29,7 @@ export function HeroSection({
         {reduce ? (
           <>
             <div className="hero-copy">
-              <HeroCopyContent
-                brand={brand}
-                visionLine={visionLine}
-                hero={hero}
-              />
+              <HeroCopyContent brand={brand} visionLine={visionLine} hero={hero} />
             </div>
             <div className="hero-visual">
               <HeroVisual
@@ -50,11 +47,7 @@ export function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease }}
             >
-              <HeroCopyContent
-                brand={brand}
-                visionLine={visionLine}
-                hero={hero}
-              />
+              <HeroCopyContent brand={brand} visionLine={visionLine} hero={hero} />
             </motion.div>
             <motion.div
               className="hero-visual"
@@ -91,12 +84,12 @@ function HeroCopyContent({
       <h1>{hero.title}</h1>
       <p className="hero-subtitle">{hero.subtitle}</p>
       <div className="hero-actions">
-        <button type="button" className="btn btn-primary">
+        <Link to="/registration" className="btn btn-primary">
           {hero.primaryCta}
-        </button>
-        <button type="button" className="btn btn-secondary">
+        </Link>
+        <Link to="/academics" className="btn btn-secondary">
           {hero.secondaryCta}
-        </button>
+        </Link>
       </div>
       <p className="location">
         <span className="location-dot" aria-hidden="true" />

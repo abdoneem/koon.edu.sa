@@ -1,6 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { FigureImage } from "../components/FigureImage"
 import { PageLayout } from "../components/PageLayout"
 import { facilitiesZoneImage, siteImagery } from "../content/siteImagery"
 
@@ -20,21 +19,18 @@ export function FacilitiesPage() {
         animate={reduce ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
       >
-        <header className="page-hero-slab">
-          <div className="container">
-            <h1 className="page-title">{t("facilitiesPage.title")}</h1>
-            <p className="page-subtitle page-hero-lead">{t("facilitiesPage.lead")}</p>
+        <header
+          className="facilities-page-hero"
+          style={{ backgroundImage: `url(${siteImagery.pageHero.facilities})` }}
+        >
+          <div className="facilities-page-hero__scrim" aria-hidden="true" />
+          <div className="container facilities-page-hero__inner">
+            <h1 id="facilities-hero-title" className="page-title facilities-page-hero__title">
+              {t("facilitiesPage.title")}
+            </h1>
+            <p className="page-subtitle facilities-page-hero__lead">{t("facilitiesPage.lead")}</p>
           </div>
         </header>
-        <div className="container page-inline-hero-wrap">
-          <FigureImage
-            src={siteImagery.pageHero.facilities}
-            alt={t("facilitiesPage.heroImageAlt")}
-            className="page-inline-hero-media"
-            width={1200}
-            height={480}
-          />
-        </div>
         <section className="section container">
           <div className="facilities-grid">
             {zones.map((z, i) => (

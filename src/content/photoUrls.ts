@@ -25,4 +25,8 @@ export const photoUrls = {
   hallwayBright: sa("gen-reception-saudi.png"),
   receptionLobby: sa("gen-reception-saudi.png"),
   buildingEntrance: sa("gen-hero-campus-saudi.png"),
+  /** Highlights grid — identity & roots (card 02) */
+  highlightIdentity: sa("gen-highlight-identity-saudi.png"),
+  /** Highlights grid — nurturing community (card 04) */
+  highlightCommunity: sa("gen-highlight-community-saudi.png"),
 } as const
