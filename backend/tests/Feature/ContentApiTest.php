@@ -29,6 +29,31 @@ class ContentApiTest extends TestCase
         ];
     }
 
+    public function test_landing_json_includes_optional_home_sections_when_present(): void
+    {
+        $payload = self::sampleLandingPayload();
+        $payload['hero']['trustLine'] = 'Trusted';
+        $payload['stats'] = [
+            ['value' => '10+', 'label' => 'Years'],
+        ];
+        $payload['news'] = [
+            ['id' => 'n1', 'title' => 'CMS news', 'excerpt' => 'Excerpt', 'date' => '2026-03-01'],
+        ];
+
+        ContentPage::query()->create([
+            'slug' => 'landing-page',
+            'locale' => 'en',
+            'payload' => $payload,
+            'published_at' => now()->subMinute(),
+        ]);
+
+        $this->getJson('/api/content/landing-page?locale=en')
+            ->assertOk()
+            ->assertJsonPath('hero.trustLine', 'Trusted')
+            ->assertJsonPath('stats.0.value', '10+')
+            ->assertJsonPath('news.0.title', 'CMS news');
+    }
+
     public function test_returns_landing_json_for_en_and_ar_when_published(): void
     {
         foreach (['en', 'ar'] as $locale) {

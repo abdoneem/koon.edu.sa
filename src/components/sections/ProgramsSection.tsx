@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
 import { programImageForId } from "../../content/siteImagery"
 import type { ProgramContent } from "../../types/cms"
 import { IconBadge } from "../IconBadge"
@@ -23,9 +24,17 @@ interface ProgramsSectionProps {
   lead: string
   feeLabel: string
   programs: ProgramContent[]
+  /** Destination when a program card is activated (entire card is clickable). */
+  programsPath?: string
 }
 
-export function ProgramsSection({ title, lead, feeLabel, programs }: ProgramsSectionProps) {
+export function ProgramsSection({
+  title,
+  lead,
+  feeLabel,
+  programs,
+  programsPath = "/academics",
+}: ProgramsSectionProps) {
   const { t } = useTranslation()
   return (
     <section id="programs" className="section programs-section section-surface section-surface--azure">
@@ -42,50 +51,62 @@ export function ProgramsSection({ title, lead, feeLabel, programs }: ProgramsSec
             const imgSrc = program.id ? programImageForId(program.id) : undefined
             const altKey = program.id ? PROGRAM_ALT_KEYS[program.id] : undefined
             const alt = altKey ? t(altKey) : ""
+            const label = t("programs.cardAria", { name: program.name })
 
             if (!imgSrc) {
               const Ic = (program.id && programIconById[program.id]) || IconBook
               return (
-                <article key={program.id || program.name} className="card program-card">
-                  <IconBadge variant="default">
-                    <Ic className="icon-badge__svg" size={22} />
-                  </IconBadge>
-                  <h3>{program.name}</h3>
-                  <p>{program.description}</p>
-                  <p className="fee">
-                    {feeLabel}: <strong>{program.annualFee}</strong>
-                  </p>
-                </article>
+                <Link
+                  key={program.id || program.name}
+                  to={programsPath}
+                  className="program-card-link"
+                  aria-label={label}
+                >
+                  <article className="card program-card">
+                    <IconBadge variant="default">
+                      <Ic className="icon-badge__svg" size={22} />
+                    </IconBadge>
+                    <h3>{program.name}</h3>
+                    <p>{program.description}</p>
+                    <p className="fee">
+                      {feeLabel}: <strong>{program.annualFee}</strong>
+                    </p>
+                  </article>
+                </Link>
               )
             }
 
             return (
-              <article
+              <Link
                 key={program.id || program.name}
-                className="card program-card program-card--stage"
+                to={programsPath}
+                className="program-card-link"
+                aria-label={label}
               >
-                <div className="program-card__stage">
-                  <img
-                    src={imgSrc}
-                    alt={alt}
-                    width={640}
-                    height={400}
-                    loading="lazy"
-                    decoding="async"
-                    className="program-card__stage-img"
-                  />
-                  <div className="program-card__stage-scrim" aria-hidden="true" />
-                  <div className="program-card__stage-content">
-                    <h3>{program.name}</h3>
-                    <p className="program-card__stage-desc">{program.description}</p>
+                <article className="card program-card program-card--stage">
+                  <div className="program-card__stage">
+                    <img
+                      src={imgSrc}
+                      alt={alt}
+                      width={640}
+                      height={400}
+                      loading="lazy"
+                      decoding="async"
+                      className="program-card__stage-img"
+                    />
+                    <div className="program-card__stage-scrim" aria-hidden="true" />
+                    <div className="program-card__stage-content">
+                      <h3>{program.name}</h3>
+                      <p className="program-card__stage-desc">{program.description}</p>
+                    </div>
+                    <div className="program-card__stage-fee">
+                      <p className="fee fee--on-dark">
+                        {feeLabel}: <strong>{program.annualFee}</strong>
+                      </p>
+                    </div>
                   </div>
-                  <div className="program-card__stage-fee">
-                    <p className="fee fee--on-dark">
-                      {feeLabel}: <strong>{program.annualFee}</strong>
-                    </p>
-                  </div>
-                </div>
-              </article>
+                </article>
+              </Link>
             )
           })}
         </div>

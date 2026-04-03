@@ -16,7 +16,7 @@ export const siteImagery = {
     n1: photoUrls.hallwayBright,
     n2: photoUrls.receptionLobby,
     n3: photoUrls.scienceLab,
-  },
+  } as Record<string, string>,
   virtualTour: svg("illustr-virtual-tour.svg"),
   facilitiesTeaser: [
     photoUrls.scienceLab,
@@ -66,8 +66,9 @@ export const siteImagery = {
   ],
 } as const
 
-export function newsImageForId(id: string): string | undefined {
-  return siteImagery.newsById[id as keyof typeof siteImagery.newsById]
+export function newsCoverOrFallback(id: string): string {
+  const m = siteImagery.newsById as Record<string, string>
+  return m[id] ?? photoUrls.classroomStudents
 }
 
 export function programImageForId(id: string): string | undefined {

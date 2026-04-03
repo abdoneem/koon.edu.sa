@@ -22,9 +22,10 @@ interface HighlightsSectionProps {
 export function HighlightsSection({ title, lead, highlights }: HighlightsSectionProps) {
   const { t } = useTranslation()
   return (
-    <section id="about" className="section highlights-section section-surface section-surface--slate">
+    <section id="why-koon" className="section highlights-section section-surface section-surface--slate">
       <div className="container">
         <div className="section-head section-head--accent">
+          <p className="eyebrow">{t("highlights.eyebrow")}</p>
           <h2>{title}</h2>
           <p className="section-lead">{lead}</p>
         </div>

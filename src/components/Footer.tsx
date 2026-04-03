@@ -1,6 +1,19 @@
 import { useTranslation } from "react-i18next"
 import { NavLink } from "react-router-dom"
+import { brand } from "../config/brand"
 import { Logo } from "./Logo"
+
+const HOME_ANCHORS: { hash: string; i18n: "nav.whyKoon" | "nav.media" | "nav.facilities" | "nav.accreditationsNav" | "nav.excellenceNav" | "nav.articlesNav" | "nav.bookTour" | "nav.virtualTour" | "nav.portalsNav" }[] = [
+  { hash: "why-koon", i18n: "nav.whyKoon" },
+  { hash: "media", i18n: "nav.media" },
+  { hash: "facilities", i18n: "nav.facilities" },
+  { hash: "accreditations", i18n: "nav.accreditationsNav" },
+  { hash: "excellence", i18n: "nav.excellenceNav" },
+  { hash: "articles", i18n: "nav.articlesNav" },
+  { hash: "book-tour", i18n: "nav.bookTour" },
+  { hash: "virtual-tour", i18n: "nav.virtualTour" },
+  { hash: "portals", i18n: "nav.portalsNav" },
+]
 
 export function Footer() {
   const { t } = useTranslation()
@@ -27,6 +40,20 @@ export function Footer() {
             <a href={`mailto:${t("footer.email")}`}>{t("footer.email")}</a>
           </p>
         </div>
+        <div className="footer-col footer-col--social">
+          <span className="footer-heading">{t("footer.follow")}</span>
+          <div className="footer-social">
+            <a href={brand.social.youtube} target="_blank" rel="noopener noreferrer">
+              YouTube
+            </a>
+            <a href={brand.social.x} target="_blank" rel="noopener noreferrer">
+              X
+            </a>
+            <a href={brand.social.snapchat} target="_blank" rel="noopener noreferrer">
+              Snapchat
+            </a>
+          </div>
+        </div>
         <div className="footer-col">
           <span className="footer-heading">{t("footer.links")}</span>
           <ul className="footer-links">
@@ -37,13 +64,10 @@ export function Footer() {
               <NavLink to="/student-life">{t("nav.studentLife")}</NavLink>
             </li>
             <li>
-              <NavLink to="/facilities">{t("nav.facilities")}</NavLink>
-            </li>
-            <li>
               <NavLink to="/admissions">{t("nav.admissions")}</NavLink>
             </li>
             <li>
-              <NavLink to="/news">{t("nav.news")}</NavLink>
+              <NavLink to="/registration">{t("nav.registration")}</NavLink>
             </li>
             <li>
               <NavLink to="/about">{t("nav.about")}</NavLink>
@@ -53,6 +77,16 @@ export function Footer() {
             </li>
           </ul>
         </div>
+        <div className="footer-col">
+          <span className="footer-heading">{t("footer.onHome")}</span>
+          <ul className="footer-links">
+            {HOME_ANCHORS.map((a) => (
+              <li key={a.hash}>
+                <a href={`/#${a.hash}`}>{t(a.i18n)}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
       <div className="container footer-bottom">
         <p>{t("footer.rights")}</p>
@@ -60,3 +94,5 @@ export function Footer() {
     </footer>
   )
 }
+
+export default Footer

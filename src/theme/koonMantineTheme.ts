@@ -20,7 +20,7 @@ export const koonMantineTheme = createTheme({
     koon: koonBlue,
   },
   defaultRadius: "md",
-  fontFamily: `'Segoe UI', Tahoma, Arial, sans-serif`,
-  headings: { fontFamily: `'Segoe UI', Tahoma, Arial, sans-serif`, fontWeight: "600" },
+  fontFamily: `"Plus Jakarta Sans", "Cairo", sans-serif`,
+  headings: { fontFamily: `"Plus Jakarta Sans", "Cairo", sans-serif`, fontWeight: "600" },
   defaultGradient: { from: "koon.7", to: "koon.5", deg: 135 },
 })

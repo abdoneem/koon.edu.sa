@@ -15,14 +15,129 @@ export const resources = {
         menu: "Menu",
         ariaMain: "Primary navigation",
         ariaMobile: "Mobile navigation",
+        bookVisit: "Book a visit",
+        applyNow: "Apply now",
+      },
+      seo: {
+        siteName: "KOON International Schools",
+        paths: {
+          home: {
+            title: "KOON International Schools | Riyadh",
+            description:
+              "Premium boys’ international education in Al Nakhil, Riyadh—bilingual Arabic and English pathway from early years through high school. Book a visit or apply online.",
+          },
+          about: {
+            title: "About KOON | International Schools Riyadh",
+            description:
+              "Our purpose, pillars, and community—global standards with a strong Saudi identity for boys in Riyadh.",
+          },
+          academics: {
+            title: "Programs & Curriculum | KOON Riyadh",
+            description:
+              "Stage-by-stage learning from KG through secondary: literacy, inquiry, bilingual teaching, and university readiness.",
+          },
+          studentLife: {
+            title: "Student Life | KOON International Schools",
+            description:
+              "Leadership, wellbeing, arts, STEM, and sports—how boys belong and grow beyond the classroom.",
+          },
+          facilities: {
+            title: "Campus & Facilities | KOON Riyadh",
+            description:
+              "Learning suites, labs, library, sports, and safe supervised spaces on our Al Nakhil campus.",
+          },
+          admissions: {
+            title: "Admissions | KOON International Schools",
+            description:
+              "Clear steps from inquiry and campus visit to assessment and enrollment for your son.",
+          },
+          registration: {
+            title: "Registration | KOON International Schools",
+            description:
+              "Submit your son’s details—our admissions team will follow up with placement and next steps.",
+          },
+          news: {
+            title: "News & Events | KOON Riyadh",
+            description:
+              "Highlights from campus life, celebrations, and programs at KOON International Schools.",
+          },
+          contact: {
+            title: "Contact & Visit | KOON International Schools",
+            description:
+              "Reach admissions on King Fahd Road, Al Nakhil—phone, email, and WhatsApp for families in Riyadh.",
+          },
+          adminLogin: {
+            title: "Admin sign in | KOON",
+            description: "Staff access to the KOON content and admissions console.",
+          },
+          admin: {
+            title: "Admin | KOON",
+            description: "KOON staff dashboard.",
+          },
+        },
+      },
+      homeLuxury: {
+        hero: {
+          metaLine: "Private boys’ international · Al Nakhil",
+        },
+        why: {
+          kicker: "Differentiators",
+          title: "Why families shortlist KOON",
+          lead:
+            "Fewer promises, more structure: how we run the week, the year, and the pathway to confident graduates.",
+        },
+        programs: {
+          kicker: "Pathway",
+          title: "Four stages. One deliberate climb.",
+          lead:
+            "Tap a stage for the full curriculum story—fees shown are orientation figures; contracts confirm final tuition.",
+          explore: "View curriculum →",
+        },
+        trust: {
+          kicker: "Proof",
+          title: "Numbers your accountant and your son both understand",
+          lead: "Transparency beats adjectives. Here is the frame we work inside—then come see it alive on campus.",
+          metrics: [
+            { value: "KG–12", label: "Single continuum—no anonymous hand-offs between divisions" },
+            { value: "2", label: "Core languages in the daily schedule—Arabic and English" },
+            { value: "1:1", label: "Admissions conversation—real humans, not only forms" },
+            { value: "360°", label: "Academic, pastoral, and conduct expectations in one culture" },
+          ],
+          proofChips: [
+            "Riyadh · Al Nakhil",
+            "Supervised campus",
+            "Visit-first ethos",
+            "Published fee bands",
+          ],
+        },
+        campus: {
+          kicker: "The campus",
+          title: "Built for focus, not for brochure filler",
+          lead: "Labs, libraries, pitches, and quiet corners—spaces boys actually use, maintained to a standard you can sense on day one.",
+          body:
+            "We would rather you judge the school with your eyes than our words. Book a walk-through: we’ll show you classrooms in use, not empty showcases.",
+          ctaFacilities: "Explore facilities",
+          ctaVisit: "Schedule a private tour",
+        },
+        admissions: {
+          kicker: "Begin",
+          title: "Three doors. One admissions desk.",
+          lead:
+            "Pick the step that matches your pace—we’ll respond with clarity on placement, assessments, and timelines.",
+          ctaVisit: "Book a visit",
+          ctaWhatsapp: "WhatsApp admissions",
+          ctaApply: "Submit application",
+          note: "Office hours responses; WhatsApp for quick questions, registration when you are ready to formalize.",
+        },
       },
       hero: {
-        visionLine: "Riyadh · Global standards · Strong local identity",
-        title: "Shaping Confident Learners with a Global Mindset",
+        visionLine: "Riyadh · Al Nakhil · Boys’ international",
+        title: "Where rigor meets restraint—and boys thrive in both languages",
         subtitle:
-          "Where education meets passion, and identity meets innovation. Boys grow, belong, and lead.",
-        primaryCta: "Register now",
-        secondaryCta: "Explore Programs",
+          "A purpose-built campus for families who expect structure without sterility: bilingual academics, unambiguous standards, and a clear path from first day to graduation.",
+        primaryCta: "Book a campus visit",
+        secondaryCta: "Apply now",
+        programsLink: "Browse programs and pathways →",
         location: "Riyadh - Al Nakhil, King Fahd Road",
       },
       imagery: {
@@ -50,10 +165,10 @@ export const resources = {
       stats: {
         aria: "Highlights about KOON International Schools",
         items: [
-          { value: "KG-12", label: "Continuum across core school years" },
-          { value: "Riyadh", label: "Al Nakhil campus on King Fahd Road" },
-          { value: "EN/AR", label: "Bilingual learning culture" },
-          { value: "360°", label: "Care for academics, character, and wellbeing" },
+          { value: "KG–12", label: "One pathway from early years through graduation" },
+          { value: "Riyadh", label: "Al Nakhil · King Fahd Road" },
+          { value: "EN + AR", label: "Daily bilingual literacy—not a side program" },
+          { value: "360°", label: "Academics, wellbeing, and conduct in one plan" },
         ],
       },
       showcase: {
@@ -86,70 +201,76 @@ export const resources = {
       },
       programs: {
         title: "Programs across every stage",
-        lead: "A continuous pathway from early years through secondary—rigorous, bilingual, and grounded in character, similar to leading private schools in the Kingdom.",
+        lead: "Each stage has clear outcomes: language growth, disciplined study habits, and leadership you can see—in Arabic and English, every week.",
+        cardAria: "View programs overview: {{name}}",
         items: [
           {
             id: "ey",
             name: "Early Years (KG)",
             description:
-              "A joyful beginning focused on language development, play-based learning, and character building.",
+              "Language-rich routines, purposeful play, and early habits of attention and respect.",
             annualFee: "20,000 SAR",
           },
           {
             id: "el",
-            name: "Elementary (Grades 1-6)",
+            name: "Primary (Grades 1–6)",
             description:
-              "The foundation of reading, writing, numeracy, and exploration rooted in values.",
+              "Core literacy, numeracy, and inquiry—so fundamentals are secure before abstract work accelerates.",
             annualFee: "21,000 - 22,500 SAR",
           },
           {
             id: "im",
-            name: "Intermediate (Grades 7-9)",
+            name: "Middle School (Grades 7–9)",
             description:
-              "A phase of independence, deep critical thinking, and personal growth.",
+              "Greater independence, structured critical thinking, and mentorship as subjects deepen.",
             annualFee: "24,000 SAR",
           },
           {
             id: "se",
-            name: "Secondary (Grades 10-12)",
+            name: "High School (Grades 10–12)",
             description:
-              "Preparation for higher education through advanced challenges and practical skills.",
+              "University-oriented rigor, research habits, and practical readiness—not last-minute cramming.",
             annualFee: "25,000 SAR",
           },
         ],
         feeLabel: "Annual fee",
       },
       highlights: {
-        title: "Why KOON?",
-        lead: "Principles you feel on day one—your son carries them for life.",
+        eyebrow: "Why families choose KOON",
+        title: "Decisions parents feel good about revisiting",
+        lead: "No vague promises—just the pillars we operate on when your son walks through the gate.",
         items: [
           {
             id: "h1",
-            title: "World-Class Learning",
-            description: "Future-ready education with high academic standards.",
+            title: "Rigor you can trace",
+            description:
+              "Clear standards, visible progression, and teaching that adjusts when a boy needs more challenge—or more support.",
           },
           {
             id: "h2",
-            title: "Cultural Roots",
-            description: "Strong values and local identity at the center.",
+            title: "Identity by design",
+            description:
+              "Saudi context and values are part of the timetable, not a brochure line—so confidence stays rooted.",
           },
           {
             id: "h3",
-            title: "Lifelong Skills",
-            description: "Leadership, curiosity, and critical thinking every day.",
+            title: "Habits that compound",
+            description:
+              "Organization, communication, and resilience practiced until they feel natural—not borrowed for exam week.",
           },
           {
             id: "h4",
-            title: "Meaningful Community",
-            description: "A safe and engaging place where boys belong.",
+            title: "A campus that feels known",
+            description:
+              "Predictable routines, visible leadership, and a culture where boys are seen as individuals.",
           },
         ],
       },
       cta: {
-        title: "Empowering boys from their first backpack to graduation.",
+        title: "Ready when you are—we’ll meet you at the right step.",
         hint:
-          "Submit the registration form with your son’s details—our admissions team will contact you to complete next steps, including a campus visit if you wish.",
-        action: "Register now",
+          "Share your son’s details and we’ll respond with placement guidance, assessments if needed, and a campus visit on your timeline.",
+        action: "Start registration",
       },
       registrationPage: {
         title: "Register now",
@@ -263,10 +384,47 @@ export const resources = {
         trust: {
           aria: "Trust and quality signals",
           items: [
-            "Bilingual pathway · Arabic & English",
-            "Riyadh campus · Al Nakhil",
-            "Safe, supervised environment",
-            "Clear progression KG through secondary",
+            "Supervised campus · safeguarding-aware teams",
+            "Published fee bands · transparent next steps",
+            "Continuum KG–12 · no hand-off guesswork",
+            "Riyadh, Al Nakhil · King Fahd Road access",
+          ],
+        },
+        bilingual: {
+          eyebrow: "Dual language, one plan",
+          title: "Arabic and English—with equal intent",
+          lead:
+            "Parents shouldn’t choose between fluency and identity. We structure both languages into daily literacy, discussion, and assessment—not optional add-ons.",
+          points: [
+            "Arabic and English class time and expectations are both spelled out in the weekly rhythm.",
+            "Reading and writing are built in both languages; one language is never treated as secondary filler.",
+            "Older grades bridge toward university-style communication without losing cultural fluency.",
+            "Teachers collaborate so your son hears a consistent message at home conferences and in class.",
+          ],
+        },
+        admissionsFunnel: {
+          eyebrow: "Admissions",
+          title: "Three steps. One team beside you.",
+          lead: "Visit when it suits you, ask questions in the channel you prefer, then complete registration when you are ready.",
+          steps: [
+            {
+              title: "See the campus",
+              description:
+                "Book a walk-through with admissions. Meet leaders, see classrooms in use, and sense the daily rhythm.",
+              cta: "Book a visit",
+            },
+            {
+              title: "Ask admissions directly",
+              description:
+                "Prefer a quick conversation first? Message us on WhatsApp during office hours for placement and timing questions.",
+              cta: "Chat on WhatsApp",
+            },
+            {
+              title: "Submit your application",
+              description:
+                "When you are ready, send your son’s details. We follow up with assessments and enrollment paperwork.",
+              cta: "Open registration form",
+            },
           ],
         },
         valuesRibbon: {
@@ -291,15 +449,15 @@ export const resources = {
           ],
         },
         virtualTour: {
-          title: "Take a virtual walk through campus",
+          title: "Preview the campus—then walk it in person",
           lead:
-            "Preview our learning spaces and how KOON feels on a normal day—when you register, we can arrange an in-person visit with the team.",
-          hint: "360° and immersive tours can be linked here when your media partner is ready.",
-          primaryCta: "Register now",
-          secondaryCta: "Admissions",
+            "Use this section for a future 360° or film tour. Until then, schedule a real visit: nothing replaces seeing how boys move, speak, and learn here.",
+          hint: "Immersive media can be embedded here when ready—your admissions team keeps visits personal.",
+          primaryCta: "Schedule a visit",
+          secondaryCta: "Admissions overview",
         },
         facilitiesTeaser: {
-          eyebrow: "Campus",
+          eyebrow: "Campus experience",
           title: "Spaces built for learning",
           lead: "Purposeful zones for inquiry, reading, movement, and creativity—maintained for safety and focus.",
           viewAll: "Explore all facilities",
@@ -511,14 +669,129 @@ export const resources = {
         menu: "القائمة",
         ariaMain: "التنقل الرئيسي",
         ariaMobile: "التنقل للجوال",
+        bookVisit: "احجز زيارة",
+        applyNow: "قدّم الطلب",
+      },
+      seo: {
+        siteName: "مدارس كون العالمية",
+        paths: {
+          home: {
+            title: "مدارس كون العالمية | الرياض",
+            description:
+              "تعليم دولي للبنين في النخيل بالرياض—مسار ثنائي اللغة من الطفولة المبكرة حتى الثانوية. احجزوا زيارة أو قدّموا الطلب عبر الموقع.",
+          },
+          about: {
+            title: "من نحن | مدارس كون الرياض",
+            description:
+              "رؤيتنا وركائزنا ومجتمعنا—معايير عالمية وهوية سعودية واضحة لأبنائكم.",
+          },
+          academics: {
+            title: "البرامج والمنهج | كون الرياض",
+            description:
+              "تعلّم مرحلة بمرحلة من الروضة حتى الثانوية: لغويات، استقصاء، ثنائية لغوية، وجاهزية جامعية.",
+          },
+          studentLife: {
+            title: "حياة الطلاب | مدارس كون",
+            description:
+              "القيادة، الرفاه، الفنون، STEM، والرياضة—كيف ينمو الطلاب وينتمون خارج الصف.",
+          },
+          facilities: {
+            title: "الحرم والمرافق | كون الرياض",
+            description:
+              "قاعات تعلّم، مختبرات، مكتبة، رياضة، وبيئة آمنة بإشراف في فرع النخيل.",
+          },
+          admissions: {
+            title: "القبول والتسجيل | مدارس كون",
+            description:
+              "خطوات واضحة من الاستفسار والزيارة حتى التقييم وإتمام الإلحاق.",
+          },
+          registration: {
+            title: "التسجيل | مدارس كون العالمية",
+            description:
+              "أرسلوا بيانات ابنكم—يتابعكم فريق القبول بالصف والخطوات التالية.",
+          },
+          news: {
+            title: "الأخبار والفعاليات | كون الرياض",
+            description:
+              "لقطات من الحياة المدرسية والبرامج في مدارس كون العالمية.",
+          },
+          contact: {
+            title: "التواصل والزيارة | مدارس كون",
+            description:
+              "قسم القبول على طريق الملك فهد، النخيل—هاتف، بريد، وواتساب لأولياء الأمور في الرياض.",
+          },
+          adminLogin: {
+            title: "دخول الإدارة | كون",
+            description: "دخول الموظفين إلى لوحة المحتوى والقبول.",
+          },
+          admin: {
+            title: "الإدارة | كون",
+            description: "لوحة تحكم الموظفين.",
+          },
+        },
+      },
+      homeLuxury: {
+        hero: {
+          metaLine: "دولية خاصة للبنين · النخيل",
+        },
+        why: {
+          kicker: "تميّز واضح",
+          title: "لماذا تضع كون في قائمة المقارنة القصيرة",
+          lead:
+            "وعود أقل وبنية أكثر: كيف ندير الأسبوع والسنة والمسار نحو خريج واثق.",
+        },
+        programs: {
+          kicker: "المسار",
+          title: "أربع مراحلة. صعود مدروس.",
+          lead:
+            "اضغطوا المرحلة لقصة المنهج الكاملة—الرسوم أرقام توجيهية، والتعاقد يثبّت الرسوم النهائية.",
+          explore: "عرض المنهج ←",
+        },
+        trust: {
+          kicker: "أرقام",
+          title: "ما يفهمه ولي الأمر والطالب معاً",
+          lead: "الشفافية أبلغ من الصفات. هذا إطار عملنا—ثم شاهدوه حياً في زيارة.",
+          metrics: [
+            { value: "روضة–ثانوي", label: "مسار واحد—بلا تسليم مجهول بين الأقسام" },
+            { value: "2", label: "لغتان أساسيتان في الجدول اليومي—عربي وإنجليزي" },
+            { value: "1:1", label: "حديث قبول بشري—ليس النماذج وحدها" },
+            { value: "360°", label: "أكاديمي ورفاه وسلوك في ثقافة واحدة" },
+          ],
+          proofChips: [
+            "الرياض · النخيل",
+            "حرم بإشراف",
+            "الزيارة أولاً",
+            "رسوم معلنة",
+          ],
+        },
+        campus: {
+          kicker: "الحرم",
+          title: "مبني للتركيز لا لحشو الكتيّبات",
+          lead: "مختبرات، مكتبات، ملاعب، وزوايا هادئة—مساحات يستخدمها الطلاب فعلياً، بمعايير صيانة تُحسّ من أول يوم.",
+          body:
+            "نفضّل أن تحكموا بالعين لا بالعبارة. احجزوا جولة: نُريكم صفوفاً أثناء العمل لا عروضاً فارغة.",
+          ctaFacilities: "استكشف المرافق",
+          ctaVisit: "جدولة جولة خاصة",
+        },
+        admissions: {
+          kicker: "ابدأوا",
+          title: "ثلاث بوابات. مكتب قبول واحد.",
+          lead:
+            "اختاروا الخطوة المناسبة لإيقاعكم—نرد بوضوح حول الصف والتقييم والجداول.",
+          ctaVisit: "احجز زيارة",
+          ctaWhatsapp: "واتساب القبول",
+          ctaApply: "قدّم الطلب",
+          note: "ردود أوقات الدوام؛ واتساب للاستفسار السريع، والتسجيل عند الجاهزية للترسيم.",
+        },
       },
       hero: {
-        visionLine: "الرياض · جودة عالمية · أصالة محلية",
-        title: "نربي جيلاً واثقاً، يفكر بعقلٍ مفتوح على العالم",
+        visionLine: "الرياض · النخيل · دولية للبنين",
+        title: "حيث الرصانة تلتقي بالفضول—واللغتان ترتفعان معاً",
         subtitle:
-          "تعليم يجمع بين الشغف والهوية: نهيئ أبناءكم لغدٍ أفضل، في بيئة يشعرون فيها بالانتماء والمسؤولية.",
-        primaryCta: "سجل الآن",
-        secondaryCta: "تعرّف على البرامج",
+          "حرم مُقام لهدف واضح: لأسر تتوقع بنية دون جمود، تعليم ثنائي اللغة، معايير صريحة، ومسار من اليوم الأول حتى التخرّج.",
+        primaryCta: "احجز زيارة للحرم",
+        secondaryCta: "قدّم طلب التسجيل",
+        programsLink: "استعرض البرامج والمسارات ←",
         location: "الرياض - حي النخيل، طريق الملك فهد",
       },
       imagery: {
@@ -546,10 +819,10 @@ export const resources = {
       stats: {
         aria: "لمحة سريعة عن مدارس كون",
         items: [
-          { value: "من الروضة إلى الثانوي", label: "مسار دراسي متكامل" },
-          { value: "الرياض", label: "فرع النخيل، طريق الملك فهد" },
-          { value: "عربي وإنجليزي", label: "تعليم بلغتين في اليوم الدراسي" },
-          { value: "360°", label: "أكاديمياً وخلقياً ونفسياً" },
+          { value: "روضة–ثانوي", label: "مسار واحد من الطفولة المبكرة حتى التخرج" },
+          { value: "الرياض", label: "النخيل · طريق الملك فهد" },
+          { value: "عربي + إنجليزي", label: "محور يومي للغتين—ليس برنامجاً جانبياً" },
+          { value: "360°", label: "أكاديمياً ورفاهاً وسلوكاً في خطة واحدة" },
         ],
       },
       showcase: {
@@ -582,70 +855,76 @@ export const resources = {
       },
       programs: {
         title: "برامجنا عبر المراحل",
-        lead: "رحلة واحدة من الطفولة المبكرة إلى الثانوية: لغتان في أسلوب تدريس رصين، وجودة تليق بطموحكم، وبأسلوب يستوعب أفضل الممارسات في مدارس المملكة الرائدة.",
+        lead: "لكل مرحلة مخرجات واضحة: نمو لغوي، عادات دراسية منضبطة، وقيادة تُرى—بالعربية والإنجليزية أسبوعياً.",
+        cardAria: "عرض البرامج: {{name}}",
         items: [
           {
             id: "ey",
             name: "الطفولة المبكرة (KG)",
             description:
-              "بداية ممتعة تركز على تنمية اللغة والتعلم باللعب وبناء الشخصية.",
+              "أنماط يومية غنية باللغة، ولعب له هدف، وبداية عادات الانتباه والاحترام.",
             annualFee: "20,000 ريال",
           },
           {
             id: "el",
-            name: "الابتدائية (1-6)",
+            name: "الابتدائية (1–6)",
             description:
-              "أساس القراءة والكتابة والمهارات الحسابية والاستكشاف المرتبط بالقيم.",
+              "أساس القراءة والكتابة والحساب والاستقصاء—حتى تتأكد المهارات قبل تعقيد المواد.",
             annualFee: "21,000 - 22,500 ريال",
           },
           {
             id: "im",
-            name: "المتوسطة (7-9)",
+            name: "المتوسطة (7–9)",
             description:
-              "مرحلة للاستقلالية وتعميق التفكير النقدي والنمو الشخصي.",
+              "استقلالية أكبر، تفكير نقدي ببنية، وإرشاد يقوّي مع صعوبة المواد.",
             annualFee: "24,000 ريال",
           },
           {
             id: "se",
-            name: "الثانوية (10-12)",
+            name: "الثانوية (10–12)",
             description:
-              "تهيئة للتعليم الجامعي من خلال تحديات أكاديمية متقدمة ومهارات عملية.",
+              "جاهزية جامعية، عادات بحث، وتطبيق عملي—لا اكتفاء بضغط امتحاني لحظي.",
             annualFee: "25,000 ريال",
           },
         ],
         feeLabel: "الرسوم السنوية",
       },
       highlights: {
-        title: "لماذا كون؟",
-        lead: "قيم نعيشها معكم من اليوم الأول، ويعيشها ابنكم سنةً بعد سنة.",
+        eyebrow: "لماذا يختارنا أولياء الأمور",
+        title: "قرارات تراجعونها براحة",
+        lead: "بلا عبارات فضفاضة—هذه ركائز عملنا عندما يخطو ابنكم البوابة.",
         items: [
           {
             id: "h1",
-            title: "مستوى عالمي",
-            description: "جودة تعليم تفتح لابنكم أبواب الجامعات والفرص القادمة.",
+            title: "رصانة يُرى أثرها",
+            description:
+              "معايير واضحة، تقدم ظاهر، وتعليم يتكيّف عند الحاجة لمزيد تحدٍ أو دعم.",
           },
           {
             id: "h2",
-            title: "أصلٌ وهوية",
-            description: "قيمنا العربية والإسلامية حاضرة، دون أن نغفل فتح آفاق عالمية.",
+            title: "هوية بمخطط",
+            description:
+              "السياق السعودي والقيم جزء من الجدول لا سطر دعائي—ليبقى الاثقان جذوره.",
           },
           {
             id: "h3",
-            title: "مهارات تبقى",
-            description: "قيادة، فضول، وتفكير نقدي—نعززها يومياً داخل الصف وخارجه.",
+            title: "عادات تتراكم",
+            description:
+              "تنظيم وتواصل ومرونة نمارسها حتى تصبح طبيعة—لا مؤقتة عشية الاختبار فقط.",
           },
           {
             id: "h4",
-            title: "مجتمع حاضن",
-            description: "بيئة آمنة ومحفّزة، يشعر فيها الطالب أنه جزء من فريق حقيقي.",
+            title: "حرم يُعرَف",
+            description:
+              "روتين متوقع، قيادة ظاهرة، وثقافة يُعامل فيها كل طالب كفرد.",
           },
         ],
       },
       cta: {
-        title: "نرافق أبناءكم من أول يوم مدرسي حتى التخرج.",
+        title: "نلتقي عند الخطوة التي تناسبكم.",
         hint:
-          "قدّموا نموذج التسجيل ببيانات ابنكم—يتواصل فريق القبول معكم لاستكمال الخطوات، بما في ذلك جدولة زيارة للحرم إن رغبتُم.",
-        action: "سجل الآن",
+          "شاركوا بيانات ابنكم فنرد بإرشاد الصف، والتقييم عند الحاجة، وزيارة للحرم في الوقت الذي يناسبكم.",
+        action: "ابدأ التسجيل",
       },
       registrationPage: {
         title: "سجل الآن",
@@ -759,10 +1038,47 @@ export const resources = {
         trust: {
           aria: "ما يميّز كون",
           items: [
-            "برنامجان لغويان متكاملان · العربية والإنجليزية",
-            "موقعنا · الرياض، النخيل",
-            "بيئة آمنة وإشراف دائم",
-            "مسار متدرج من الروضة إلى الثانوية",
+            "حرم بإشراف · فرق واعية بالسلامة",
+            "نطاق رسوم معلن · خطوات تالية واضحة",
+            "مسار روضة–ثانوي · بلا لبس في الانتقال",
+            "الرياض، النخيل · سهولة الوصول من طريق الملك فهد",
+          ],
+        },
+        bilingual: {
+          eyebrow: "لغتان في خطة واحدة",
+          title: "عربي وإنجليزي—بجدية متساوية",
+          lead:
+            "لا حاجة للاختيار بين الطلاقة والهوية. ندمج اللغتين في القراءة والكتابة والنقاش والتقييم اليومي—لا كإضافة اختيارية.",
+          points: [
+            "وقت وتوقعات العربية والإنجليزية مدمجان في إيقاع الأسبوع الدراسي.",
+            "القراءة والكتابة تُبنى باللغتين؛ لا تُعامل إحداهما كحشو ثانوي.",
+            "المراحل العليا تُهيّئ لأسلوب جامعي دون فقدان الطلاقة الثقافية.",
+            "المعلمون يتنسقون لتسمعوا رسالة متسقة في اللقاءات وفي الصف.",
+          ],
+        },
+        admissionsFunnel: {
+          eyebrow: "القبول والتسجيل",
+          title: "ثلاث خطوات وفريق واحد بجانبكم",
+          lead: "زوروا عندما يناسبكم، اسألوا بالقناة التي تفضّلونها، ثم أكملوا التسجيل عند الجاهزية.",
+          steps: [
+            {
+              title: "شاهدوا الحرم",
+              description:
+                "احجزوا جولة مع القبول. قابلوا القيادة، شاهدوا الصفوف أثناء العمل، والمس اليومي للمدرسة.",
+              cta: "احجز زيارة",
+            },
+            {
+              title: "تواصل مع القبول",
+              description:
+                "تفضّلون سؤالاً سريعاً؟ راسلونا على واتساب في أوقات العمل بخصوص الصف والتوقيت.",
+              cta: "واتساب",
+            },
+            {
+              title: "قدّموا الطلب",
+              description:
+                "عند الجاهزية أرسلوا بيانات ابنكم. نتابع بالتقييم ووثائق الإلحاق.",
+              cta: "فتح نموذج التسجيل",
+            },
           ],
         },
         valuesRibbon: {
@@ -787,15 +1103,15 @@ export const resources = {
           ],
         },
         virtualTour: {
-          title: "جولة داخل الحرم المدرسي دون مغادرة المنزل",
+          title: "معاينة الحرم—ثم زيارة حقيقية",
           lead:
-            "تعرّفوا على أجواء التعلّم في كون، ثم أكملوا التجربة بتسجيل الطلب؛ نرتّب معكم زيارة ولقاء الفريق حسب اختياركم.",
-          hint: "عند توفر المحتوى، يمكن إضافة جولة 360° أو تجربة تفاعلية هنا.",
-          primaryCta: "سجل الآن",
-          secondaryCta: "القبول والتسجيل",
+            "يمكن لاحقاً إضافة جولة 360° أو فيلم هنا. حتى ذلك الحين، الجدولة الحقيقية أفضل: لتروا كيف يتحرك الطلاب ويتكلّمون ويتعلّمون.",
+          hint: "عند جاهزية الوسائط الغامرة يمكن تضمينها هنا—مع بقاء الزيارة الشخصية محور التجربة.",
+          primaryCta: "حدّد موعد زيارة",
+          secondaryCta: "نظرة على القبول",
         },
         facilitiesTeaser: {
-          eyebrow: "الحرم المدرسي",
+          eyebrow: "تجربة الحرم",
           title: "مساحات وُضعت لخدمة التعلّم",
           lead: "قاعات للبحث والقراءة والحركة والإبداع، مع معايير أمان وانتباه لكل تفصيل.",
           viewAll: "جميع المرافق",

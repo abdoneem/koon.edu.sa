@@ -14,10 +14,9 @@ export function useCmsContent<T>(
   fetcher: AsyncFetcher<T>,
   fallback: T,
 ): UseCmsContentResult<T> {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const [cmsContent, setCmsContent] = useState<T | null>(null)
   const [error, setError] = useState<string | null>(null)
-  /** CMS may legitimately return `null` (no API URL); loading must end when the fetch settles. */
   const [fetchPending, setFetchPending] = useState(false)
 
   useEffect(() => {
@@ -55,7 +54,7 @@ export function useCmsContent<T>(
     return () => {
       isActive = false
     }
-  }, [fetcher, i18n.language])
+  }, [fetcher, i18n.language, t])
 
   const content = useMemo(() => cmsContent ?? fallback, [cmsContent, fallback])
 

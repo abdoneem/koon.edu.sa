@@ -3,27 +3,37 @@ import { MotionSection } from "../MotionSection"
 import { IconBadge } from "../IconBadge"
 import { IconHelp } from "../icons/schoolIcons"
 
-export function FaqSection() {
+export function FaqSection({
+  titleKey = "home.faq.title",
+  leadKey = "home.faq.lead",
+  itemsKey = "home.faq.items",
+  headingId = "faq-heading",
+}: {
+  titleKey?: string
+  leadKey?: string
+  itemsKey?: string
+  headingId?: string
+}) {
   const { t } = useTranslation()
-  const items = t("home.faq.items", { returnObjects: true }) as { q: string; a: string }[]
+  const items = t(itemsKey, { returnObjects: true }) as { q: string; a: string }[]
 
   return (
     <MotionSection>
       <section
         className="section faq-section section-surface section-surface--frost"
-        aria-labelledby="faq-heading"
+        aria-labelledby={headingId}
       >
         <div className="container faq-inner">
           <div className="faq-head">
             <IconBadge variant="default">
               <IconHelp className="icon-badge__svg" size={24} />
             </IconBadge>
-            <h2 id="faq-heading">{t("home.faq.title")}</h2>
+            <h2 id={headingId}>{t(titleKey)}</h2>
           </div>
-          <p className="section-lead">{t("home.faq.lead")}</p>
+          <p className="section-lead">{t(leadKey)}</p>
           <div className="faq-list">
-            {items.map((item) => (
-              <details key={item.q} className="faq-item">
+            {items.map((item, i) => (
+              <details key={`${i}-${item.q.slice(0, 32)}`} className="faq-item">
                 <summary>{item.q}</summary>
                 <p>{item.a}</p>
               </details>

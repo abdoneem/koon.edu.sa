@@ -12,8 +12,8 @@ export function Logo({ className = "" }: LogoProps) {
       src={brand.logoSrc}
       alt={t("brand")}
       className={`site-logo ${className}`.trim()}
-      width={180}
-      height={48}
+      width={44}
+      height={44}
       decoding="async"
     />
   )

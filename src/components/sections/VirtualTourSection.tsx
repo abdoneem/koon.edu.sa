@@ -39,7 +39,7 @@ export function VirtualTourSection() {
             height={450}
           />
           <div className="virtual-tour-actions">
-            <Link to="/registration" className="btn btn-primary">
+            <Link to="/contact" className="btn btn-primary">
               {t("home.virtualTour.primaryCta")}
             </Link>
             <Link to="/admissions" className="btn btn-secondary">

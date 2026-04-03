@@ -17,6 +17,7 @@ import { useForm } from "@mantine/form"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { PageLayout } from "../components/PageLayout"
+import { brand } from "../config/brand"
 import { env } from "../config/env"
 import { useRegistrationOptions } from "../hooks/useRegistrationOptions"
 import type { RegistrationOptionLocale } from "../types/registrationOptions"
@@ -63,6 +64,7 @@ export function RegistrationPage() {
 
   const form = useForm({
     initialValues: {
+      campus: "" as "" | "madinah" | "riyadh",
       father_full_name: "",
       father_national_id: "",
       student_full_name: "",
@@ -74,6 +76,7 @@ export function RegistrationPage() {
       notes: "",
     },
     validate: {
+      campus: (v) => (v ? null : t("registrationPage.campusRequired")),
       father_full_name: (v) => (v.trim() ? null : "مطلوب"),
       father_national_id: (v) => (v.trim() ? null : "مطلوب"),
       student_full_name: (v) => (v.trim() ? null : "مطلوب"),
@@ -93,9 +96,23 @@ export function RegistrationPage() {
     setError(null)
     setLoading(true)
     try {
+      const { campus, notes, ...rest } = values
+      const campusNote =
+        campus === "madinah"
+          ? `${t("registrationPage.campusLabel")}: ${t("registrationPage.campusMadinah")}`
+          : campus === "riyadh"
+            ? `${t("registrationPage.campusLabel")}: ${t("registrationPage.campusRiyadh")}`
+            : ""
+      const pathNote =
+        campus === "madinah"
+          ? `${t("registrationPage.pathLabel")}: ${t("registrationPage.pathNationalBilingual")}`
+          : campus === "riyadh"
+            ? `${t("registrationPage.pathLabel")}: ${t("registrationPage.pathInternational")}`
+            : ""
+      const mergedNotes = [campusNote, pathNote, notes.trim()].filter(Boolean).join("\n")
       const payload = {
-        ...values,
-        notes: values.notes.trim() || undefined,
+        ...rest,
+        notes: mergedNotes || undefined,
       }
       const res = await fetch(`${env.apiBaseUrl.replace(/\/$/, "")}/api/registrations`, {
         method: "POST",
@@ -141,9 +158,26 @@ export function RegistrationPage() {
         <Title order={1} mb="xs" ta="center">
           {t("registrationPage.title")}
         </Title>
-        <Text c="dimmed" ta="center" mb="lg" maw={520} mx="auto">
+        <Text c="dimmed" ta="center" mb="md" maw={520} mx="auto">
           {t("registrationPage.lead")}
         </Text>
+        <Text size="sm" ta="center" mb="lg" maw={560} mx="auto" fw={500}>
+          {t("registrationPage.heroLead")}
+        </Text>
+
+        <Alert color="blue" variant="light" mb="lg" title={brand.phoneDisplay}>
+          <Stack gap="xs">
+            <Text size="sm">{t("registrationPage.contactBanner")}</Text>
+            <Group gap="sm" justify="center" wrap="wrap">
+              <Button component="a" href={`tel:${brand.phoneTel}`} size="xs" variant="filled">
+                {t("chatbot.call")}
+              </Button>
+              <Button component="a" href={brand.whatsappHref} target="_blank" size="xs" variant="light">
+                {t("chatbot.whatsapp")}
+              </Button>
+            </Group>
+          </Stack>
+        </Alert>
 
         {done ? (
           <Alert color="green" title={t("registrationPage.successTitle")}>
@@ -160,6 +194,27 @@ export function RegistrationPage() {
                   </Alert>
                 ) : null}
                 <Grid>
+                  <Grid.Col span={12}>
+                    <Select
+                      label={t("registrationPage.campusLabel")}
+                      placeholder={t("registrationPage.campusLabel")}
+                      data={[
+                        { value: "madinah", label: t("registrationPage.campusMadinah") },
+                        { value: "riyadh", label: t("registrationPage.campusRiyadh") },
+                      ]}
+                      required
+                      comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
+                      {...form.getInputProps("campus")}
+                    />
+                    {form.values.campus === "madinah" || form.values.campus === "riyadh" ? (
+                      <Text size="sm" c="dimmed" mt="xs">
+                        <strong>{t("registrationPage.pathLabel")}:</strong>{" "}
+                        {form.values.campus === "madinah"
+                          ? t("registrationPage.pathNationalBilingual")
+                          : t("registrationPage.pathInternational")}
+                      </Text>
+                    ) : null}
+                  </Grid.Col>
                   <Grid.Col span={{ base: 12, sm: 6 }}>
                     <TextInput label="اسم الأب الرباعي" required withAsterisk {...form.getInputProps("father_full_name")} />
                   </Grid.Col>
@@ -255,3 +310,5 @@ export function RegistrationPage() {
     </PageLayout>
   )
 }
+
+export default RegistrationPage

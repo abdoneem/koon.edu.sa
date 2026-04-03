@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { newsImageForId } from "../../content/siteImagery"
+import { newsCoverOrFallback } from "../../content/siteImagery"
 import { IconTrending } from "../icons/schoolIcons"
 
 export function HomeNewsTeaserSection() {
@@ -33,7 +33,7 @@ export function HomeNewsTeaserSection() {
         </div>
         <ul className="home-news-grid">
           {preview.map((item, i) => {
-            const src = newsImageForId(item.id)
+            const src = newsCoverOrFallback(item.id)
             return (
               <motion.li
                 key={item.id}
@@ -60,7 +60,7 @@ export function HomeNewsTeaserSection() {
                   <time dateTime={item.iso}>{item.date}</time>
                   <h3>{item.title}</h3>
                   <p>{item.excerpt}</p>
-                  <Link to="/news" className="home-news-link">
+                  <Link to="/media" className="home-news-link">
                     {t("home.newsTeaser.readMore")}
                   </Link>
                 </div>
@@ -69,7 +69,7 @@ export function HomeNewsTeaserSection() {
           })}
         </ul>
         <div className="home-news-footer-cta">
-          <Link to="/news" className="btn btn-primary">
+          <Link to="/media" className="btn btn-primary">
             {t("home.newsTeaser.viewAll")}
           </Link>
         </div>

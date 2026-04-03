@@ -12,6 +12,8 @@ export interface HeroContent {
   secondaryCta: string
   location: string
   backgroundImage?: CmsMedia
+  /** Short trust line under hero copy (homepage). */
+  trustLine?: string
 }
 
 export interface ProgramContent {
@@ -27,10 +29,22 @@ export interface HighlightContent {
   description: string
 }
 
+/** Optional homepage sections — same shape as `HomePageBundle` slices; omitted in API = use i18n/defaults. */
 export interface LandingPageContent {
   hero: HeroContent
   programs: ProgramContent[]
   highlights: HighlightContent[]
+  stats?: { value: string; label: string }[]
+  news?: { id: string; title: string; excerpt: string; date?: string; image?: string }[]
+  gallery?: { id: string; src: string; alt: string; caption: string }[]
+  partners?: { id: string; name: string; abbreviation: string }[]
+  admissionSteps?: { id: string; title: string; description: string }[]
+  articleCards?: { id: string; title: string; excerpt: string; meta: string }[]
+  articlesSectionLead?: string
+  excellence?: { title?: string; body?: string; bullets?: string[] }
+  virtualTour?: { note?: string }
+  mediaTicker?: string[]
+  policyBullets?: string[]
 }
 
 export interface AboutPageContent {

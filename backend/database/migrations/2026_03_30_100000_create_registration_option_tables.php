@@ -70,7 +70,22 @@ return new class extends Migration
 
     private function translationColumnHasForeignKey(string $table, string $column): bool
     {
-        $db = Schema::getConnection()->getDatabaseName();
+        $connection = Schema::getConnection();
+
+        if ($connection->getDriverName() === 'sqlite') {
+            $safeTable = str_replace(['"', "'", ';'], '', $table);
+            $fks = $connection->select('PRAGMA foreign_key_list('.$safeTable.')');
+            foreach ($fks as $fk) {
+                $from = $fk->from ?? $fk->FROM ?? null;
+                if ($from === $column) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        $db = $connection->getDatabaseName();
 
         $row = DB::selectOne(
             'select 1 as ok from information_schema.key_column_usage

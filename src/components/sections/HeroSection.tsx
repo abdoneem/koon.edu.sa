@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import type { HeroContent } from "../../types/cms"
 
@@ -9,6 +10,9 @@ interface HeroSectionProps {
   heroImageSrc: string
   heroImageAlt: string
   heroImageCaption: string
+  /** Defaults preserve conversion flow when CMS only supplies CTA labels. */
+  primaryTo?: string
+  secondaryTo?: string
 }
 
 export function HeroSection({
@@ -18,9 +22,13 @@ export function HeroSection({
   heroImageSrc,
   heroImageAlt,
   heroImageCaption,
+  primaryTo = "/contact",
+  secondaryTo = "/registration",
 }: HeroSectionProps) {
+  const { t } = useTranslation()
   const reduce = useReducedMotion()
   const ease = [0.22, 1, 0.36, 1] as const
+  const programsLinkLabel = t("hero.programsLink")
 
   return (
     <section id="home" className="hero-section hero-section--brand">
@@ -29,7 +37,14 @@ export function HeroSection({
         {reduce ? (
           <>
             <div className="hero-copy">
-              <HeroCopyContent brand={brand} visionLine={visionLine} hero={hero} />
+              <HeroCopyContent
+                brand={brand}
+                visionLine={visionLine}
+                hero={hero}
+                primaryTo={primaryTo}
+                secondaryTo={secondaryTo}
+                programsLinkLabel={programsLinkLabel}
+              />
             </div>
             <div className="hero-visual">
               <HeroVisual
@@ -47,7 +62,14 @@ export function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease }}
             >
-              <HeroCopyContent brand={brand} visionLine={visionLine} hero={hero} />
+              <HeroCopyContent
+                brand={brand}
+                visionLine={visionLine}
+                hero={hero}
+                primaryTo={primaryTo}
+                secondaryTo={secondaryTo}
+                programsLinkLabel={programsLinkLabel}
+              />
             </motion.div>
             <motion.div
               className="hero-visual"
@@ -72,10 +94,16 @@ function HeroCopyContent({
   brand,
   visionLine,
   hero,
+  primaryTo,
+  secondaryTo,
+  programsLinkLabel,
 }: {
   brand: string
   visionLine: string
   hero: HeroContent
+  primaryTo: string
+  secondaryTo: string
+  programsLinkLabel: string
 }) {
   return (
     <>
@@ -84,13 +112,18 @@ function HeroCopyContent({
       <h1>{hero.title}</h1>
       <p className="hero-subtitle">{hero.subtitle}</p>
       <div className="hero-actions">
-        <Link to="/registration" className="btn btn-primary">
+        <Link to={primaryTo} className="btn btn-primary">
           {hero.primaryCta}
         </Link>
-        <Link to="/academics" className="btn btn-secondary">
+        <Link to={secondaryTo} className="btn btn-secondary">
           {hero.secondaryCta}
         </Link>
       </div>
+      <p className="hero-programs-link-wrap">
+        <Link to="/academics" className="hero-programs-link">
+          {programsLinkLabel}
+        </Link>
+      </p>
       <p className="location">
         <span className="location-dot" aria-hidden="true" />
         {hero.location}

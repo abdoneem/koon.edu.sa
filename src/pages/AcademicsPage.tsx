@@ -56,6 +56,36 @@ export function AcademicsPage() {
             ))}
           </div>
         </section>
+
+        <section className="section container">
+          <h2 className="page-title page-title--section">{t("academicsStagesDetail.title")}</h2>
+          <div className="highlight-grid">
+            <article className="highlight-card">
+              <h3>{t("academicsStagesDetail.earlyTitle")}</h3>
+              <p>{t("academicsStagesDetail.earlyBody")}</p>
+            </article>
+            <article className="highlight-card">
+              <h3>{t("academicsStagesDetail.primaryTitle")}</h3>
+              <p>{t("academicsStagesDetail.primaryBody")}</p>
+            </article>
+            <article className="highlight-card">
+              <h3>{t("academicsStagesDetail.secondaryTitle")}</h3>
+              <p>{t("academicsStagesDetail.secondaryBody")}</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="section container">
+          <article className="card about-extended__block">
+            <h2 className="about-extended__h2">{t("bilingualPhilosophy.title")}</h2>
+            <p>{t("bilingualPhilosophy.lead")}</p>
+            <ul className="about-extended__list">
+              {(t("bilingualPhilosophy.points", { returnObjects: true }) as string[]).map((pt) => (
+                <li key={pt.slice(0, 40)}>{pt}</li>
+              ))}
+            </ul>
+          </article>
+        </section>
       </motion.div>
     </PageLayout>
   )
