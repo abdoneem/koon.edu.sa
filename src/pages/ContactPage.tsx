@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
-import { FigureImage } from "../components/FigureImage"
+import { Link } from "react-router-dom"
 import { PageLayout } from "../components/PageLayout"
+import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
 import { brand } from "../config/brand"
 
@@ -15,72 +16,86 @@ export function ContactPage() {
 
   return (
     <PageLayout>
-      <section className="section container contact-page-section">
-        <h1 className="page-title">{t("contactPage.title")}</h1>
-        <p className="page-subtitle">{t("contactPage.description")}</p>
-        <FigureImage
-          src={siteImagery.pageHero.contact}
-          alt={t("contactPage.heroImageAlt")}
-          className="page-inline-hero-media page-inline-hero-media--tight"
-          width={1200}
-          height={420}
+      <div className="site-page-premium">
+        <SitePageHero
+          eyebrow={t("nav.contact")}
+          title={t("contactPage.title")}
+          lead={t("contactPage.description")}
+          imageSrc={siteImagery.pageHero.contact}
+          imageAlt={t("contactPage.heroImageAlt")}
         />
-        <article className="card contact-card">
-          <p>{t("contactPage.address")}</p>
-          <p>{t("contactPage.addressRiyadh")}</p>
-          <p>
-            <a href={`tel:${brand.phoneTel}`}>{t("footer.phone")}</a>
-          </p>
-          <p>
-            <a href={`mailto:${t("footer.email")}`}>{t("footer.email")}</a>
-          </p>
-          <p>
-            <a href={brand.whatsappHref} target="_blank" rel="noreferrer">
-              {t("chatbot.whatsapp")}
-            </a>
-          </p>
-        </article>
 
-        <div className="contact-map-wrap">
-          <h2 className="about-extended__h2">{t("contactPage.mapTitle")}</h2>
-          <iframe
-            title={t("contactPage.mapTitle")}
-            className="contact-map-frame"
-            src={MADINAH_MAP_EMBED}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-          <p className="contact-map-note">
-            <a
-              href="https://www.openstreetmap.org/search?query=%D8%AD%D9%8A%20%D8%A7%D9%84%D8%B1%D9%88%D8%A7%D8%A8%D9%8A%20%D8%A7%D9%84%D9%85%D8%AF%D9%8A%D9%86%D8%A9%20%D8%A7%D9%84%D9%85%D9%86%D9%88%D8%B1%D8%A9"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("contactPage.openMapLabel")}
-            </a>
-          </p>
-        </div>
+        <section className="home-section home-section--surface site-page-premium__band-first">
+          <div className="container home-section__inner">
+            <article className="card-elevated site-contact-card">
+              <p className="site-contact-card__line">{t("contactPage.address")}</p>
+              <p className="site-contact-card__line">{t("contactPage.addressRiyadh")}</p>
+              <p className="site-contact-card__line">
+                <a href={`tel:${brand.phoneTel}`}>{t("footer.phone")}</a>
+              </p>
+              <p className="site-contact-card__line">
+                <a href={`mailto:${t("footer.email")}`}>{t("footer.email")}</a>
+              </p>
+              <p className="site-contact-card__line">
+                <a href={brand.whatsappHref} target="_blank" rel="noreferrer">
+                  {t("chatbot.whatsapp")}
+                </a>
+              </p>
+            </article>
 
-        <div className="contact-map-wrap">
-          <h2 className="about-extended__h2">{t("contactPage.mapTitleRiyadh")}</h2>
-          <iframe
-            title={t("contactPage.mapTitleRiyadh")}
-            className="contact-map-frame"
-            src={RIYADH_MAP_EMBED}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-          <p className="contact-map-note">
-            <a
-              href="https://www.openstreetmap.org/search?query=Riyadh%20Saudi%20Arabia"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("contactPage.openMapLabelRiyadh")}
-            </a>
-          </p>
-        </div>
-      </section>
+            <div className="card-elevated site-contact-map">
+              <h2 className="home-display home-display--sm">{t("contactPage.mapTitle")}</h2>
+              <iframe
+                title={t("contactPage.mapTitle")}
+                className="site-contact-map__frame"
+                src={MADINAH_MAP_EMBED}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <p className="site-contact-map__note">
+                <a
+                  href="https://www.openstreetmap.org/search?query=%D8%AD%D9%8A%20%D8%A7%D9%84%D8%B1%D9%88%D8%A7%D8%A8%D9%8A%20%D8%A7%D9%84%D9%85%D8%AF%D9%8A%D9%86%D8%A9%20%D8%A7%D9%84%D9%85%D9%86%D9%88%D8%B1%D8%A9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="home-text-link"
+                >
+                  {t("contactPage.openMapLabel")}
+                </a>
+              </p>
+            </div>
+
+            <div className="card-elevated site-contact-map">
+              <h2 className="home-display home-display--sm">{t("contactPage.mapTitleRiyadh")}</h2>
+              <iframe
+                title={t("contactPage.mapTitleRiyadh")}
+                className="site-contact-map__frame"
+                src={RIYADH_MAP_EMBED}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <p className="site-contact-map__note">
+                <a
+                  href="https://www.openstreetmap.org/search?query=Riyadh%20Saudi%20Arabia"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="home-text-link"
+                >
+                  {t("contactPage.openMapLabelRiyadh")}
+                </a>
+              </p>
+            </div>
+
+            <div className="site-page-cta-row site-page-cta-row--surface">
+              <Link to="/registration" className="home-btn home-btn--primary home-btn--lg">
+                {t("nav.registration")}
+              </Link>
+              <a href={brand.whatsappHref} className="home-btn home-btn--hero-book home-btn--lg" target="_blank" rel="noreferrer">
+                {t("chatbot.whatsapp")}
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
     </PageLayout>
   )
 }

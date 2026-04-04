@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useLocation } from "react-router-dom"
+import { HomeBookTourFab } from "../components/home/HomeBookTourFab"
 import { HomeDocHeroPremium } from "../components/home/HomeDocHeroPremium"
 import { HomeLandingSections } from "../components/home/HomeLandingSections"
 import { PageLayout } from "../components/PageLayout"
@@ -44,7 +45,7 @@ export function HomePage() {
               <h2 id="home-news-heading" className="home-display">
                 {t("homePage.latestNewsHeading")}
               </h2>
-              <a href="/#media" className="home-text-link">
+              <a href="/news" className="home-text-link">
                 {t("homePage.homeNewsMore")}
               </a>
             </div>
@@ -82,6 +83,8 @@ export function HomePage() {
             </ul>
           </div>
         </section>
+
+        <HomeBookTourFab />
       </div>
     </PageLayout>
   )

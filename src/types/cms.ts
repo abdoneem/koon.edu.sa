@@ -36,7 +36,7 @@ export interface LandingPageContent {
   highlights: HighlightContent[]
   stats?: { value: string; label: string }[]
   news?: { id: string; title: string; excerpt: string; date?: string; image?: string }[]
-  gallery?: { id: string; src: string; alt: string; caption: string }[]
+  gallery?: { id: string; src: string; alt: string; caption: string; mediaKind?: "image" | "video" }[]
   partners?: { id: string; name: string; abbreviation: string }[]
   admissionSteps?: { id: string; title: string; description: string }[]
   articleCards?: { id: string; title: string; excerpt: string; meta: string }[]

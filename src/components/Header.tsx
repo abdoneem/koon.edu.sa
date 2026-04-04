@@ -102,19 +102,21 @@ export function Header() {
               exit={reduce ? undefined : { opacity: 0, height: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
-              <nav className="mobile-drawer__nav" aria-label={t("nav.ariaMobile")}>
-                {NAV.map((item) => (
-                  <NavLink key={item.to} to={item.to} className={navLinkClassName} onClick={() => setMenuOpen(false)}>
-                    {t(item.i18n)}
+              <div className="container mobile-drawer__inner">
+                <nav className="mobile-drawer__nav" aria-label={t("nav.ariaMobile")}>
+                  {NAV.map((item) => (
+                    <NavLink key={item.to} to={item.to} className={navLinkClassName} onClick={() => setMenuOpen(false)}>
+                      {t(item.i18n)}
+                    </NavLink>
+                  ))}
+                  <a href="/#book-tour" className="btn mobile-cta mobile-cta--book" onClick={() => setMenuOpen(false)}>
+                    {t("nav.bookVisit")}
+                  </a>
+                  <NavLink to="/registration" className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>
+                    {t("nav.registration")}
                   </NavLink>
-                ))}
-                <a href="/#book-tour" className="btn mobile-cta mobile-cta--book" onClick={() => setMenuOpen(false)}>
-                  {t("nav.bookVisit")}
-                </a>
-                <NavLink to="/registration" className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>
-                  {t("nav.registration")}
-                </NavLink>
-              </nav>
+                </nav>
+              </div>
             </motion.div>
           ) : null}
         </AnimatePresence>

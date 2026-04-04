@@ -1,12 +1,14 @@
 /**
- * Photorealistic representative images (Saudi / Riyadh, boys’ international school context).
- * Files in public/images/saudi/. Replace with official campus photography when available.
+ * Photorealistic imagery: official campus building photos in /images/campus/
+ * plus generated placeholders in /images/saudi/ for classrooms, labs, etc.
  */
 const sa = (file: string) => `/images/saudi/${file}`
+const campus = (file: string) => `/images/campus/${file}`
 
 export const photoUrls = {
-  campusExterior: sa("gen-hero-campus-saudi.png"),
-  campusWalkway: sa("gen-hero-campus-saudi.png"),
+  /** Building / campus — real photography */
+  campusExterior: campus("campus-exterior.jpg"),
+  campusWalkway: campus("campus-walkway.jpg"),
   classroomDesks: sa("gen-classroom-saudi.png"),
   classroomStudents: sa("gen-classroom-saudi.png"),
   studentsStudying: sa("gen-library-saudi.png"),
@@ -22,9 +24,9 @@ export const photoUrls = {
   /** Intermediate years — library / focused study (boys’ school) */
   studentStudyTech: sa("gen-library-saudi.png"),
   elementaryClass: sa("gen-classroom-saudi.png"),
-  hallwayBright: sa("gen-reception-saudi.png"),
-  receptionLobby: sa("gen-reception-saudi.png"),
-  buildingEntrance: sa("gen-hero-campus-saudi.png"),
+  hallwayBright: campus("campus-hallway.jpg"),
+  receptionLobby: campus("campus-reception.jpg"),
+  buildingEntrance: campus("campus-entrance.jpg"),
   /** Highlights grid — identity & roots (card 02) */
   highlightIdentity: sa("gen-highlight-identity-saudi.png"),
   /** Highlights grid — nurturing community (card 04) */

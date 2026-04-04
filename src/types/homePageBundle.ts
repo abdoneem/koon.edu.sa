@@ -19,6 +19,8 @@ export interface HomeGalleryItem {
   src: string
   alt: string
   caption: string
+  /** Card badge: image vs video */
+  mediaKind?: "image" | "video"
 }
 
 export interface HomePartner {
@@ -67,6 +69,24 @@ function pickArray<T>(cms: T[] | undefined | null, fallback: T[]): T[] {
 function pickString(primary: string | undefined | null, fallback: string): string {
   const s = typeof primary === "string" ? primary.trim() : ""
   return s.length > 0 ? s : fallback
+}
+
+function mergeGalleryItems(
+  cmsItems: LandingPageContent["gallery"],
+  defaults: HomeGalleryItem[],
+): HomeGalleryItem[] {
+  if (!cmsItems || cmsItems.length === 0) {
+    return defaults
+  }
+  return cmsItems.map((item, i) => {
+    const base = defaults.find((d) => d.id === item.id) ?? defaults[i] ?? defaults[0]
+    const kind = item.mediaKind === "video" || item.mediaKind === "image" ? item.mediaKind : base.mediaKind
+    return {
+      ...base,
+      ...item,
+      mediaKind: kind ?? "image",
+    }
+  })
 }
 
 function mergeNewsItems(
@@ -122,7 +142,7 @@ export function mergeLandingIntoBundle(
     highlights: pickArray(cms.highlights, defaults.highlights),
     stats: pickArray(cms.stats, defaults.stats),
     news: mergeNewsItems(cms.news, defaults.news),
-    gallery: pickArray(cms.gallery, defaults.gallery),
+    gallery: mergeGalleryItems(cms.gallery, defaults.gallery),
     partners: pickArray(cms.partners, defaults.partners),
     admissionSteps: pickArray(cms.admissionSteps, defaults.admissionSteps),
     articleCards: pickArray(cms.articleCards, defaults.articleCards),

@@ -44,6 +44,7 @@ class ContentPayloadValidator
                 'gallery.*.src' => 'required|string|max:2000',
                 'gallery.*.alt' => 'required|string|max:500',
                 'gallery.*.caption' => 'required|string|max:1000',
+                'gallery.*.mediaKind' => 'nullable|string|in:image,video',
                 'partners' => 'nullable|array',
                 'partners.*.id' => 'required|string|max:64',
                 'partners.*.name' => 'required|string|max:500',

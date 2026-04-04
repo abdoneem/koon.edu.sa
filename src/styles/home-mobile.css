@@ -1,0 +1,568 @@
+/**
+ * Homepage mobile-first UX — max-width 768px.
+ * Scoped to .home-page so global / desktop layout stays intact.
+ */
+
+/* Tablet + narrow: stack admissions / book / virtual with primary CTA blocks first */
+@media (max-width: 960px) {
+  .home-page .home-adm-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--home-gap-4);
+  }
+
+  .home-page .home-adm-cta--mobile-first {
+    order: -1;
+  }
+
+  .home-page .home-book-split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--home-gap-4);
+  }
+
+  .home-page .home-book-form-shell--mobile-first {
+    order: -1;
+  }
+
+  .home-page .home-virtual-split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--home-gap-4);
+  }
+
+  .home-page .home-virtual-preview--mobile-first {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page {
+    --home-section-y: 5.5rem;
+    padding-bottom: max(5.25rem, calc(env(safe-area-inset-bottom, 0px) + 4.5rem));
+    /* Horizontal strips: show part of the next card; snap + swipe, no carousel */
+    --home-hscroll-peek: 2.75rem;
+  }
+
+  .home-page .container {
+    width: min(1200px, 94vw);
+  }
+
+  .home-page .home-section {
+    padding-block: var(--home-section-y);
+    scroll-margin-top: 4.75rem;
+  }
+
+  .home-page .home-section__head {
+    margin-bottom: calc(var(--home-space-5) + 0.5rem);
+  }
+
+  .home-page .home-display {
+    margin-bottom: 0.65rem;
+  }
+
+  .home-page .home-lead {
+    line-height: 1.62;
+  }
+
+  /* ——— Hero: less copy, tighter stack ——— */
+  .home-page .home-hero-premium {
+    min-height: min(82vh, 48rem);
+  }
+
+  .home-page .home-hero-premium__shell {
+    min-height: min(82vh, 48rem);
+    padding-top: 4.75rem;
+    padding-bottom: calc(var(--home-section-y) + 0.25rem);
+  }
+
+  .home-page .home-hero-premium__lead {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    margin-bottom: 0.85rem;
+  }
+
+  .home-page .home-hero-premium__meta,
+  .home-page .home-hero-premium__trust {
+    display: none;
+  }
+
+  .home-page .home-hero-premium__title {
+    font-size: clamp(2rem, 8.5vw, 2.85rem);
+    margin-bottom: 0.85rem;
+  }
+
+  .home-page .home-hero-premium__eyebrow {
+    margin-bottom: 0.65rem;
+  }
+
+  .home-page .home-hero-premium__cta--tertiary {
+    display: none;
+  }
+
+  .home-page .home-hero-premium__ctas {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.65rem;
+  }
+
+  /* Shared: native horizontal scroll + scroll-snap (not a carousel; no arrow controls) */
+  .home-page .home-hero-premium__stats,
+  .home-page .home-life-grid--adaptive,
+  .home-page .home-portal-grid--premium,
+  .home-page .home-program-grid--three,
+  .home-page .home-facility-grid,
+  .home-page .home-partner-row,
+  .home-page .home-media-spotlight-grid,
+  .home-page .home-gallery-grid--four,
+  .home-page .home-news-grid,
+  .home-page .home-stage-list {
+    scroll-behavior: smooth;
+    scroll-padding-inline-start: max(0.85rem, env(safe-area-inset-inline-start, 0px));
+    scroll-padding-inline-end: max(0.85rem, env(safe-area-inset-inline-end, 0px));
+    overscroll-behavior-x: contain;
+  }
+
+  .home-page .home-hero-premium__stats {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: var(--home-gap-3);
+    max-width: 100%;
+    margin-top: var(--home-gap-5);
+    padding: var(--home-gap-3) var(--home-gap-2);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .home-page .home-hero-stat {
+    flex: 0 0 auto;
+    min-width: min(9rem, calc(100vw - var(--home-hscroll-peek)));
+    max-width: 9rem;
+    scroll-snap-align: start;
+    text-align: center;
+  }
+
+  /* ——— Thumb-friendly buttons ——— */
+  .home-page .home-btn {
+    width: 100%;
+    max-width: none;
+    min-height: 3.35rem;
+    padding: 0.85rem 1.35rem;
+    touch-action: manipulation;
+  }
+
+  .home-page .home-btn--wide {
+    max-width: none;
+  }
+
+  .home-page .home-section__cta-row {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    margin-top: var(--home-space-3);
+    gap: 0.65rem;
+  }
+
+  .home-page .home-section__cta-row .home-btn {
+    justify-content: center;
+  }
+
+  .home-page .home-programs-block__foot .home-btn,
+  .home-page .home-adm-cta__actions .home-btn {
+    width: 100%;
+  }
+
+  .home-page .home-adm-cta__actions {
+    gap: 0.65rem;
+  }
+
+  /* ——— Density: cards & grids ——— */
+  .home-page .home-value-tile {
+    padding: calc(var(--home-space-4) + 0.25rem);
+  }
+
+  .home-page .home-value-grid--bento {
+    gap: var(--home-gap-4);
+  }
+
+  /* Adaptive column layouts (not scaled-down desktop grids) */
+  .home-page .home-split {
+    grid-template-columns: 1fr;
+    gap: var(--home-gap-4);
+  }
+
+  /* Native accordion summaries — mobile-only UX (desktop unwrapped via min-width rules) */
+  .home-page .home-m-accordion__summary {
+    list-style: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    padding: 0.95rem 1.1rem;
+    border-radius: var(--home-radius);
+    border: 1px solid rgba(22, 66, 137, 0.14);
+    background: var(--surface-1);
+    color: var(--primary-900);
+    min-height: 3.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    text-align: start;
+    box-shadow: 0 2px 12px rgba(22, 66, 137, 0.06);
+    touch-action: manipulation;
+    margin-top: var(--home-gap-2);
+  }
+
+  .home-page .home-m-accordion__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .home-page .home-m-accordion__summary::after {
+    content: "";
+    flex-shrink: 0;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-inline-end: 2px solid currentColor;
+    border-block-end: 2px solid currentColor;
+    transform: rotate(-45deg);
+    opacity: 0.65;
+    margin-inline-start: 0.35rem;
+  }
+
+  .home-page .home-m-accordion[open] > .home-m-accordion__summary::after {
+    transform: rotate(135deg);
+    margin-block-start: 0.15rem;
+  }
+
+  .home-page .home-section--why .home-m-accordion__summary {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(248, 250, 252, 0.98);
+    box-shadow: none;
+  }
+
+  .home-page .home-m-accordion__summary--on-dark {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: rgba(248, 250, 252, 0.96);
+  }
+
+  .home-page .home-m-accordion__panel {
+    padding-top: var(--home-gap-2);
+  }
+
+  .home-page .home-book-copy > .home-display + .home-m-accordion .home-m-accordion__summary,
+  .home-page .home-virtual-copy > .home-display + .home-m-accordion .home-m-accordion__summary {
+    margin-top: var(--home-gap-3);
+  }
+
+  /* Student life: swipe + snap; next card partially visible */
+  .home-page .home-life-grid--adaptive {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--home-gap-3);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 0.5rem;
+  }
+
+  .home-page .home-life-grid--adaptive .home-life-card {
+    flex: 0 0 min(20rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  /* LMS portals: horizontal strip */
+  .home-page .home-portal-grid--premium {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--home-gap-2);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 0.35rem;
+  }
+
+  .home-page .home-portal-grid--premium > .home-portal-card {
+    flex: 0 0 min(15.5rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  /* Prioritize “book visit” over secondary CTA in student life */
+  .home-page #student-life .home-section__cta-row .home-btn--hero-book {
+    order: -1;
+  }
+
+  /* Shorter visible leads — full text in accordions or detail pages */
+  .home-page .home-programs-block__head .home-lead--tight,
+  .home-page .home-section__head:not(.home-section__head--light) > .home-lead,
+  .home-page #facilities .home-lead,
+  .home-page #portals .home-lead,
+  .home-page #articles .home-section__head .home-lead {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+
+  .home-page .home-section--trust .home-section__head .home-lead,
+  .home-page .home-section--dark .home-section__head .home-lead--light {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+
+  /* Programme tracks: horizontal browse */
+  .home-page .home-program-grid--three {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--home-gap-2);
+    margin-top: var(--home-gap-3);
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .home-page .home-program-grid--three > .home-grid-item-li {
+    flex: 0 0 min(17.5rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  .home-page .home-program-card {
+    min-height: auto;
+  }
+
+  /* Facilities strip */
+  .home-page .home-facility-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--home-gap-2);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 0.5rem;
+  }
+
+  .home-page .home-facility-card {
+    flex: 0 0 min(11rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  /* Partners */
+  .home-page .home-partner-row {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    gap: var(--home-gap-2);
+  }
+
+  .home-page .home-partner-badge {
+    flex: 0 0 min(17.5rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+    max-width: none;
+  }
+
+  /* Media spotlight: horizontal swipe (dark section) */
+  .home-page .home-media-spotlight-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: var(--home-gap-3);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 0.5rem;
+    margin-inline: 0;
+  }
+
+  .home-page .home-media-spotlight-grid > .home-media-spotlight-card {
+    flex: 0 0 min(17rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  /* Gallery: swipe tiles with peek of next */
+  .home-page .home-gallery-grid--four {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: var(--home-gap-3);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 0.5rem;
+  }
+
+  .home-page .home-gallery-grid--four > .home-gallery-tile {
+    flex: 0 0 min(19rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  /* Academics stages (accordion panel): horizontal pills */
+  .home-page .home-stage-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: var(--home-gap-3);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 0.5rem;
+  }
+
+  .home-page .home-stage-list .home-stage-pill {
+    flex: 0 0 min(17.5rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  /* Latest news: horizontal strip */
+  .home-page .home-news-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: var(--home-gap-4);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 0.5rem;
+  }
+
+  .home-page .home-news-grid > .home-grid-item-li {
+    flex: 0 0 min(18.5rem, calc(100vw - var(--home-hscroll-peek)));
+    scroll-snap-align: start;
+  }
+
+  .home-page .home-news-card__body p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+
+  /* Book form submit */
+  .home-page .home-book-field__submit {
+    width: 100%;
+    min-height: 3.25rem;
+  }
+
+  /* Text links as tappable rows */
+  .home-page .home-text-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    padding-block: 0.25rem;
+  }
+}
+
+/* Floating book CTA — mobile only, start side (thumb zone in RTL/LTR) */
+.home-book-fab {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .home-book-fab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    z-index: 45;
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    inset-inline-start: max(0.85rem, env(safe-area-inset-inline-start, 0px));
+    max-width: min(16rem, calc(100vw - 5.5rem));
+    min-height: 3.25rem;
+    padding: 0.75rem 1.15rem;
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 800;
+    text-decoration: none;
+    text-align: center;
+    line-height: 1.2;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--accent-600) 48%, var(--primary-500) 100%);
+    box-shadow:
+      0 6px 24px rgba(22, 66, 137, 0.4),
+      0 4px 16px rgba(72, 169, 224, 0.22);
+    touch-action: manipulation;
+    transition:
+      filter 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .home-book-fab:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  .home-book-fab:active {
+    transform: translateY(0);
+  }
+
+  .home-book-fab:focus-visible {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .home-hero-premium__stats,
+  .home-page .home-program-grid--three,
+  .home-page .home-facility-grid,
+  .home-page .home-partner-row,
+  .home-page .home-life-grid--adaptive,
+  .home-page .home-portal-grid--premium,
+  .home-page .home-media-spotlight-grid,
+  .home-page .home-gallery-grid--four,
+  .home-page .home-news-grid,
+  .home-page .home-stage-list {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+
+  .home-book-fab:hover {
+    transform: none;
+  }
+}
+
+/* Desktop / tablet: unwrap <details> so layout matches original grid (adaptive, not scaled mobile) */
+@media (min-width: 769px) {
+  .home-m-accordion:not(.home-m-accordion--adm-policies) {
+    display: contents;
+  }
+
+  .home-m-accordion:not(.home-m-accordion--adm-policies) > .home-m-accordion__summary {
+    display: none !important;
+  }
+
+  .home-m-accordion:not(.home-m-accordion--adm-policies) > .home-m-accordion__panel {
+    display: contents;
+  }
+}

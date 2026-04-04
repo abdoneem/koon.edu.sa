@@ -38,7 +38,7 @@ export function HomeDocHeroPremium({ bundle, hasLiveCms }: Props) {
       </div>
 
       <div className="container home-hero-premium__shell">
-        <div className="home-hero-premium__center home-hero-premium__glass">
+        <div className="home-hero-premium__center">
           <p className="home-hero-premium__eyebrow">{t("homePage.heroKicker")}</p>
           <h1 className="home-hero-premium__title">{headline}</h1>
           <p className="home-hero-premium__lead">{lead}</p>
@@ -52,7 +52,7 @@ export function HomeDocHeroPremium({ bundle, hasLiveCms }: Props) {
             <Link to="/registration" className="home-btn home-btn--secondary home-btn--lg">
               {t("nav.registration")}
             </Link>
-            <a href="#news" className="home-btn home-btn--ghost home-btn--lg">
+            <a href="#news" className="home-btn home-btn--ghost home-btn--lg home-hero-premium__cta--tertiary">
               {t("hero.newsLink")}
             </a>
           </div>

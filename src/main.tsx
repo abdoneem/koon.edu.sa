@@ -8,6 +8,7 @@ import App from "./App.tsx"
 import "./i18n/config"
 import "./index.css"
 import "./styles/home-premium.css"
+import "./styles/home-mobile.css"
 import { koonMantineTheme } from "./theme/koonMantineTheme"
 
 createRoot(document.getElementById("root")!).render(

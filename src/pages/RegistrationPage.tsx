@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Container,
+  Divider,
   Grid,
   Group,
   Loader,
@@ -11,22 +12,35 @@ import {
   Text,
   Textarea,
   TextInput,
+  ThemeIcon,
   Title,
 } from "@mantine/core"
 import { useForm } from "@mantine/form"
-import { useMemo, useState } from "react"
+import { IconBolt, IconCircleCheck, IconHeadset, IconShieldCheck } from "@tabler/icons-react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { PageLayout } from "../components/PageLayout"
+import { SitePageHero } from "../components/site/SitePageHero"
 import { brand } from "../config/brand"
+import { siteImagery } from "../content/siteImagery"
 import { env } from "../config/env"
 import { useRegistrationOptions } from "../hooks/useRegistrationOptions"
 import type { RegistrationOptionLocale } from "../types/registrationOptions"
+
+function focusFirstInvalidControl(formEl: HTMLFormElement | null) {
+  if (!formEl) return
+  const invalid = formEl.querySelector<HTMLElement>('[aria-invalid="true"]')
+  invalid?.focus()
+  invalid?.scrollIntoView({ block: "center", behavior: "smooth" })
+}
 
 export function RegistrationPage() {
   const { t, i18n } = useTranslation()
   const isRtl = i18n.language.startsWith("ar")
   const lang: RegistrationOptionLocale = isRtl ? "ar" : "en"
   const { data: options, loading: optionsLoading, error: optionsError } = useRegistrationOptions()
+  const formRef = useRef<HTMLFormElement>(null)
+  const successRef = useRef<HTMLDivElement>(null)
 
   const genderData = useMemo(
     () => [
@@ -40,10 +54,12 @@ export function RegistrationPage() {
     if (!options) {
       return []
     }
-    return options.grades.map((g) => ({
-      value: g.code,
-      label: g.labels[lang],
-    }))
+    return [...options.grades]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((g) => ({
+        value: g.code,
+        label: g.labels[lang],
+      }))
   }, [options, lang])
 
   const nationalityData = useMemo(() => {
@@ -51,11 +67,11 @@ export function RegistrationPage() {
       return []
     }
     return [...options.nationalities]
+      .sort((a, b) => a.sort_order - b.sort_order)
       .map((n) => ({
         value: n.code,
         label: isRtl ? n.labels.ar : `${n.labels.en} — ${n.labels.ar}`,
       }))
-      .sort((a, b) => a.label.localeCompare(b.label, "ar"))
   }, [options, isRtl])
 
   const [done, setDone] = useState(false)
@@ -77,18 +93,33 @@ export function RegistrationPage() {
     },
     validate: {
       campus: (v) => (v ? null : t("registrationPage.campusRequired")),
-      father_full_name: (v) => (v.trim() ? null : "مطلوب"),
-      father_national_id: (v) => (v.trim() ? null : "مطلوب"),
-      student_full_name: (v) => (v.trim() ? null : "مطلوب"),
-      student_national_id: (v) => (v.trim() ? null : "مطلوب"),
-      parent_mobile: (v) => (v.trim() ? null : "مطلوب"),
-      gender: (v) => (v ? null : "مطلوب"),
-      grade_level: (v) => (v.trim() ? null : "مطلوب"),
-      nationality: (v) => (v.trim() ? null : "مطلوب"),
+      father_full_name: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
+      father_national_id: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
+      student_full_name: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
+      student_national_id: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
+      parent_mobile: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
+      gender: (v) => (v ? null : t("registrationPage.fieldRequired")),
+      grade_level: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
+      nationality: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
     },
   })
 
-  async function onSubmit(values: typeof form.values) {
+  useEffect(() => {
+    if (done) {
+      successRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [done])
+
+  const fieldDisabled = loading || !options || !!optionsError
+
+  const inputClassNames = useMemo(
+    () => ({
+      input: "registration-field-control",
+    }),
+    [],
+  )
+
+  async function submitRegistration(values: typeof form.values) {
     if (!env.apiBaseUrl) {
       setError(t("registrationPage.errorNoApi"))
       return
@@ -127,7 +158,7 @@ export function RegistrationPage() {
         const first =
           data.message ??
           (data.errors ? Object.values(data.errors).flat()[0] : null) ??
-          "تعذر إرسال الطلب"
+          t("registrationPage.errorSubmitFailed")
         setError(first)
         return
       }
@@ -140,13 +171,25 @@ export function RegistrationPage() {
     }
   }
 
+  function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const { hasErrors } = form.validate()
+    if (hasErrors) {
+      requestAnimationFrame(() => focusFirstInvalidControl(formRef.current))
+      return
+    }
+    void submitRegistration(form.values)
+  }
+
+  const dividerLabelPos = isRtl ? "right" : "left"
+
   const optionsBlock =
     optionsError != null ? (
-      <Alert color="red" title="تنبيه">
+      <Alert color="red" title={t("registrationPage.alertErrorTitle")}>
         {optionsError}
       </Alert>
     ) : optionsLoading ? (
-      <Group justify="center" gap="sm" py="xs" c="dimmed">
+      <Group justify="center" gap="sm" py="md" c="dimmed" aria-live="polite">
         <Loader size="sm" />
         <Text size="sm">{t("registrationPage.optionsLoading")}</Text>
       </Group>
@@ -154,159 +197,331 @@ export function RegistrationPage() {
 
   return (
     <PageLayout>
-      <Container size="md" py="xl" dir={isRtl ? "rtl" : "ltr"}>
-        <Title order={1} mb="xs" ta="center">
-          {t("registrationPage.title")}
-        </Title>
-        <Text c="dimmed" ta="center" mb="md" maw={520} mx="auto">
-          {t("registrationPage.lead")}
-        </Text>
-        <Text size="sm" ta="center" mb="lg" maw={560} mx="auto" fw={500}>
-          {t("registrationPage.heroLead")}
-        </Text>
-
-        <Alert color="blue" variant="light" mb="lg" title={brand.phoneDisplay}>
-          <Stack gap="xs">
-            <Text size="sm">{t("registrationPage.contactBanner")}</Text>
-            <Group gap="sm" justify="center" wrap="wrap">
-              <Button component="a" href={`tel:${brand.phoneTel}`} size="xs" variant="filled">
-                {t("chatbot.call")}
-              </Button>
-              <Button component="a" href={brand.whatsappHref} target="_blank" size="xs" variant="light">
-                {t("chatbot.whatsapp")}
-              </Button>
-            </Group>
-          </Stack>
-        </Alert>
-
-        {done ? (
-          <Alert color="green" title={t("registrationPage.successTitle")}>
-            {t("registrationPage.successBody")}
-          </Alert>
-        ) : (
-          <Paper shadow="sm" p={{ base: "md", sm: "lg" }} radius="md" withBorder>
-            {optionsBlock}
-            <form onSubmit={form.onSubmit((v) => void onSubmit(v))}>
-              <Stack gap="md" mt={optionsError ? "md" : 0}>
-                {error ? (
-                  <Alert color="red" title="تنبيه">
-                    {error}
-                  </Alert>
-                ) : null}
-                <Grid>
-                  <Grid.Col span={12}>
-                    <Select
-                      label={t("registrationPage.campusLabel")}
-                      placeholder={t("registrationPage.campusLabel")}
-                      data={[
-                        { value: "madinah", label: t("registrationPage.campusMadinah") },
-                        { value: "riyadh", label: t("registrationPage.campusRiyadh") },
-                      ]}
-                      required
-                      comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
-                      {...form.getInputProps("campus")}
-                    />
-                    {form.values.campus === "madinah" || form.values.campus === "riyadh" ? (
-                      <Text size="sm" c="dimmed" mt="xs">
-                        <strong>{t("registrationPage.pathLabel")}:</strong>{" "}
-                        {form.values.campus === "madinah"
-                          ? t("registrationPage.pathNationalBilingual")
-                          : t("registrationPage.pathInternational")}
+      <div className="site-page-premium">
+        <SitePageHero
+          eyebrow={t("nav.registration")}
+          title={t("registrationPage.title")}
+          lead={t("registrationPage.lead")}
+          sublead={t("registrationPage.heroLead")}
+          imageSrc={siteImagery.pageHero.registration}
+          imageAlt={t("registrationPage.heroImageAlt")}
+        />
+        <section className="home-section home-section--surface site-page-premium__band-first">
+          <Container size="md" py="xl" className="site-registration-shell" dir={isRtl ? "rtl" : "ltr"}>
+            {done ? (
+              <Paper
+                ref={successRef}
+                className="registration-success-panel"
+                shadow="md"
+                p={{ base: "lg", sm: "xl" }}
+                radius="lg"
+                withBorder
+                role="status"
+                aria-live="polite"
+              >
+                <Stack gap="lg" align="stretch">
+                  <Group gap="md" wrap="nowrap" align="flex-start">
+                    <ThemeIcon size={54} radius="md" variant="light" color="teal" aria-hidden>
+                      <IconCircleCheck size={30} stroke={1.75} />
+                    </ThemeIcon>
+                    <Stack gap="xs" style={{ flex: 1 }}>
+                      <Title order={2} className="registration-success-panel__title">
+                        {t("registrationPage.successTitle")}
+                      </Title>
+                      <Text size="md" c="dimmed" lh={1.65}>
+                        {t("registrationPage.successBody")}
                       </Text>
-                    ) : null}
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <TextInput label="اسم الأب الرباعي" required withAsterisk {...form.getInputProps("father_full_name")} />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <TextInput
-                      label="رقم هوية الأب"
-                      required
-                      withAsterisk
-                      {...form.getInputProps("father_national_id")}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <TextInput
-                      label="رقم جوال الأب/الأم"
-                      required
-                      withAsterisk
-                      {...form.getInputProps("parent_mobile")}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <TextInput
-                      label="اسم الطالب الرباعي"
-                      required
-                      withAsterisk
-                      {...form.getInputProps("student_full_name")}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <TextInput
-                      label="رقم هوية الطالب"
-                      required
-                      withAsterisk
-                      {...form.getInputProps("student_national_id")}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <Select
-                      label="الجنس"
-                      placeholder={t("registrationPage.genderPlaceholder")}
-                      data={genderData}
-                      required
-                      disabled={!options || !!optionsError}
-                      {...form.getInputProps("gender")}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 6 }}>
-                    <Select
-                      label="الصف الدراسي"
-                      placeholder={t("registrationPage.gradePlaceholder")}
-                      searchable
-                      nothingFoundMessage={t("registrationPage.nationalityNothingFound")}
-                      data={gradeData}
-                      required
-                      disabled={!options || !!optionsError}
-                      comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
-                      scrollAreaProps={{ type: "auto", mah: 280 }}
-                      {...form.getInputProps("grade_level")}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 12 }}>
-                    <Select
-                      label="الجنسية"
-                      placeholder={t("registrationPage.nationalityPlaceholder")}
-                      searchable
-                      nothingFoundMessage={t("registrationPage.nationalityNothingFound")}
-                      data={nationalityData}
-                      required
-                      disabled={!options || !!optionsError}
-                      comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
-                      scrollAreaProps={{ type: "auto", mah: 280 }}
-                      {...form.getInputProps("nationality")}
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={12}>
-                    <Textarea
-                      label={t("registrationPage.notesLabel")}
-                      placeholder={t("registrationPage.notesPlaceholder")}
-                      minRows={3}
-                      autosize
-                      maxRows={8}
-                      {...form.getInputProps("notes")}
-                    />
-                  </Grid.Col>
-                </Grid>
-                <Button type="submit" loading={loading} size="md" fullWidth disabled={!options || !!optionsError}>
-                  {t("registrationPage.submit")}
-                </Button>
+                      <Text size="sm" c="dimmed" lh={1.6}>
+                        {t("registrationPage.successNextSteps")}
+                      </Text>
+                    </Stack>
+                  </Group>
+                  <Alert color="blue" variant="light" title={brand.phoneDisplay}>
+                    <Stack gap="xs">
+                      <Text size="sm">{t("registrationPage.contactBanner")}</Text>
+                      <Group gap="sm" justify="flex-start" wrap="wrap">
+                        <Button component="a" href={`tel:${brand.phoneTel}`} size="sm" variant="filled">
+                          {t("chatbot.call")}
+                        </Button>
+                        <Button component="a" href={brand.whatsappHref} target="_blank" size="sm" variant="light">
+                          {t("chatbot.whatsapp")}
+                        </Button>
+                      </Group>
+                    </Stack>
+                  </Alert>
+                  <Button
+                    variant="default"
+                    size="md"
+                    fullWidth
+                    onClick={() => {
+                      setDone(false)
+                      setError(null)
+                    }}
+                  >
+                    {t("registrationPage.registerAnother")}
+                  </Button>
+                </Stack>
+              </Paper>
+            ) : (
+              <Stack gap="xl">
+                <Stack gap="xs" className="registration-form-intro">
+                  <Title order={2} className="registration-form-intro__title">
+                    {t("registrationPage.formHeadline")}
+                  </Title>
+                  <Text size="md" c="dimmed" lh={1.65}>
+                    {t("registrationPage.formSubhead")}
+                  </Text>
+                </Stack>
+
+                <div className="registration-trust-row" role="list">
+                  <Paper className="registration-trust-item" p="sm" radius="md" withBorder role="listitem">
+                    <Group gap="sm" wrap="nowrap" align="flex-start">
+                      <ThemeIcon size="36" radius="md" variant="light" color="koon" aria-hidden>
+                        <IconBolt size={20} stroke={1.75} />
+                      </ThemeIcon>
+                      <Text size="sm" fw={600} lh={1.5} style={{ flex: 1 }}>
+                        {t("registrationPage.trustFastResponse")}
+                      </Text>
+                    </Group>
+                  </Paper>
+                  <Paper className="registration-trust-item" p="sm" radius="md" withBorder role="listitem">
+                    <Group gap="sm" wrap="nowrap" align="flex-start">
+                      <ThemeIcon size="36" radius="md" variant="light" color="koon" aria-hidden>
+                        <IconShieldCheck size={20} stroke={1.75} />
+                      </ThemeIcon>
+                      <Text size="sm" fw={600} lh={1.5} style={{ flex: 1 }}>
+                        {t("registrationPage.trustSafeData")}
+                      </Text>
+                    </Group>
+                  </Paper>
+                  <Paper className="registration-trust-item" p="sm" radius="md" withBorder role="listitem">
+                    <Group gap="sm" wrap="nowrap" align="flex-start">
+                      <ThemeIcon size="36" radius="md" variant="light" color="koon" aria-hidden>
+                        <IconHeadset size={20} stroke={1.75} />
+                      </ThemeIcon>
+                      <Text size="sm" fw={600} lh={1.5} style={{ flex: 1 }}>
+                        {t("registrationPage.trustTeam")}
+                      </Text>
+                    </Group>
+                  </Paper>
+                </div>
+
+                <Alert color="blue" variant="light" title={brand.phoneDisplay}>
+                  <Stack gap="xs">
+                    <Text size="sm">{t("registrationPage.contactBanner")}</Text>
+                    <Group gap="sm" justify="flex-start" wrap="wrap">
+                      <Button component="a" href={`tel:${brand.phoneTel}`} size="xs" variant="filled">
+                        {t("chatbot.call")}
+                      </Button>
+                      <Button component="a" href={brand.whatsappHref} target="_blank" size="xs" variant="light">
+                        {t("chatbot.whatsapp")}
+                      </Button>
+                    </Group>
+                  </Stack>
+                </Alert>
+
+                <Paper shadow="sm" p={{ base: "md", sm: "lg" }} radius="lg" withBorder>
+                  {optionsBlock}
+                  <form
+                    ref={formRef}
+                    noValidate
+                    onSubmit={handleFormSubmit}
+                    aria-busy={loading}
+                    className="registration-form"
+                  >
+                    <Stack gap="lg" mt={optionsError ? "md" : optionsLoading ? "sm" : 0}>
+                      {error ? (
+                        <Alert color="red" title={t("registrationPage.alertErrorTitle")} role="alert">
+                          {error}
+                        </Alert>
+                      ) : null}
+
+                      <div>
+                        <Divider
+                          label={t("registrationPage.sectionCampus")}
+                          labelPosition={dividerLabelPos}
+                          className="registration-section-divider"
+                        />
+                        <Text size="sm" c="dimmed" mt="xs" mb="md">
+                          {t("registrationPage.sectionCampusHint")}
+                        </Text>
+                        <Grid>
+                          <Grid.Col span={12}>
+                            <Select
+                              label={t("registrationPage.campusLabel")}
+                              placeholder={t("registrationPage.campusLabel")}
+                              data={[
+                                { value: "madinah", label: t("registrationPage.campusMadinah") },
+                                { value: "riyadh", label: t("registrationPage.campusRiyadh") },
+                              ]}
+                              required
+                              disabled={fieldDisabled}
+                              comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("campus")}
+                            />
+                            {form.values.campus === "madinah" || form.values.campus === "riyadh" ? (
+                              <Text size="sm" c="dimmed" mt="xs">
+                                <strong>{t("registrationPage.pathLabel")}:</strong>{" "}
+                                {form.values.campus === "madinah"
+                                  ? t("registrationPage.pathNationalBilingual")
+                                  : t("registrationPage.pathInternational")}
+                              </Text>
+                            ) : null}
+                          </Grid.Col>
+                        </Grid>
+                      </div>
+
+                      <div>
+                        <Divider
+                          label={t("registrationPage.sectionGuardian")}
+                          labelPosition={dividerLabelPos}
+                          className="registration-section-divider"
+                        />
+                        <Text size="sm" c="dimmed" mt="xs" mb="md">
+                          {t("registrationPage.sectionGuardianHint")}
+                        </Text>
+                        <Grid>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <TextInput
+                              label={t("registrationPage.fatherFullNameLabel")}
+                              required
+                              withAsterisk
+                              disabled={fieldDisabled}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("father_full_name")}
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <TextInput
+                              label={t("registrationPage.fatherNationalIdLabel")}
+                              required
+                              withAsterisk
+                              disabled={fieldDisabled}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("father_national_id")}
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <TextInput
+                              label={t("registrationPage.parentMobileLabel")}
+                              required
+                              withAsterisk
+                              disabled={fieldDisabled}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("parent_mobile")}
+                            />
+                          </Grid.Col>
+                        </Grid>
+                      </div>
+
+                      <div>
+                        <Divider
+                          label={t("registrationPage.sectionStudent")}
+                          labelPosition={dividerLabelPos}
+                          className="registration-section-divider"
+                        />
+                        <Text size="sm" c="dimmed" mt="xs" mb="md">
+                          {t("registrationPage.sectionStudentHint")}
+                        </Text>
+                        <Grid>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <TextInput
+                              label={t("registrationPage.studentFullNameLabel")}
+                              required
+                              withAsterisk
+                              disabled={fieldDisabled}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("student_full_name")}
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <TextInput
+                              label={t("registrationPage.studentNationalIdLabel")}
+                              required
+                              withAsterisk
+                              disabled={fieldDisabled}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("student_national_id")}
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <Select
+                              label={t("registrationPage.genderLabel")}
+                              placeholder={t("registrationPage.genderPlaceholder")}
+                              data={genderData}
+                              required
+                              disabled={fieldDisabled}
+                              comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("gender")}
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <Select
+                              label={t("registrationPage.gradeLabel")}
+                              placeholder={t("registrationPage.gradePlaceholder")}
+                              searchable
+                              nothingFoundMessage={t("registrationPage.gradeNothingFound")}
+                              data={gradeData}
+                              required
+                              disabled={fieldDisabled}
+                              comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
+                              scrollAreaProps={{ type: "auto", mah: 280 }}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("grade_level")}
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={{ base: 12, sm: 12 }}>
+                            <Select
+                              label={t("registrationPage.nationalityLabel")}
+                              placeholder={t("registrationPage.nationalityPlaceholder")}
+                              searchable
+                              nothingFoundMessage={t("registrationPage.nationalityNothingFound")}
+                              data={nationalityData}
+                              required
+                              disabled={fieldDisabled}
+                              comboboxProps={{ withinPortal: true, transitionProps: { transition: "pop", duration: 150 } }}
+                              scrollAreaProps={{ type: "auto", mah: 280 }}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("nationality")}
+                            />
+                          </Grid.Col>
+                          <Grid.Col span={12}>
+                            <Textarea
+                              label={t("registrationPage.notesLabel")}
+                              placeholder={t("registrationPage.notesPlaceholder")}
+                              minRows={3}
+                              autosize
+                              maxRows={8}
+                              disabled={fieldDisabled}
+                              classNames={inputClassNames}
+                              {...form.getInputProps("notes")}
+                            />
+                          </Grid.Col>
+                        </Grid>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        size="xl"
+                        radius="md"
+                        fullWidth
+                        className="registration-form-submit"
+                        loading={loading}
+                        loaderProps={{ type: "dots" }}
+                        disabled={fieldDisabled}
+                      >
+                        {loading ? t("registrationPage.submitSending") : t("registrationPage.submit")}
+                      </Button>
+                    </Stack>
+                  </form>
+                </Paper>
               </Stack>
-            </form>
-          </Paper>
-        )}
-      </Container>
+            )}
+          </Container>
+        </section>
+      </div>
     </PageLayout>
   )
 }

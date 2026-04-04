@@ -19,61 +19,76 @@ const AR: HomePageBundle = {
   programs: [
     {
       id: "p1",
-      name: "المراحل التأسيسية والابتدائية",
-      description: "بناء المهارات الأساسية في القراءة والتعبير مع أنشطة متوازنة تنمّي الفضول وحبّ التعلّم.",
+      name: "الطفولة المبكرة (رياض الأطفال والصفوف الدنيا)",
+      description:
+        "استكشاف وارتباط عاطفي؛ نور البيان؛ وحدات قصيرة؛ ملاحظة وتعزيز—بمواءمة توقعات المرحلة التأسيسية الوطنية.",
       annualFee: "الرسوم حسب المرحلة — يطلب التفاصيل من القبول",
     },
     {
       id: "p2",
-      name: "المسار العلمي",
-      description: "إعداد قوي في العلوم والرياضيات ومهارات التفكير المنطقي والبحث.",
+      name: "الابتدائية (4–6)",
+      description:
+        "ثلاثية كون (تهيئة–بناء–تطبيق)، تعلم تعاوني، مختبر صفي، وروتينات تحليلية مبكرة بموازاة المعايير الوطنية.",
       annualFee: "الرسوم حسب المرحلة — يطلب التفاصيل من القبول",
     },
     {
       id: "p3",
-      name: "المسار الأدبي والإنساني",
-      description: "تعزيز التعبير العربي والإنجليزي، والاطلاع، والفهم النقدي عبر المواد الإنسانية.",
+      name: "المتوسطة (7–9)",
+      description:
+        "تعلم قائم على المشكلات، مقدمات تخصصية، وحقائب قدرات وتحصيلي مدمجة في الجدول الدراسي.",
       annualFee: "الرسوم حسب المرحلة — يطلب التفاصيل من القبول",
     },
     {
       id: "p4",
-      name: "برنامج STEM",
-      description: "مشاريع تطبيقية وتجارب مختبرية تربط المفاهيم بالحياة اليومية.",
+      name: "الثانوية (10–12)",
+      description:
+        "مسارات متقدمة، إعداد مكثف للاختبارات الوطنية، وجاهزية دولية حيث ينطبق، مع حوكمة تحترم كرامة المتعلم.",
       annualFee: "الرسوم حسب المرحلة — يطلب التفاصيل من القبول",
     },
     {
       id: "p5",
-      name: "اللغات والثقافات",
-      description: "تعزيز التواصل بلغتين مع احترام الهوية الوطنية والانفتاح الثقافي.",
+      name: "الثنائية اللغوية ومواءمة المنهج",
+      description:
+        "عربية للهوية والإنسانيات؛ STEM بامتداد إنجليزي ومسارات دولية؛ إكساب مكثف للإنجليزية في المراحل العليا.",
       annualFee: "ضمن البرنامج الاعتيادي",
     },
     {
       id: "p6",
-      name: "الأنشطة والمواهب",
-      description: "رياضة، فنون، وقيم حضورية لتكوين شخصية متوازنة.",
+      name: "STEM والفنون والقيادة",
+      description:
+        "مختبرات ومشاريع وفنون وأندية—متسقة مع العمود الفقري الأكاديمي لا كإضافة مزدحمة للتقويم.",
       annualFee: "حسب النشاط",
     },
   ],
   highlights: [
     {
       id: "h1",
-      title: "تميّز أكاديمي",
-      description: "مناهج متدرجة ومتابعة فردية تدعم كل طفل على وتيرته.",
+      title: "الأصالة والمواطنة",
+      description:
+        "قيم إسلامية وهوية وطنية كأساس، ثم تمكين الطالب بثنائية اللغة والانفتاح الواعي ليكون مواطناً عالمياً مؤثراً.",
     },
     {
       id: "h2",
-      title: "ثنائية لغوية",
-      description: "عربية قوية وإنجليزية فاعلة في إطار أهداف تعليمية واضحة.",
+      title: "التمكين والأثر",
+      description:
+        "«المعلم أولاً» بدعم وإشراف تطوري مستمر، لتوجيه الجهود نحو فهم عميق ونواتج تعلّم حقيقية.",
     },
     {
       id: "h3",
-      title: "قيم وتربية",
-      description: "التزام بالأخلاق والانضباط والاحترام داخل المدرسة ومع الأسرة.",
+      title: "الإتقان والابتكار",
+      description:
+        "السعي للجودة في كل حصة، وتشجيع التفكير الإبداعي والمبادرات التي تصنع قادة المستقبل.",
     },
     {
       id: "h4",
-      title: "شراكة مع الأهل",
-      description: "قنوات تواصل منتظمة لدعم التقدم الأكاديمي والاجتماعي.",
+      title: "الشفافية والشراكة",
+      description:
+        "وضوح في البيانات ومؤشرات الأداء مع القيادة، وشراكة راسخة مع الأسرة مبنية على الأرقام والنتائج.",
+    },
+    {
+      id: "h5",
+      title: "المرونة التشغيلية",
+      description: "هندسة العمليات الإدارية لتكون داعمة بالكامل للخطة الأكاديمية دون بيروقراطية عقيمة.",
     },
   ],
   news: [
@@ -102,27 +117,31 @@ const AR: HomePageBundle = {
   gallery: [
     {
       id: "g1",
-      src: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=900&q=80",
-      alt: "صف دراسي حديث",
-      caption: "صفوف تعلم نشِطة وتنظيم بصري هادئ",
+      src: photoUrls.campusExterior,
+      alt: "مبنى المدرسة والحرم",
+      caption: "حرم مدرسي معاصر يدعم التعلّم والانتماء",
+      mediaKind: "image",
     },
     {
       id: "g2",
-      src: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
-      alt: "طلاب يتعاونون",
-      caption: "تعلّم تعاوني ومهارات القرن الحادي والعشرين",
+      src: photoUrls.campusWalkway,
+      alt: "ممرات ومساحات الحرم",
+      caption: "بيئة منظّمة وآمنة للتنقّل والتفاعل اليومي",
+      mediaKind: "image",
     },
     {
       id: "g3",
-      src: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=900&q=80",
-      alt: "حدث تخرج",
-      caption: "احتفالات تكريم تليق بإنجازات الطلاب",
+      src: photoUrls.receptionLobby,
+      alt: "استقبال ومساحات الترحيب",
+      caption: "نقطة لقاء دافئة للعائلات والزوار",
+      mediaKind: "video",
     },
     {
       id: "g4",
-      src: "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=900&q=80",
-      alt: "مكتبة مدرسية",
-      caption: "بيئة قراءة وهدوء لدعم التحصيل",
+      src: photoUrls.hallwayBright,
+      alt: "ممرات ومداخل تعليمية",
+      caption: "إضاءة وتصميم يدعمان جواً تعليمياً هادئاً",
+      mediaKind: "image",
     },
   ],
   partners: [
@@ -209,64 +228,77 @@ const EN: HomePageBundle = {
   programs: [
     {
       id: "p1",
-      name: "Foundation & elementary",
+      name: "Early childhood (KG & lower primary)",
       description:
-        "Core literacy and numeracy with balanced activities that nurture curiosity and confident learners.",
+        "Exploration, Noor Al-Bayan, short learning cycles, and observation-led growth—aligned to national early-years expectations.",
       annualFee: "Fees by grade — contact admissions",
     },
     {
       id: "p2",
-      name: "Science track",
+      name: "Primary (grades 4–6)",
       description:
-        "Strong preparation in science, mathematics, logical reasoning and guided inquiry.",
+        "Koon triad (prime–build–apply), collaborative learning, in-class lab, and early analytical routines alongside national standards.",
       annualFee: "Fees by grade — contact admissions",
     },
     {
       id: "p3",
-      name: "Arts & humanities track",
+      name: "Middle school (grades 7–9)",
       description:
-        "Arabic eloquence and humanities with critical reading, writing and discussion.",
+        "Problem-based learning, specialised foundations, and Qudurat/Tahsili preparation integrated into the weekly timetable.",
       annualFee: "Fees by grade — contact admissions",
     },
     {
       id: "p4",
-      name: "STEM programme",
-      description: "Applied labs and projects linking scientific concepts to authentic problems.",
+      name: "High school (grades 10–12)",
+      description:
+        "Advanced tracks, intensive national exam preparation, international readiness where applicable, and governance that protects learner dignity.",
       annualFee: "Fees by grade — contact admissions",
     },
     {
       id: "p5",
-      name: "Languages & cultures",
-      description: "Bilingual communication rooted in national identity and cultural literacy.",
+      name: "Bilingual & curriculum alignment",
+      description:
+        "Arabic anchors identity and humanities; STEM extends in English with international strands; intensive English acquisition in upper grades.",
       annualFee: "Included in the standard programme",
     },
     {
       id: "p6",
-      name: "Activities & talent",
-      description: "Sports, arts and leadership routines for a balanced school life.",
+      name: "STEM, arts & leadership",
+      description:
+        "Labs, projects, arts and clubs—coherent with the academic spine, not a crowded add-on calendar.",
       annualFee: "Activity-dependent",
     },
   ],
   highlights: [
     {
       id: "h1",
-      title: "Academic excellence",
-      description: "Structured progression with individual support at each level.",
+      title: "Authenticity & citizenship",
+      description:
+        "Islamic values and Saudi identity as the base; bilingual communication and mindful openness so learners compete and contribute globally.",
     },
     {
       id: "h2",
-      title: "Bilingual learning",
-      description: "Arabic and English with clear learning objectives.",
+      title: "Empowerment & impact",
+      description:
+        "Teachers first—continuous developmental support so every effort targets deep understanding and real learning outcomes.",
     },
     {
       id: "h3",
-      title: "Character",
-      description: "Respect, discipline and integrity at school and home.",
+      title: "Mastery & innovation",
+      description:
+        "We pursue excellence and quality in every lesson, encouraging creative thinking and initiatives that shape future leaders.",
     },
     {
       id: "h4",
-      title: "Family partnership",
-      description: "Regular communication on academic and social progress.",
+      title: "Transparency & partnership",
+      description:
+        "Clear data and performance indicators with leadership; numbers-based partnership with families on each learner’s journey.",
+    },
+    {
+      id: "h5",
+      title: "Operational agility",
+      description:
+        "Lean processes: administrative workflows engineered to support the academic plan—not slow it down.",
     },
   ],
   news: [
@@ -292,7 +324,36 @@ const EN: HomePageBundle = {
       image: photoUrls.artsMusic,
     },
   ],
-  gallery: AR.gallery,
+  gallery: [
+    {
+      id: "g1",
+      src: photoUrls.campusExterior,
+      alt: "School campus and buildings",
+      caption: "A contemporary campus designed for learning and belonging",
+      mediaKind: "image",
+    },
+    {
+      id: "g2",
+      src: photoUrls.campusWalkway,
+      alt: "Walkways and circulation spaces",
+      caption: "Clear, calm routes for daily movement and connection",
+      mediaKind: "image",
+    },
+    {
+      id: "g3",
+      src: photoUrls.receptionLobby,
+      alt: "Reception and welcome areas",
+      caption: "A welcoming first touchpoint for families and visitors",
+      mediaKind: "video",
+    },
+    {
+      id: "g4",
+      src: photoUrls.hallwayBright,
+      alt: "Interior corridors and learning adjacencies",
+      caption: "Bright, orderly spaces that support focus and routine",
+      mediaKind: "image",
+    },
+  ],
   partners: [
     { id: "pt1", name: "Ministry alignment — procedural", abbreviation: "M" },
     { id: "pt2", name: "Nationally recognised certifications", abbreviation: "C" },

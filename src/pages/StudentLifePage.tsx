@@ -1,105 +1,140 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { FigureImage } from "../components/FigureImage"
+import { Link } from "react-router-dom"
 import { PageLayout } from "../components/PageLayout"
+import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery, studentLifeBlockImage } from "../content/siteImagery"
+
+type Block = { title: string; description: string; photoAlt: string }
 
 export function StudentLifePage() {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
-  const blocks = t("studentLifePage.blocks", { returnObjects: true }) as {
-    title: string
-    description: string
-    photoAlt: string
-  }[]
-  const moaeenSections = t("studentLifePage.moaeenSections", { returnObjects: true }) as string[]
-  const afaqSections = t("studentLifePage.afaqSections", { returnObjects: true }) as string[]
-  const coachSections = t("studentLifePage.coachSections", { returnObjects: true }) as string[]
-  const employerBullets = t("studentLifeEmployer.bullets", { returnObjects: true }) as string[]
+
+  const blocksRaw = t("studentLifePage.blocks", { returnObjects: true }) as Block[] | undefined
+  const blocks = Array.isArray(blocksRaw) ? blocksRaw : []
+
+  const moaeenSectionsRaw = t("studentLifePage.moaeenSections", { returnObjects: true }) as string[] | undefined
+  const moaeenSections = Array.isArray(moaeenSectionsRaw) ? moaeenSectionsRaw : []
+
+  const afaqSectionsRaw = t("studentLifePage.afaqSections", { returnObjects: true }) as string[] | undefined
+  const afaqSections = Array.isArray(afaqSectionsRaw) ? afaqSectionsRaw : []
+
+  const coachSectionsRaw = t("studentLifePage.coachSections", { returnObjects: true }) as string[] | undefined
+  const coachSections = Array.isArray(coachSectionsRaw) ? coachSectionsRaw : []
+
+  const employerBulletsRaw = t("studentLifeEmployer.bullets", { returnObjects: true }) as string[] | undefined
+  const employerBullets = Array.isArray(employerBulletsRaw) ? employerBulletsRaw : []
+
+  const motionBlock = reduce
+    ? {}
+    : {
+        initial: { opacity: 0, y: 14 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, margin: "-32px" },
+        transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const },
+      }
 
   return (
     <PageLayout>
-      <motion.div
-        initial={reduce ? false : { opacity: 0, y: 16 }}
-        animate={reduce ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
-      >
-        <header className="page-hero-slab page-hero-slab--accent">
-          <div className="container">
-            <h1 className="page-title">{t("studentLifePage.title")}</h1>
-            <p className="page-subtitle page-hero-lead">{t("studentLifePage.lead")}</p>
+      <div className="site-page-premium">
+        <SitePageHero
+          eyebrow={t("nav.studentLife")}
+          title={t("studentLifePage.title")}
+          lead={t("studentLifePage.lead")}
+          imageSrc={siteImagery.pageHero.studentLife}
+          imageAlt={t("studentLifePage.heroImageAlt")}
+        />
+
+        <section className="home-section home-section--surface site-page-premium__band-first">
+          <div className="container home-section__inner">
+            {blocks.length > 0 ? (
+              <ul className="site-life-pillar-grid" role="list">
+                {blocks.map((b, i) => (
+                  <li key={b.title}>
+                    <motion.article className="card-elevated site-life-pillar-card" {...motionBlock}>
+                      <div className="site-life-pillar-card__media">
+                        <img
+                          src={studentLifeBlockImage(i)}
+                          alt={b.photoAlt}
+                          width={800}
+                          height={360}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                      <div className="site-life-pillar-card__body">
+                        <h2 className="home-display home-display--sm">{b.title}</h2>
+                        <p className="site-pillar-card__desc">{b.description}</p>
+                      </div>
+                    </motion.article>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-        </header>
-        <div className="container page-inline-hero-wrap">
-          <FigureImage
-            src={siteImagery.pageHero.studentLife}
-            alt={t("studentLifePage.heroImageAlt")}
-            className="page-inline-hero-media"
-            width={1200}
-            height={480}
-          />
-        </div>
-        <section className="section container">
-          <ul className="life-pillars">
-            {blocks.map((b, i) => (
-              <li key={b.title} className="life-pillar">
-                <div className="life-pillar__media">
-                  <img
-                    src={studentLifeBlockImage(i)}
-                    alt={b.photoAlt}
-                    width={800}
-                    height={360}
-                    loading="lazy"
-                    decoding="async"
-                    className="life-pillar__img"
-                  />
-                </div>
-                <h2>{b.title}</h2>
-                <p>{b.description}</p>
-              </li>
-            ))}
-          </ul>
         </section>
 
-        <section className="section container student-life-programs">
-          <article className="card about-extended__block">
-            <h2 className="about-extended__h2">{t("studentLifePage.sectionMoaeenTitle")}</h2>
-            {moaeenSections.map((para) => (
-              <p key={para.slice(0, 48)} className="about-extended__para">
-                {para}
-              </p>
-            ))}
-          </article>
-          <article className="card about-extended__block">
-            <h2 className="about-extended__h2">{t("studentLifePage.sectionAfaqTitle")}</h2>
-            {afaqSections.map((para) => (
-              <p key={para.slice(0, 48)} className="about-extended__para">
-                {para}
-              </p>
-            ))}
-          </article>
-          <article className="card about-extended__block">
-            <h2 className="about-extended__h2">{t("studentLifePage.sectionCoachTitle")}</h2>
-            {coachSections.map((para) => (
-              <p key={para.slice(0, 48)} className="about-extended__para">
-                {para}
-              </p>
-            ))}
-          </article>
+        <section className="home-section home-section--muted">
+          <div className="container home-section__inner site-student-programs">
+            {moaeenSections.length > 0 ? (
+              <motion.article className="card-elevated site-prose-card" {...motionBlock}>
+                <h2 className="home-display home-display--sm">{t("studentLifePage.sectionMoaeenTitle")}</h2>
+                {moaeenSections.map((para) => (
+                  <p key={para.slice(0, 48)} className="site-prose-card__para">
+                    {para}
+                  </p>
+                ))}
+              </motion.article>
+            ) : null}
+            {afaqSections.length > 0 ? (
+              <motion.article className="card-elevated site-prose-card" {...motionBlock}>
+                <h2 className="home-display home-display--sm">{t("studentLifePage.sectionAfaqTitle")}</h2>
+                {afaqSections.map((para) => (
+                  <p key={para.slice(0, 48)} className="site-prose-card__para">
+                    {para}
+                  </p>
+                ))}
+              </motion.article>
+            ) : null}
+            {coachSections.length > 0 ? (
+              <motion.article className="card-elevated site-prose-card" {...motionBlock}>
+                <h2 className="home-display home-display--sm">{t("studentLifePage.sectionCoachTitle")}</h2>
+                {coachSections.map((para) => (
+                  <p key={para.slice(0, 48)} className="site-prose-card__para">
+                    {para}
+                  </p>
+                ))}
+              </motion.article>
+            ) : null}
+          </div>
         </section>
 
-        <section className="section container">
-          <article className="card about-extended__block">
-            <h2 className="about-extended__h2">{t("studentLifeEmployer.title")}</h2>
-            <p>{t("studentLifeEmployer.lead")}</p>
-            <ul className="about-extended__list" style={{ marginTop: "1rem" }}>
-              {employerBullets.map((item) => (
-                <li key={item.slice(0, 40)}>{item}</li>
-              ))}
-            </ul>
-          </article>
+        <section className="home-section home-section--surface">
+          <div className="container home-section__inner">
+            <motion.article className="card-elevated site-content-card" {...motionBlock}>
+              <h2 className="home-display home-display--sm">{t("studentLifeEmployer.title")}</h2>
+              <p className="home-lead home-lead--tight">{t("studentLifeEmployer.lead")}</p>
+              {employerBullets.length > 0 ? (
+                <ul className="site-bullet-list">
+                  {employerBullets.map((item) => (
+                    <li key={item.slice(0, 40)}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </motion.article>
+
+            <div className="site-page-cta-row site-page-cta-row--surface">
+              <Link to="/contact" className="home-btn home-btn--primary home-btn--lg">
+                {t("nav.contact")}
+              </Link>
+              <Link to="/registration" className="home-btn home-btn--secondary home-btn--lg">
+                {t("nav.registration")}
+              </Link>
+            </div>
+          </div>
         </section>
-      </motion.div>
+      </div>
     </PageLayout>
   )
 }

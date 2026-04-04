@@ -23,7 +23,7 @@ export const defaultLandingPayload = `{
     { "id": "n1", "title": "News title", "excerpt": "Short excerpt", "date": "2026/01/01" }
   ],
   "gallery": [
-    { "id": "g1", "src": "https://example.com/image.jpg", "alt": "Alt", "caption": "Caption" }
+    { "id": "g1", "src": "https://example.com/image.jpg", "alt": "Alt", "caption": "Caption", "mediaKind": "image" }
   ],
   "partners": [
     { "id": "p1", "name": "Partner name", "abbreviation": "P" }

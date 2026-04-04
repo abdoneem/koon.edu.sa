@@ -1,3 +1,4 @@
+import { IconBrandSnapchat, IconBrandX, IconBrandYoutube } from "@tabler/icons-react"
 import { useTranslation } from "react-i18next"
 import { NavLink } from "react-router-dom"
 import { brand } from "../config/brand"
@@ -43,14 +44,32 @@ export function Footer() {
         <div className="footer-col footer-col--social">
           <span className="footer-heading">{t("footer.follow")}</span>
           <div className="footer-social">
-            <a href={brand.social.youtube} target="_blank" rel="noopener noreferrer">
-              YouTube
+            <a
+              className="footer-social__btn"
+              href={brand.social.youtube}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("mediaCenterPage.socialYoutubeAria")}
+            >
+              <IconBrandYoutube size={22} stroke={1.5} aria-hidden />
             </a>
-            <a href={brand.social.x} target="_blank" rel="noopener noreferrer">
-              X
+            <a
+              className="footer-social__btn"
+              href={brand.social.x}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("mediaCenterPage.socialXAria")}
+            >
+              <IconBrandX size={22} stroke={1.5} aria-hidden />
             </a>
-            <a href={brand.social.snapchat} target="_blank" rel="noopener noreferrer">
-              Snapchat
+            <a
+              className="footer-social__btn"
+              href={brand.social.snapchat}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("mediaCenterPage.socialSnapchatAria")}
+            >
+              <IconBrandSnapchat size={22} stroke={1.5} aria-hidden />
             </a>
           </div>
         </div>

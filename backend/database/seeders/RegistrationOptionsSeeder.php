@@ -3,42 +3,53 @@
 namespace Database\Seeders;
 
 use App\Models\RegistrationGrade;
-use App\Models\RegistrationGradeTranslation;
 use App\Models\RegistrationNationality;
-use App\Models\RegistrationNationalityTranslation;
 use Illuminate\Database\Seeder;
 
 class RegistrationOptionsSeeder extends Seeder
 {
+    /**
+     * Idempotent: upserts by code so running again is safe if grades/nationalities already exist.
+     */
     public function run(): void
     {
-        RegistrationGradeTranslation::query()->delete();
-        RegistrationNationalityTranslation::query()->delete();
-        RegistrationGrade::query()->delete();
-        RegistrationNationality::query()->delete();
+        $this->seedGrades();
+        $this->seedNationalities();
+    }
 
+    public function seedGrades(): void
+    {
         foreach ($this->grades() as $order => $row) {
-            $g = RegistrationGrade::query()->create([
-                'code' => $row['code'],
-                'sort_order' => $order,
-                'is_active' => true,
-            ]);
-            $g->translations()->createMany([
-                ['locale' => 'ar', 'name' => $row['ar']],
-                ['locale' => 'en', 'name' => $row['en']],
-            ]);
+            $g = RegistrationGrade::query()->updateOrCreate(
+                ['code' => $row['code']],
+                ['sort_order' => $order, 'is_active' => true],
+            );
+            $g->translations()->updateOrCreate(
+                ['locale' => 'ar'],
+                ['name' => $row['ar']],
+            );
+            $g->translations()->updateOrCreate(
+                ['locale' => 'en'],
+                ['name' => $row['en']],
+            );
         }
+    }
 
+    public function seedNationalities(): void
+    {
         foreach ($this->nationalities() as $order => $row) {
-            $n = RegistrationNationality::query()->create([
-                'code' => $row['code'],
-                'sort_order' => $order,
-                'is_active' => true,
-            ]);
-            $n->translations()->createMany([
-                ['locale' => 'ar', 'name' => $row['ar']],
-                ['locale' => 'en', 'name' => $row['en']],
-            ]);
+            $n = RegistrationNationality::query()->updateOrCreate(
+                ['code' => $row['code']],
+                ['sort_order' => $order, 'is_active' => true],
+            );
+            $n->translations()->updateOrCreate(
+                ['locale' => 'ar'],
+                ['name' => $row['ar']],
+            );
+            $n->translations()->updateOrCreate(
+                ['locale' => 'en'],
+                ['name' => $row['en']],
+            );
         }
     }
 

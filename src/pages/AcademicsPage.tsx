@@ -1,92 +1,130 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { FigureImage } from "../components/FigureImage"
+import { Link } from "react-router-dom"
 import { PageLayout } from "../components/PageLayout"
+import { SitePageHero } from "../components/site/SitePageHero"
 import { academicsBlockImage, siteImagery } from "../content/siteImagery"
+
+type Block = { title: string; description: string; photoAlt: string }
 
 export function AcademicsPage() {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
-  const blocks = t("academicsPage.blocks", { returnObjects: true }) as {
-    title: string
-    description: string
-    photoAlt: string
-  }[]
+
+  const blocksRaw = t("academicsPage.blocks", { returnObjects: true }) as Block[] | undefined
+  const blocks = Array.isArray(blocksRaw) ? blocksRaw : []
+
+  const bilingualPointsRaw = t("bilingualPhilosophy.points", { returnObjects: true }) as string[] | undefined
+  const bilingualPoints = Array.isArray(bilingualPointsRaw) ? bilingualPointsRaw : []
+
+  const motionBlock = reduce
+    ? {}
+    : {
+        initial: { opacity: 0, y: 14 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, margin: "-32px" },
+        transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const },
+      }
 
   return (
     <PageLayout>
-      <motion.div
-        initial={reduce ? false : { opacity: 0, y: 16 }}
-        animate={reduce ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
-      >
-        <header className="page-hero-slab">
-          <div className="container">
-            <h1 className="page-title">{t("academicsPage.title")}</h1>
-            <p className="page-subtitle page-hero-lead">{t("academicsPage.lead")}</p>
-          </div>
-        </header>
-        <div className="container page-inline-hero-wrap">
-          <FigureImage
-            src={siteImagery.pageHero.academics}
-            alt={t("academicsPage.heroImageAlt")}
-            className="page-inline-hero-media"
-            width={1200}
-            height={480}
-          />
-        </div>
-        <section className="section container">
-          <div className="cards-grid academic-cards">
-            {blocks.map((b, i) => (
-              <article key={b.title} className="card program-card academic-block-card">
-                <div className="program-card__visual">
-                  <img
-                    src={academicsBlockImage(i)}
-                    alt={b.photoAlt}
-                    width={640}
-                    height={280}
-                    loading="lazy"
-                    decoding="async"
-                    className="program-card__img"
-                  />
-                </div>
-                <h2>{b.title}</h2>
-                <p>{b.description}</p>
-              </article>
-            ))}
+      <div className="site-page-premium">
+        <SitePageHero
+          eyebrow={t("nav.academics")}
+          title={t("academicsPage.title")}
+          lead={t("academicsPage.lead")}
+          imageSrc={siteImagery.pageHero.academics}
+          imageAlt={t("academicsPage.heroImageAlt")}
+        />
+
+        <section className="home-section home-section--surface site-page-premium__band-first">
+          <div className="container home-section__inner">
+            {blocks.length > 0 ? (
+              <ul className="site-academic-grid" role="list">
+                {blocks.map((b, i) => (
+                  <li key={b.title}>
+                    <motion.article className="card-elevated site-academic-card" {...motionBlock}>
+                      <div className="site-academic-card__media">
+                        <img
+                          src={academicsBlockImage(i)}
+                          alt={b.photoAlt}
+                          width={640}
+                          height={280}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                      <div className="site-academic-card__body">
+                        <h2 className="home-display home-display--sm">{b.title}</h2>
+                        <p className="site-pillar-card__desc">{b.description}</p>
+                      </div>
+                    </motion.article>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         </section>
 
-        <section className="section container">
-          <h2 className="page-title page-title--section">{t("academicsStagesDetail.title")}</h2>
-          <div className="highlight-grid">
-            <article className="highlight-card">
-              <h3>{t("academicsStagesDetail.earlyTitle")}</h3>
-              <p>{t("academicsStagesDetail.earlyBody")}</p>
-            </article>
-            <article className="highlight-card">
-              <h3>{t("academicsStagesDetail.primaryTitle")}</h3>
-              <p>{t("academicsStagesDetail.primaryBody")}</p>
-            </article>
-            <article className="highlight-card">
-              <h3>{t("academicsStagesDetail.secondaryTitle")}</h3>
-              <p>{t("academicsStagesDetail.secondaryBody")}</p>
-            </article>
-          </div>
-        </section>
-
-        <section className="section container">
-          <article className="card about-extended__block">
-            <h2 className="about-extended__h2">{t("bilingualPhilosophy.title")}</h2>
-            <p>{t("bilingualPhilosophy.lead")}</p>
-            <ul className="about-extended__list">
-              {(t("bilingualPhilosophy.points", { returnObjects: true }) as string[]).map((pt) => (
-                <li key={pt.slice(0, 40)}>{pt}</li>
-              ))}
+        <section className="home-section home-section--muted">
+          <div className="container home-section__inner">
+            <header className="home-section__head home-section__head--center">
+              <h2 className="home-display">{t("academicsStagesDetail.title")}</h2>
+            </header>
+            <ul className="site-stages-grid" role="list">
+              <li>
+                <article className="card-elevated site-stage-card site-stage-card--1">
+                  <h3 className="home-display home-display--sm">{t("academicsStagesDetail.earlyTitle")}</h3>
+                  <p className="site-pillar-card__desc">{t("academicsStagesDetail.earlyBody")}</p>
+                </article>
+              </li>
+              <li>
+                <article className="card-elevated site-stage-card site-stage-card--2">
+                  <h3 className="home-display home-display--sm">{t("academicsStagesDetail.primaryTitle")}</h3>
+                  <p className="site-pillar-card__desc">{t("academicsStagesDetail.primaryBody")}</p>
+                </article>
+              </li>
+              <li>
+                <article className="card-elevated site-stage-card site-stage-card--3">
+                  <h3 className="home-display home-display--sm">{t("academicsStagesDetail.middleTitle")}</h3>
+                  <p className="site-pillar-card__desc">{t("academicsStagesDetail.middleBody")}</p>
+                </article>
+              </li>
+              <li>
+                <article className="card-elevated site-stage-card site-stage-card--4">
+                  <h3 className="home-display home-display--sm">{t("academicsStagesDetail.highTitle")}</h3>
+                  <p className="site-pillar-card__desc">{t("academicsStagesDetail.highBody")}</p>
+                </article>
+              </li>
             </ul>
-          </article>
+          </div>
         </section>
-      </motion.div>
+
+        <section className="home-section home-section--surface">
+          <div className="container home-section__inner">
+            <motion.article className="card-elevated site-content-card" {...motionBlock}>
+              <h2 className="home-display home-display--sm">{t("bilingualPhilosophy.title")}</h2>
+              <p className="home-lead home-lead--tight">{t("bilingualPhilosophy.lead")}</p>
+              {bilingualPoints.length > 0 ? (
+                <ul className="site-bullet-list">
+                  {bilingualPoints.map((pt) => (
+                    <li key={pt.slice(0, 40)}>{pt}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </motion.article>
+
+            <div className="site-page-cta-row site-page-cta-row--surface">
+              <Link to="/admissions" className="home-btn home-btn--primary home-btn--lg">
+                {t("nav.admissions")}
+              </Link>
+              <Link to="/registration" className="home-btn home-btn--secondary home-btn--lg">
+                {t("nav.registration")}
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
     </PageLayout>
   )
 }

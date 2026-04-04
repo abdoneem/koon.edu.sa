@@ -16,6 +16,7 @@ class RegistrationOptionsController extends Controller
         $grades = RegistrationGrade::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
+            ->orderBy('id')
             ->with(['translations' => fn ($q) => $q->whereIn('locale', $locales)])
             ->get()
             ->map(fn (RegistrationGrade $g) => [
@@ -30,6 +31,7 @@ class RegistrationOptionsController extends Controller
         $nationalities = RegistrationNationality::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
+            ->orderBy('id')
             ->with(['translations' => fn ($q) => $q->whereIn('locale', $locales)])
             ->get()
             ->map(fn (RegistrationNationality $n) => [

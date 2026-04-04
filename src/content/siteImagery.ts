@@ -3,7 +3,7 @@ import { photoUrls } from "./photoUrls"
 const svg = (file: string) => `/images/${file}`
 
 /**
- * Saudi-context generated art in /images/saudi plus SVG where abstraction fits (e.g. virtual tour UI).
+ * Campus/building photos in /images/campus; generated art in /images/saudi; SVG where abstraction fits.
  */
 export const siteImagery = {
   hero: photoUrls.campusExterior,
@@ -43,6 +43,7 @@ export const siteImagery = {
     facilities: photoUrls.hallwayBright,
     admissions: photoUrls.receptionLobby,
     contact: photoUrls.buildingEntrance,
+    registration: photoUrls.meetingHandshake,
   },
   academicsBlocks: [
     photoUrls.youngWriters,
