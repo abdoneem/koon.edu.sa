@@ -1,16 +1,11 @@
 import { motion, useReducedMotion } from "framer-motion"
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { quickLinkImageForId } from "../../content/siteImagery"
-import { brand } from "../../config/brand"
+import { useCmsSite } from "../../context/CmsSiteContext"
 import { IconBadge } from "../IconBadge"
 import { IconCalendar, IconFileCheck, IconMessage } from "../icons/schoolIcons"
-
-const linkConfig = {
-  register: { href: "/registration", external: false },
-  whatsapp: { href: brand.whatsappHref, external: true },
-  admissions: { href: "/admissions", external: false },
-} as const
 
 const linkIcons = {
   register: IconFileCheck,
@@ -18,11 +13,23 @@ const linkIcons = {
   admissions: IconCalendar,
 } as const
 
-type QuickId = keyof typeof linkConfig
+type QuickId = keyof typeof linkIcons
 
 export function QuickLinksSection() {
   const { t } = useTranslation()
+  const { whatsappHref } = useCmsSite()
   const reduce = useReducedMotion()
+
+  const linkConfig = useMemo(
+    () =>
+      ({
+        register: { href: "/registration", external: false },
+        whatsapp: { href: whatsappHref, external: true },
+        admissions: { href: "/admissions", external: false },
+      }) as const,
+    [whatsappHref],
+  )
+
   const items = t("home.quickLinks.items", { returnObjects: true }) as {
     id: QuickId
     title: string

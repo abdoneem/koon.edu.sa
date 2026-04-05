@@ -1,9 +1,10 @@
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
+import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
-import { brand } from "../config/brand"
+import { useCmsSite } from "../context/CmsSiteContext"
 
 const MADINAH_MAP_EMBED =
   "https://www.openstreetmap.org/export/embed.html?bbox=39.548%2C24.498%2C39.598%2C24.538&layer=mapnik"
@@ -13,6 +14,9 @@ const RIYADH_MAP_EMBED =
 
 export function ContactPage() {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const pathKey = pathname.replace(/\/$/, "") || "/"
+  const { phoneDisplay, phoneHref, emailDisplay, emailHref, whatsappHref } = useCmsSite()
 
   return (
     <PageLayout>
@@ -25,19 +29,21 @@ export function ContactPage() {
           imageAlt={t("contactPage.heroImageAlt")}
         />
 
+        <CmsStructuredBlocks pathKey={pathKey} />
+
         <section className="home-section home-section--surface site-page-premium__band-first">
           <div className="container home-section__inner">
             <article className="card-elevated site-contact-card">
               <p className="site-contact-card__line">{t("contactPage.address")}</p>
               <p className="site-contact-card__line">{t("contactPage.addressRiyadh")}</p>
               <p className="site-contact-card__line">
-                <a href={`tel:${brand.phoneTel}`}>{t("footer.phone")}</a>
+                <a href={phoneHref}>{phoneDisplay}</a>
               </p>
               <p className="site-contact-card__line">
-                <a href={`mailto:${t("footer.email")}`}>{t("footer.email")}</a>
+                <a href={emailHref}>{emailDisplay}</a>
               </p>
               <p className="site-contact-card__line">
-                <a href={brand.whatsappHref} target="_blank" rel="noreferrer">
+                <a href={whatsappHref} target="_blank" rel="noreferrer">
                   {t("chatbot.whatsapp")}
                 </a>
               </p>
@@ -89,7 +95,7 @@ export function ContactPage() {
               <Link to="/registration" className="home-btn home-btn--primary home-btn--lg">
                 {t("nav.registration")}
               </Link>
-              <a href={brand.whatsappHref} className="home-btn home-btn--hero-book home-btn--lg" target="_blank" rel="noreferrer">
+              <a href={whatsappHref} className="home-btn home-btn--hero-book home-btn--lg" target="_blank" rel="noreferrer">
                 {t("chatbot.whatsapp")}
               </a>
             </div>

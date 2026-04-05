@@ -26,6 +26,9 @@ class AdminRegistrationSubmissionController extends Controller
             'pending' => RegistrationSubmission::query()->where('status', 'pending')->count(),
             'reviewed' => RegistrationSubmission::query()->where('status', 'reviewed')->count(),
             'replied' => RegistrationSubmission::query()->where('status', 'replied')->count(),
+            'new' => RegistrationSubmission::query()->where('status', 'new')->count(),
+            'contacted' => RegistrationSubmission::query()->where('status', 'contacted')->count(),
+            'closed' => RegistrationSubmission::query()->where('status', 'closed')->count(),
             'last_7_days' => RegistrationSubmission::query()
                 ->where('created_at', '>=', now()->subDays(7))
                 ->count(),
@@ -84,6 +87,7 @@ class AdminRegistrationSubmissionController extends Controller
                 'الجنسية (رمز)',
                 'الجنسية (عربي)',
                 'ملاحظات',
+                'ملاحظات داخلية',
                 'الحالة',
                 'رد الإدارة',
                 'تاريخ الرد',
@@ -107,6 +111,7 @@ class AdminRegistrationSubmissionController extends Controller
                     $row->nationality,
                     $nationalitiesAr[$row->nationality] ?? $row->nationality,
                     $row->notes ?? '',
+                    $row->internal_notes ?? '',
                     $this->statusLabelAr($row->status),
                     $row->staff_reply ?? '',
                     $row->replied_at?->timezone(config('app.timezone'))->format('Y-m-d H:i:s') ?? '',
@@ -116,7 +121,7 @@ class AdminRegistrationSubmissionController extends Controller
                 $rowIndex++;
             }
 
-            foreach (range('A', 'Q') as $col) {
+            foreach (range('A', 'R') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
 
@@ -163,7 +168,7 @@ class AdminRegistrationSubmissionController extends Controller
         $query = RegistrationSubmission::query();
 
         $status = $request->query('status');
-        if (filled($status) && in_array($status, ['pending', 'reviewed', 'replied'], true)) {
+        if (filled($status) && in_array($status, ['pending', 'reviewed', 'replied', 'new', 'contacted', 'closed'], true)) {
             $query->where('status', $status);
         }
 
@@ -220,6 +225,9 @@ class AdminRegistrationSubmissionController extends Controller
             'pending' => 'معلق',
             'reviewed' => 'تمت المراجعة',
             'replied' => 'تم الرد',
+            'new' => 'جديد',
+            'contacted' => 'تم التواصل',
+            'closed' => 'مغلق',
             default => $status,
         };
     }

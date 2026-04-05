@@ -1,9 +1,10 @@
 import { Anchor, Box, Grid, Group, Paper, Stack, Text, ThemeIcon, Title } from "@mantine/core"
-import { IconCalendarEvent, IconCheck, IconEye, IconFileText, IconUsers } from "@tabler/icons-react"
+import { IconCalendarEvent, IconCheck, IconEye, IconFileText, IconSettings, IconStack2, IconUsers } from "@tabler/icons-react"
 import { type ReactNode, useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import type { RegistrationStats } from "../types/registration"
 import { adminFetch } from "./adminApi"
+import { useAdminI18n } from "./adminI18n"
 
 function StatCard({
   label,
@@ -12,6 +13,7 @@ function StatCard({
   color,
   sub,
   barFraction,
+  localeTag,
 }: {
   label: string
   value: number
@@ -19,6 +21,7 @@ function StatCard({
   color: string
   sub?: string
   barFraction?: number
+  localeTag: string
 }) {
   const pct = barFraction != null ? Math.round(Math.min(100, Math.max(0, barFraction * 100))) : null
   return (
@@ -37,7 +40,7 @@ function StatCard({
             {label}
           </Text>
           <Title order={2} lh={1.2}>
-            {value.toLocaleString("ar-SA")}
+            {value.toLocaleString(localeTag)}
           </Title>
           {sub ? (
             <Text size="xs" c="dimmed" mt={6}>
@@ -59,6 +62,7 @@ function StatCard({
 }
 
 export function AdminDashboard() {
+  const { t, localeTag } = useAdminI18n()
   const [stats, setStats] = useState<RegistrationStats | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -76,27 +80,27 @@ export function AdminDashboard() {
         }
       } catch {
         if (!cancelled) {
-          setError("تعذر تحميل الإحصائيات.")
+          setError(t("admin.dashboard.statsLoadError"))
         }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [t])
 
   const reviewedReplied = stats ? stats.reviewed + stats.replied : 0
   const pipelineHint =
     stats && stats.total > 0
-      ? `${Math.round((stats.pending / stats.total) * 100)}% لا تزال قيد المراجعة`
+      ? t("admin.dashboard.pipelineHint", { pct: Math.round((stats.pending / stats.total) * 100) })
       : undefined
 
   return (
     <Stack gap="xl">
       <div>
-        <Title order={2}>لوحة التحكم</Title>
+        <Title order={2}>{t("admin.dashboard.title")}</Title>
         <Text c="dimmed" size="sm" mt={4}>
-          ملخص طلبات التسجيل وروابط العمل السريعة.
+          {t("admin.dashboard.subtitle")}
         </Text>
       </div>
 
@@ -105,54 +109,91 @@ export function AdminDashboard() {
           {error}
         </Paper>
       ) : !stats ? (
-        <Text c="dimmed">جاري التحميل…</Text>
+        <Text c="dimmed">{t("admin.dashboard.loading")}</Text>
       ) : (
         <Grid gutter="md">
           <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
             <StatCard
-              label="إجمالي الطلبات"
+              label={t("admin.dashboard.statTotal")}
               value={stats.total}
               color="koon"
               icon={<IconUsers size={26} />}
-              sub="كل الطلبات المسجَّلة"
+              sub={t("admin.dashboard.statTotalSub")}
+              localeTag={localeTag}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
             <StatCard
-              label="قيد المراجعة"
+              label={t("admin.dashboard.statPending")}
               value={stats.pending}
               color="yellow"
               icon={<IconEye size={26} />}
               sub={pipelineHint}
               barFraction={stats.total > 0 ? stats.pending / stats.total : 0}
+              localeTag={localeTag}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
             <StatCard
-              label="تمت المراجعة"
+              label={t("admin.dashboard.statReviewed")}
               value={stats.reviewed}
               color="blue"
               icon={<IconCalendarEvent size={26} />}
               barFraction={stats.total > 0 ? stats.reviewed / stats.total : 0}
+              localeTag={localeTag}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
             <StatCard
-              label="تم الرد"
+              label={t("admin.dashboard.statReplied")}
               value={stats.replied}
               color="teal"
               icon={<IconCheck size={26} />}
-              sub={reviewedReplied > 0 ? `${reviewedReplied} تمت معالجتهم (مراجعة أو رد)` : undefined}
+              sub={
+                reviewedReplied > 0 ? t("admin.dashboard.statRepliedSub", { count: reviewedReplied }) : undefined
+              }
               barFraction={stats.total > 0 ? stats.replied / stats.total : 0}
+              localeTag={localeTag}
             />
           </Grid.Col>
           <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
             <StatCard
-              label="جديد آخر 7 أيام"
+              label={t("admin.dashboard.statLast7")}
               value={stats.last_7_days}
               color="koon"
               icon={<IconCalendarEvent size={26} />}
               barFraction={stats.total > 0 ? stats.last_7_days / stats.total : 0}
+              localeTag={localeTag}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
+            <StatCard
+              label={t("admin.dashboard.statStatusNew")}
+              value={stats.new ?? 0}
+              color="gray"
+              icon={<IconUsers size={26} />}
+              barFraction={stats.total > 0 ? (stats.new ?? 0) / stats.total : 0}
+              localeTag={localeTag}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
+            <StatCard
+              label={t("admin.dashboard.statStatusContacted")}
+              value={stats.contacted ?? 0}
+              color="cyan"
+              icon={<IconCheck size={26} />}
+              barFraction={stats.total > 0 ? (stats.contacted ?? 0) / stats.total : 0}
+              localeTag={localeTag}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, sm: 6, lg: 4 }}>
+            <StatCard
+              label={t("admin.dashboard.statStatusClosed")}
+              value={stats.closed ?? 0}
+              color="red"
+              icon={<IconEye size={26} />}
+              barFraction={stats.total > 0 ? (stats.closed ?? 0) / stats.total : 0}
+              localeTag={localeTag}
             />
           </Grid.Col>
         </Grid>
@@ -165,13 +206,13 @@ export function AdminDashboard() {
               <ThemeIcon variant="light" color="koon" radius="md">
                 <IconUsers size={20} />
               </ThemeIcon>
-              <Text fw={700}>طلبات التسجيل</Text>
+              <Text fw={700}>{t("admin.dashboard.cardRegTitle")}</Text>
             </Group>
             <Text size="sm" c="dimmed" mb="md">
-              تصفية، بحث، وترتيب الطلبات مع ترقيم الصفحات.
+              {t("admin.dashboard.cardRegDesc")}
             </Text>
             <Anchor component={Link} to="/admin/registrations" fw={600}>
-              فتح القائمة ←
+              {t("admin.dashboard.cardRegLink")}
             </Anchor>
           </Paper>
         </Grid.Col>
@@ -181,13 +222,45 @@ export function AdminDashboard() {
               <ThemeIcon variant="light" color="gray" radius="md">
                 <IconFileText size={20} />
               </ThemeIcon>
-              <Text fw={700}>محتوى الموقع</Text>
+              <Text fw={700}>{t("admin.dashboard.cardContentTitle")}</Text>
             </Group>
             <Text size="sm" c="dimmed" mb="md">
-              تحرير الصفحات والنشر عبر واجهة منفصلة.
+              {t("admin.dashboard.cardContentDesc")}
             </Text>
             <Anchor component={Link} to="/admin/content-pages" fw={600}>
-              صفحات المحتوى ←
+              {t("admin.dashboard.cardContentLink")}
+            </Anchor>
+          </Paper>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Paper withBorder shadow="sm" p="lg" radius="md">
+            <Group mb="md">
+              <ThemeIcon variant="light" color="koon" radius="md">
+                <IconStack2 size={20} />
+              </ThemeIcon>
+              <Text fw={700}>{t("admin.dashboard.cardCmsTitle")}</Text>
+            </Group>
+            <Text size="sm" c="dimmed" mb="md">
+              {t("admin.dashboard.cardCmsDesc")}
+            </Text>
+            <Anchor component={Link} to="/admin/cms-pages" fw={600}>
+              {t("admin.dashboard.cardCmsLink")}
+            </Anchor>
+          </Paper>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 6 }}>
+          <Paper withBorder shadow="sm" p="lg" radius="md">
+            <Group mb="md">
+              <ThemeIcon variant="light" color="blue" radius="md">
+                <IconSettings size={20} />
+              </ThemeIcon>
+              <Text fw={700}>{t("admin.dashboard.cardSettingsTitle")}</Text>
+            </Group>
+            <Text size="sm" c="dimmed" mb="md">
+              {t("admin.dashboard.cardSettingsDesc")}
+            </Text>
+            <Anchor component={Link} to="/admin/cms-settings" fw={600}>
+              {t("admin.dashboard.cardSettingsLink")}
             </Anchor>
           </Paper>
         </Grid.Col>

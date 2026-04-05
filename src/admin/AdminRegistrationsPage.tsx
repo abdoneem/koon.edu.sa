@@ -18,7 +18,7 @@ import {
 } from "@mantine/core"
 import { useDebouncedValue, useDisclosure } from "@mantine/hooks"
 import { IconFileSpreadsheet, IconSearch, IconSortAscending, IconSortDescending } from "@tabler/icons-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRegistrationOptions } from "../hooks/useRegistrationOptions"
 import type {
   Paginated,
@@ -27,47 +27,61 @@ import type {
   RegistrationSubmission,
 } from "../types/registration"
 import { adminFetch } from "./adminApi"
-
-function registrationGenderLabelAr(code: string): string {
-  if (code === "male") {
-    return "ذكر"
-  }
-  if (code === "female") {
-    return "أنثى"
-  }
-  return code
-}
+import { useAdminI18n } from "./adminI18n"
 
 const statusColors: Record<RegistrationStatus, string> = {
   pending: "yellow",
   reviewed: "blue",
   replied: "green",
+  new: "gray",
+  contacted: "cyan",
+  closed: "red",
 }
 
-const statusLabels: Record<RegistrationStatus, string> = {
-  pending: "معلق",
-  reviewed: "تمت المراجعة",
-  replied: "تم الرد",
-}
-
-const sortOptions: { value: RegistrationSortField; label: string }[] = [
-  { value: "created_at", label: "تاريخ الإرسال" },
-  { value: "id", label: "رقم الطلب" },
-  { value: "student_full_name", label: "اسم الطالب" },
-  { value: "father_full_name", label: "اسم الأب" },
-  { value: "grade_level", label: "الصف" },
-  { value: "status", label: "الحالة" },
-  { value: "parent_mobile", label: "الجوال" },
+const sortFields: RegistrationSortField[] = [
+  "created_at",
+  "id",
+  "student_full_name",
+  "father_full_name",
+  "grade_level",
+  "status",
+  "parent_mobile",
 ]
 
 export function AdminRegistrationsPage() {
+  const { t, isRtl, localeTag } = useAdminI18n()
+  const optLang = isRtl ? "ar" : "en"
   const { gradeLabel, nationalityLabel } = useRegistrationOptions()
+
+  const sortOptions = useMemo(
+    () =>
+      sortFields.map((value) => ({
+        value,
+        label: t(`admin.registrations.sort.${value}` as const),
+      })),
+    [t],
+  )
+
+  function statusLabel(status: RegistrationStatus): string {
+    return t(`admin.registrations.status.${status}` as const)
+  }
+
+  function genderLabel(code: string): string {
+    if (code === "male") {
+      return t("admin.registrations.genderMale")
+    }
+    if (code === "female") {
+      return t("admin.registrations.genderFemale")
+    }
+    return code
+  }
   const [list, setList] = useState<Paginated<RegistrationSubmission> | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<RegistrationSubmission | null>(null)
   const [modalOpened, { open, close }] = useDisclosure(false)
   const [reply, setReply] = useState("")
+  const [internalNotes, setInternalNotes] = useState("")
   const [status, setStatus] = useState<RegistrationStatus>("pending")
   const [saving, setSaving] = useState(false)
 
@@ -106,12 +120,12 @@ export function AdminRegistrationsPage() {
       }
       setList((await res.json()) as Paginated<RegistrationSubmission>)
     } catch {
-      setLoadError("تعذر تحميل القائمة.")
+      setLoadError(t("admin.registrations.loadListError"))
       setList(null)
     } finally {
       setLoading(false)
     }
-  }, [page, perPage, sortField, sortDir, statusFilter, debouncedSearch])
+  }, [page, perPage, sortField, sortDir, statusFilter, debouncedSearch, t])
 
   useEffect(() => {
     void fetchList()
@@ -120,6 +134,7 @@ export function AdminRegistrationsPage() {
   function openRow(row: RegistrationSubmission) {
     setSelected(row)
     setReply(row.staff_reply ?? "")
+    setInternalNotes(row.internal_notes ?? "")
     setStatus(row.status)
     open()
   }
@@ -132,7 +147,7 @@ export function AdminRegistrationsPage() {
     try {
       const res = await adminFetch(`/api/admin/registrations/${selected.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ staff_reply: reply, status }),
+        body: JSON.stringify({ staff_reply: reply, status, internal_notes: internalNotes }),
       })
       if (!res.ok) {
         throw new Error("save")
@@ -140,7 +155,7 @@ export function AdminRegistrationsPage() {
       close()
       await fetchList()
     } catch {
-      setLoadError("تعذر حفظ الرد.")
+      setLoadError(t("admin.registrations.saveError"))
     } finally {
       setSaving(false)
     }
@@ -185,18 +200,18 @@ export function AdminRegistrationsPage() {
       a.remove()
       URL.revokeObjectURL(url)
     } catch {
-      setLoadError("تعذر تصدير الملف. تحقق من الجلسة أو حاول لاحقاً.")
+      setLoadError(t("admin.registrations.exportError"))
     } finally {
       setExporting(false)
     }
   }
 
   return (
-    <Stack gap="lg">
+    <Stack gap="lg" dir={isRtl ? "rtl" : "ltr"}>
       <div>
-        <Title order={2}>طلبات التسجيل</Title>
+        <Title order={2}>{t("admin.registrations.title")}</Title>
         <Text c="dimmed" size="sm" mt={4}>
-          تصفية، ترتيب، وبحث في الطلبات. الردود تُحفظ مع حالة الطلب.
+          {t("admin.registrations.subtitle")}
         </Text>
       </div>
 
@@ -210,22 +225,25 @@ export function AdminRegistrationsPage() {
         <Group align="flex-end" gap="md" wrap="wrap" justify="space-between">
           <Group align="flex-end" gap="md" wrap="wrap" style={{ flex: 1 }}>
           <TextInput
-            label="بحث"
-            description="اسم الطالب، الأب، الجوال، الهوية"
-            placeholder="ابحث…"
+            label={t("admin.registrations.searchLabel")}
+            description={t("admin.registrations.searchDesc")}
+            placeholder={t("admin.registrations.searchPlaceholder")}
             leftSection={<IconSearch size={16} />}
             value={searchInput}
             onChange={(e) => setSearchInput(e.currentTarget.value)}
             style={{ flex: "1 1 220px", minWidth: 200 }}
           />
           <Select
-            label="الحالة"
-            placeholder="الكل"
+            label={t("admin.registrations.statusLabel")}
+            placeholder={t("admin.registrations.statusAll")}
             clearable
             data={[
-              { value: "pending", label: statusLabels.pending },
-              { value: "reviewed", label: statusLabels.reviewed },
-              { value: "replied", label: statusLabels.replied },
+              { value: "pending", label: statusLabel("pending") },
+              { value: "reviewed", label: statusLabel("reviewed") },
+              { value: "replied", label: statusLabel("replied") },
+              { value: "new", label: statusLabel("new") },
+              { value: "contacted", label: statusLabel("contacted") },
+              { value: "closed", label: statusLabel("closed") },
             ]}
             value={statusFilter}
             onChange={(v) => {
@@ -235,7 +253,7 @@ export function AdminRegistrationsPage() {
             style={{ width: 160 }}
           />
           <Select
-            label="ترتيب حسب"
+            label={t("admin.registrations.sortLabel")}
             data={sortOptions}
             value={sortField}
             onChange={(v) => {
@@ -245,10 +263,10 @@ export function AdminRegistrationsPage() {
             style={{ width: 180 }}
           />
           <Select
-            label="الاتجاه"
+            label={t("admin.registrations.directionLabel")}
             data={[
-              { value: "desc", label: "الأحدث أولاً" },
-              { value: "asc", label: "الأقدم أولاً" },
+              { value: "desc", label: t("admin.registrations.directionDesc") },
+              { value: "asc", label: t("admin.registrations.directionAsc") },
             ]}
             value={sortDir}
             onChange={(v) => {
@@ -261,7 +279,7 @@ export function AdminRegistrationsPage() {
             style={{ width: 170 }}
           />
           <Select
-            label="حجم الصفحة"
+            label={t("admin.registrations.perPageLabel")}
             data={[
               { value: "10", label: "10" },
               { value: "25", label: "25" },
@@ -284,7 +302,7 @@ export function AdminRegistrationsPage() {
             onClick={() => void exportExcel()}
             style={{ alignSelf: "flex-end" }}
           >
-            تصدير Excel
+            {t("admin.registrations.exportExcel")}
           </Button>
         </Group>
       </Paper>
@@ -298,20 +316,22 @@ export function AdminRegistrationsPage() {
           <>
             <Box px="md" pt="md" pb="xs">
               <Text size="sm" c="dimmed">
-                {totalRecords === 0 ? "لا نتائج" : `عرض ${list?.data.length ?? 0} من ${totalRecords} طلباً`}
+                {totalRecords === 0
+                  ? t("admin.registrations.noResults")
+                  : t("admin.registrations.showing", { shown: list?.data.length ?? 0, total: totalRecords })}
               </Text>
             </Box>
             <ScrollArea h="min(70vh, 56rem)" type="auto">
               <Table striped highlightOnHover withTableBorder withColumnBorders stickyHeader>
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th>#</Table.Th>
-                    <Table.Th>اسم الطالب</Table.Th>
-                    <Table.Th>رقم الجوال</Table.Th>
-                    <Table.Th>الصف</Table.Th>
-                    <Table.Th>الحالة</Table.Th>
-                    <Table.Th>التاريخ</Table.Th>
-                    <Table.Th w={120} />
+                    <Table.Th>{t("admin.registrations.colId")}</Table.Th>
+                    <Table.Th>{t("admin.registrations.colStudent")}</Table.Th>
+                    <Table.Th>{t("admin.registrations.colMobile")}</Table.Th>
+                    <Table.Th>{t("admin.registrations.colGrade")}</Table.Th>
+                    <Table.Th>{t("admin.registrations.colStatus")}</Table.Th>
+                    <Table.Th>{t("admin.registrations.colDate")}</Table.Th>
+                    <Table.Th w={120}>{t("admin.registrations.colActions")}</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -320,16 +340,16 @@ export function AdminRegistrationsPage() {
                       <Table.Td>{row.id}</Table.Td>
                       <Table.Td>{row.student_full_name}</Table.Td>
                       <Table.Td style={{ direction: "ltr", textAlign: "right" }}>{row.parent_mobile}</Table.Td>
-                      <Table.Td>{gradeLabel(row.grade_level, "ar")}</Table.Td>
+                      <Table.Td>{gradeLabel(row.grade_level, optLang)}</Table.Td>
                       <Table.Td>
                         <Badge variant="light" color={statusColors[row.status]} size="sm">
-                          {statusLabels[row.status]}
+                          {statusLabel(row.status)}
                         </Badge>
                       </Table.Td>
-                      <Table.Td>{new Date(row.created_at).toLocaleString("ar-SA")}</Table.Td>
+                      <Table.Td>{new Date(row.created_at).toLocaleString(localeTag)}</Table.Td>
                       <Table.Td>
                         <Button variant="light" size="xs" onClick={() => openRow(row)}>
-                          تفاصيل
+                          {t("admin.registrations.details")}
                         </Button>
                       </Table.Td>
                     </Table.Tr>
@@ -354,58 +374,75 @@ export function AdminRegistrationsPage() {
         )}
       </Paper>
 
-      <Modal opened={modalOpened} onClose={close} title={selected ? `طلب #${selected.id}` : ""} size="lg" radius="md">
+      <Modal
+        opened={modalOpened}
+        onClose={close}
+        title={selected ? t("admin.registrations.modalTitle", { id: selected.id }) : ""}
+        size="lg"
+        radius="md"
+      >
         {selected ? (
           <Stack gap="md">
             <Text size="sm">
-              <strong>اسم الاب الرباعي:</strong> {selected.father_full_name}
+              <strong>{t("admin.registrations.fatherName")}:</strong> {selected.father_full_name}
             </Text>
             <Text size="sm">
-              <strong>رقم الهوية الاب:</strong> {selected.father_national_id}
+              <strong>{t("admin.registrations.fatherId")}:</strong> {selected.father_national_id}
             </Text>
             <Text size="sm">
-              <strong>اسم الطالب الرباعي:</strong> {selected.student_full_name}
+              <strong>{t("admin.registrations.studentName")}:</strong> {selected.student_full_name}
             </Text>
             <Text size="sm">
-              <strong>رقم هوية الطالب:</strong> {selected.student_national_id}
+              <strong>{t("admin.registrations.studentId")}:</strong> {selected.student_national_id}
             </Text>
             <Text size="sm">
-              <strong>رقم جوال الاب/ الام:</strong> {selected.parent_mobile}
+              <strong>{t("admin.registrations.parentMobile")}:</strong> {selected.parent_mobile}
             </Text>
             <Text size="sm">
-              <strong>الجنس:</strong> {registrationGenderLabelAr(selected.gender)} ({selected.gender})
+              <strong>{t("admin.registrations.gender")}:</strong> {genderLabel(selected.gender)} ({selected.gender})
             </Text>
             <Text size="sm">
-              <strong>الصف الدراسي:</strong> {gradeLabel(selected.grade_level, "ar")}{" "}
+              <strong>{t("admin.registrations.grade")}:</strong> {gradeLabel(selected.grade_level, optLang)}{" "}
               <Text span size="xs" c="dimmed">
                 ({selected.grade_level})
               </Text>
             </Text>
             <Text size="sm">
-              <strong>الجنسية:</strong> {nationalityLabel(selected.nationality, "ar")}{" "}
+              <strong>{t("admin.registrations.nationality")}:</strong>{" "}
+              {nationalityLabel(selected.nationality, optLang)}{" "}
               <Text span size="xs" c="dimmed">
                 ({selected.nationality})
               </Text>
             </Text>
             {selected.notes ? (
               <Text size="sm">
-                <strong>ملاحظات:</strong> {selected.notes}
+                <strong>{t("admin.registrations.applicantNotes")}:</strong> {selected.notes}
               </Text>
             ) : null}
 
             <Select
-              label="حالة الطلب"
+              label={t("admin.registrations.statusField")}
               data={[
-                { value: "pending", label: statusLabels.pending },
-                { value: "reviewed", label: statusLabels.reviewed },
-                { value: "replied", label: statusLabels.replied },
+                { value: "pending", label: statusLabel("pending") },
+                { value: "reviewed", label: statusLabel("reviewed") },
+                { value: "replied", label: statusLabel("replied") },
+                { value: "new", label: statusLabel("new") },
+                { value: "contacted", label: statusLabel("contacted") },
+                { value: "closed", label: statusLabel("closed") },
               ]}
               value={status}
               onChange={(v) => setStatus((v as RegistrationStatus) ?? "pending")}
             />
 
             <Textarea
-              label="رد الإدارة (يُحفظ ويُحدّث تاريخ الرد عند وجود نص)"
+              label={t("admin.registrations.internalNotes")}
+              minRows={3}
+              value={internalNotes}
+              onChange={(e) => setInternalNotes(e.currentTarget.value)}
+            />
+
+            <Textarea
+              label={t("admin.registrations.staffReply")}
               minRows={4}
               value={reply}
               onChange={(e) => setReply(e.currentTarget.value)}
@@ -413,10 +450,10 @@ export function AdminRegistrationsPage() {
 
             <Group justify="flex-end">
               <Button variant="default" onClick={close}>
-                إلغاء
+                {t("admin.registrations.cancel")}
               </Button>
               <Button loading={saving} onClick={() => void saveReply()}>
-                حفظ
+                {t("admin.registrations.save")}
               </Button>
             </Group>
           </Stack>

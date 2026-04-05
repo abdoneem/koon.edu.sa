@@ -5,10 +5,14 @@ import { AdminDashboard } from "./admin/AdminDashboard"
 import { AdminLayout } from "./admin/AdminLayout"
 import { AdminLoginPage } from "./admin/AdminLoginPage"
 import { AdminRegistrationsPage } from "./admin/AdminRegistrationsPage"
+import { CmsPageEditor } from "./admin/CmsPageEditor"
+import { CmsPagesList } from "./admin/CmsPagesList"
+import { CmsSettingsPage } from "./admin/CmsSettingsPage"
 import { ContentPageEditor } from "./admin/ContentPageEditor"
 import { ContentPagesList } from "./admin/ContentPagesList"
 import { RequireAdminAuth } from "./admin/RequireAdminAuth"
 import { DocumentHead } from "./components/DocumentHead"
+import { CmsSiteProvider } from "./context/CmsSiteContext"
 import { AboutPage } from "./pages/AboutPage"
 import { AcademicsPage } from "./pages/AcademicsPage"
 import { AdmissionsPage } from "./pages/AdmissionsPage"
@@ -32,7 +36,7 @@ function App() {
   }, [i18n.language])
 
   return (
-    <>
+    <CmsSiteProvider>
       <DocumentHead />
       <Routes>
         <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -49,6 +53,10 @@ function App() {
           <Route path="content-pages" element={<ContentPagesList />} />
           <Route path="content-pages/new" element={<ContentPageEditor />} />
           <Route path="content-pages/:id/edit" element={<ContentPageEditor />} />
+          <Route path="cms-pages" element={<CmsPagesList />} />
+          <Route path="cms-pages/new" element={<CmsPageEditor />} />
+          <Route path="cms-pages/:id/edit" element={<CmsPageEditor />} />
+          <Route path="cms-settings" element={<CmsSettingsPage />} />
         </Route>
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
@@ -69,7 +77,7 @@ function App() {
         <Route path="/facilities" element={<HomeHashRedirect hash="facilities" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+    </CmsSiteProvider>
   )
 }
 

@@ -21,7 +21,10 @@ export function HomeDocHeroPremium({ bundle, hasLiveCms }: Props) {
   const lead = hasLiveCms
     ? coalesceString(bundle.hero.subtitle, t("brandSlogan"))
     : coalesceString(t("brandSlogan"), bundle.hero.subtitle)
-  const metaLine = coalesceString(t("hero.visionLine"), bundle.hero.location)
+  // When CMS provides hero.location, prefer it so the line matches the hero image/caption (avoids Madinah tagline + Riyadh photo).
+  const metaLine = hasLiveCms
+    ? coalesceString(bundle.hero.location, t("hero.visionLine"))
+    : coalesceString(t("hero.visionLine"), bundle.hero.location)
 
   return (
     <motion.section

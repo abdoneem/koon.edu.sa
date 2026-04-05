@@ -1,7 +1,10 @@
+import { adminTranslationsAr, adminTranslationsEn } from "./adminLocale"
+
 /** Minimal i18n shell: UI chrome + admin SEO only. All public copy lives in `siteDocument`. */
 export const resourcesShell = {
   en: {
     translation: {
+      admin: adminTranslationsEn,
       common: {
         loading: "Loading…",
         contentLoadError: "Unable to load the latest content. Showing saved information.",
@@ -35,6 +38,7 @@ export const resourcesShell = {
   },
   ar: {
     translation: {
+      admin: adminTranslationsAr,
       imagery: {
         aboutHeroAlt: "صورة تعريفية لحرم مدرسي معاصر.",
         contactHeroAlt: "صورة تعريفية لحرم مدرسي معاصر.",

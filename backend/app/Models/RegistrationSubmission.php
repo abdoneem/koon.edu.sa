@@ -16,6 +16,7 @@ class RegistrationSubmission extends Model
         'grade_level',
         'nationality',
         'notes',
+        'internal_notes',
         'status',
         'staff_reply',
         'replied_at',

@@ -21,7 +21,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
-import { brand } from "../config/brand"
+import { useCmsSite } from "../context/CmsSiteContext"
 import { siteImagery } from "../content/siteImagery"
 import { env } from "../config/env"
 import { useRegistrationOptions } from "../hooks/useRegistrationOptions"
@@ -35,6 +35,7 @@ function focusFirstInvalidControl(formEl: HTMLFormElement | null) {
 }
 
 export function RegistrationPage() {
+  const { phoneDisplay, phoneHref, whatsappHref } = useCmsSite()
   const { t, i18n } = useTranslation()
   const isRtl = i18n.language.startsWith("ar")
   const lang: RegistrationOptionLocale = isRtl ? "ar" : "en"
@@ -236,14 +237,14 @@ export function RegistrationPage() {
                       </Text>
                     </Stack>
                   </Group>
-                  <Alert color="blue" variant="light" title={brand.phoneDisplay}>
+                  <Alert color="blue" variant="light" title={phoneDisplay}>
                     <Stack gap="xs">
                       <Text size="sm">{t("registrationPage.contactBanner")}</Text>
                       <Group gap="sm" justify="flex-start" wrap="wrap">
-                        <Button component="a" href={`tel:${brand.phoneTel}`} size="sm" variant="filled">
+                        <Button component="a" href={phoneHref} size="sm" variant="filled">
                           {t("chatbot.call")}
                         </Button>
-                        <Button component="a" href={brand.whatsappHref} target="_blank" size="sm" variant="light">
+                        <Button component="a" href={whatsappHref} target="_blank" size="sm" variant="light">
                           {t("chatbot.whatsapp")}
                         </Button>
                       </Group>
@@ -306,14 +307,14 @@ export function RegistrationPage() {
                   </Paper>
                 </div>
 
-                <Alert color="blue" variant="light" title={brand.phoneDisplay}>
+                <Alert color="blue" variant="light" title={phoneDisplay}>
                   <Stack gap="xs">
                     <Text size="sm">{t("registrationPage.contactBanner")}</Text>
                     <Group gap="sm" justify="flex-start" wrap="wrap">
-                      <Button component="a" href={`tel:${brand.phoneTel}`} size="xs" variant="filled">
+                      <Button component="a" href={phoneHref} size="xs" variant="filled">
                         {t("chatbot.call")}
                       </Button>
-                      <Button component="a" href={brand.whatsappHref} target="_blank" size="xs" variant="light">
+                      <Button component="a" href={whatsappHref} target="_blank" size="xs" variant="light">
                         {t("chatbot.whatsapp")}
                       </Button>
                     </Group>

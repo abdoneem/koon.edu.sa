@@ -15,6 +15,9 @@ param(
     "audit",
     "clean",
     "deploy",
+    "publish-sftp",
+    "sftp-sync",
+    "sftp-sync-full",
     "help"
   )]
   [string]$Action,
@@ -142,6 +145,9 @@ function Show-Help() {
   Write-Host "  audit    - npm audit (read-only)" -ForegroundColor Gray
   Write-Host "  clean    - remove dist + node_modules (asks confirmation)" -ForegroundColor Gray
   Write-Host "  deploy   - build + show next steps (safe; no git push)" -ForegroundColor Gray
+  Write-Host "  publish-sftp   - publish-hosting.ps1 + SFTP incremental (needs secrets/sftp.env)" -ForegroundColor Gray
+  Write-Host "  sftp-sync      - SFTP incremental only (publish/koon-hosting must exist)" -ForegroundColor Gray
+  Write-Host "  sftp-sync-full - SFTP full upload (--full)" -ForegroundColor Gray
   Write-Host "  help     - show this help" -ForegroundColor Gray
 }
 
@@ -364,6 +370,63 @@ function Action-Deploy() {
   Write-Host "Git actions are intentionally not automated here." -ForegroundColor DarkGray
 }
 
+function Test-PythonParamiko() {
+  python -c "import paramiko" 2>$null
+  return ($LASTEXITCODE -eq 0)
+}
+
+function Ensure-Paramiko() {
+  if (-not (Test-Command "python")) {
+    throw "python not found. Install Python 3 and try again."
+  }
+  if (-not (Test-PythonParamiko)) {
+    Write-Host "Installing paramiko (pip)…" -ForegroundColor Yellow
+    python -m pip install paramiko
+  }
+}
+
+function Invoke-SftpDeploy {
+  param(
+    [switch]$Full,
+    [switch]$DryRun,
+    [switch]$NoBaseline
+  )
+  Ensure-RepoRoot
+  Ensure-Paramiko
+  $pyScript = Join-Path $PSScriptRoot "scripts\sftp_deploy.py"
+  if (-not (Test-Path $pyScript)) {
+    throw "Missing: $pyScript"
+  }
+  $argList = @($pyScript)
+  if ($Full) { $argList += "--full" }
+  if ($DryRun) { $argList += "--dry-run" }
+  if ($NoBaseline) { $argList += "--no-baseline" }
+  Write-Host ""
+  Write-Host ("Running: python -u {0}" -f ($argList -join " ")) -ForegroundColor Yellow
+  # -u: unbuffered stdout/stderr so SFTP progress shows live in PowerShell / IDE terminals
+  & python -u @argList
+}
+
+function Action-PublishSftp() {
+  Write-Rule "Publish hosting + SFTP (incremental)"
+  $pub = Join-Path $PSScriptRoot "scripts\publish-hosting.ps1"
+  if (-not (Test-Path $pub)) {
+    throw "Missing: $pub"
+  }
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $pub
+  Invoke-SftpDeploy
+}
+
+function Action-SftpSync() {
+  Write-Rule "SFTP sync (incremental)"
+  Invoke-SftpDeploy
+}
+
+function Action-SftpSyncFull() {
+  Write-Rule "SFTP sync (full)"
+  Invoke-SftpDeploy -Full
+}
+
 function Run-Action([string]$A) {
   switch ($A) {
     "install" { Action-Install }
@@ -380,6 +443,9 @@ function Run-Action([string]$A) {
     "audit" { Action-Audit }
     "clean" { Action-Clean }
     "deploy" { Action-Deploy }
+    "publish-sftp" { Action-PublishSftp }
+    "sftp-sync" { Action-SftpSync }
+    "sftp-sync-full" { Action-SftpSyncFull }
     "help" { Show-Help }
     default { throw "Unknown action: $A" }
   }
@@ -404,11 +470,14 @@ function Show-Menu() {
   Write-Host "  12) Audit (npm audit)" -ForegroundColor Cyan
   Write-Host "  13) Clean (delete dist + node_modules)" -ForegroundColor Cyan
   Write-Host "  14) Deploy (build + instructions)" -ForegroundColor Cyan
+  Write-Host "  15) Publish hosting + SFTP incremental (publish-hosting + upload)" -ForegroundColor Cyan
+  Write-Host "  16) SFTP incremental only (needs publish\koon-hosting)" -ForegroundColor Cyan
+  Write-Host "  17) SFTP full upload" -ForegroundColor Cyan
   Write-Host ""
   Write-Host "  0) Exit" -ForegroundColor DarkGray
   Write-Host ""
 
-  $choice = (Read-Host "Enter 0-14").Trim()
+  $choice = (Read-Host "Enter 0-17").Trim()
   switch ($choice) {
     "1" { Run-Action "install" }
     "2" { Run-Action "dev" }
@@ -424,6 +493,9 @@ function Show-Menu() {
     "12" { Run-Action "audit" }
     "13" { Run-Action "clean" }
     "14" { Run-Action "deploy" }
+    "15" { Run-Action "publish-sftp" }
+    "16" { Run-Action "sftp-sync" }
+    "17" { Run-Action "sftp-sync-full" }
     "0" { return $false }
     default {
       Write-Host "Invalid choice." -ForegroundColor DarkYellow

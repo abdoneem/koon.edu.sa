@@ -21,6 +21,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { brand } from "../../config/brand"
+import { useCmsSite } from "../../context/CmsSiteContext"
 import { studentLifeBlockImage } from "../../content/siteImagery"
 import type { HomePageBundle } from "../../types/homePageBundle"
 import { coalesceArray, coalesceString } from "../../utils/coalesce"
@@ -36,6 +37,7 @@ const VALUE_ICONS = [IconFlag, IconTrendingUp, IconSparkles, IconEye, IconBolt] 
 const ADMISSIONS_STEP_ICONS = [IconMapPin, IconBooks, IconSend, IconFileCheck] as const
 
 export function HomeLandingSections({ bundle }: Props) {
+  const { phoneDisplay, phoneHref, emailDisplay, emailHref } = useCmsSite()
   const { t } = useTranslation()
   const reduce = useReducedMotion()
 
@@ -522,19 +524,19 @@ export function HomeLandingSections({ bundle }: Props) {
                 <p className="home-lead">{t("bookTourPage.intro")}</p>
                 <ul className="home-contact-links">
                   <li>
-                    <a className="home-contact-links__row" href={`tel:${t("footer.phone")}`}>
+                    <a className="home-contact-links__row" href={phoneHref}>
                       <span className="home-contact-links__icon" aria-hidden>
                         <IconPhone size={22} stroke={1.75} />
                       </span>
-                      <span className="home-contact-links__text">{t("footer.phone")}</span>
+                      <span className="home-contact-links__text">{phoneDisplay}</span>
                     </a>
                   </li>
                   <li>
-                    <a className="home-contact-links__row" href={`mailto:${t("footer.email")}`}>
+                    <a className="home-contact-links__row" href={emailHref}>
                       <span className="home-contact-links__icon" aria-hidden>
                         <IconMail size={22} stroke={1.75} />
                       </span>
-                      <span className="home-contact-links__text">{t("footer.email")}</span>
+                      <span className="home-contact-links__text">{emailDisplay}</span>
                     </a>
                   </li>
                 </ul>

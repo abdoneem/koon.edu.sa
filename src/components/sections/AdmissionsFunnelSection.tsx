@@ -1,17 +1,23 @@
 import { motion, useReducedMotion } from "framer-motion"
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { brand } from "../../config/brand"
-
-const STEP_LINKS = [
-  { href: "/contact", external: false as const, btnClass: "btn-primary" as const },
-  { href: brand.whatsappHref, external: true as const, btnClass: "btn-secondary" as const },
-  { href: "/registration", external: false as const, btnClass: "btn-accent" as const },
-] as const
+import { useCmsSite } from "../../context/CmsSiteContext"
 
 export function AdmissionsFunnelSection() {
   const { t } = useTranslation()
+  const { whatsappHref } = useCmsSite()
   const reduce = useReducedMotion()
+
+  const stepLinks = useMemo(
+    () =>
+      [
+        { href: "/contact", external: false as const, btnClass: "btn-primary" as const },
+        { href: whatsappHref, external: true as const, btnClass: "btn-secondary" as const },
+        { href: "/registration", external: false as const, btnClass: "btn-accent" as const },
+      ] as const,
+    [whatsappHref],
+  )
   const steps = t("home.admissionsFunnel.steps", { returnObjects: true }) as {
     title: string
     description: string
@@ -31,7 +37,7 @@ export function AdmissionsFunnelSection() {
         </div>
         <ol className="admissions-funnel-grid">
           {steps.map((step, i) => {
-            const link = STEP_LINKS[i]
+            const link = stepLinks[i]
             if (!link) {
               return null
             }

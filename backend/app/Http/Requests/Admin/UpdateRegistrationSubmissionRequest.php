@@ -18,8 +18,13 @@ class UpdateRegistrationSubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['sometimes', 'string', Rule::in(['pending', 'reviewed', 'replied'])],
+            'status' => [
+                'sometimes',
+                'string',
+                Rule::in(['pending', 'reviewed', 'replied', 'new', 'contacted', 'closed']),
+            ],
             'staff_reply' => ['sometimes', 'nullable', 'string', 'max:20000'],
+            'internal_notes' => ['sometimes', 'nullable', 'string', 'max:20000'],
         ];
     }
 }

@@ -1,9 +1,10 @@
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { brand } from "../../config/brand"
+import { useCmsSite } from "../../context/CmsSiteContext"
 
 export function HomeAdmissionsLuxury() {
   const { t } = useTranslation()
+  const { whatsappHref } = useCmsSite()
 
   return (
     <section className="hl-admissions" aria-labelledby="hl-adm-heading">
@@ -15,7 +16,7 @@ export function HomeAdmissionsLuxury() {
           <Link to="/contact" className="hl-btn hl-btn--primary">
             {t("homeLuxury.admissions.ctaVisit")}
           </Link>
-          <a href={brand.whatsappHref} className="hl-btn hl-btn--ghost" target="_blank" rel="noreferrer">
+          <a href={whatsappHref} className="hl-btn hl-btn--ghost" target="_blank" rel="noreferrer">
             {t("homeLuxury.admissions.ctaWhatsapp")}
           </a>
           <Link to="/registration" className="hl-btn hl-btn--ghost">

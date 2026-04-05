@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RegistrationOptionsSeeder::class,
             AdminUserSeeder::class,
             ContentPageSeeder::class,
+            CmsSettingsSeeder::class,
         ]);
     }
 }

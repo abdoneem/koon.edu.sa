@@ -1,4 +1,4 @@
-export type RegistrationStatus = "pending" | "reviewed" | "replied"
+export type RegistrationStatus = "pending" | "reviewed" | "replied" | "new" | "contacted" | "closed"
 
 export interface RegistrationSubmission {
   id: number
@@ -11,6 +11,7 @@ export interface RegistrationSubmission {
   grade_level: string
   nationality: string
   notes: string | null
+  internal_notes?: string | null
   status: RegistrationStatus
   staff_reply: string | null
   replied_at: string | null
@@ -23,6 +24,9 @@ export interface RegistrationStats {
   pending: number
   reviewed: number
   replied: number
+  new: number
+  contacted: number
+  closed: number
   last_7_days: number
 }
 

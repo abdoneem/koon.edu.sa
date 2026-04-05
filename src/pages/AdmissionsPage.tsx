@@ -1,17 +1,21 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
+import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { FaqSection } from "../components/sections/FaqSection"
 import { siteImagery } from "../content/siteImagery"
-import { brand } from "../config/brand"
+import { useCmsSite } from "../context/CmsSiteContext"
 import { useCmsContent } from "../hooks/useCmsContent"
 import { fetchAdmissionsPageContent } from "../services/cmsClient"
 import type { AdmissionsPageContent } from "../types/cms"
 
 export function AdmissionsPage() {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const pathKey = pathname.replace(/\/$/, "") || "/"
+  const { phoneDisplay, phoneHref, whatsappHref } = useCmsSite()
   const fallback = useMemo((): AdmissionsPageContent => {
     const rawSteps = t("admissionsPage.steps", { returnObjects: true })
     const steps = Array.isArray(rawSteps) ? rawSteps : []
@@ -39,16 +43,18 @@ export function AdmissionsPage() {
           imageAlt={t("admissionsPage.heroImageAlt")}
         />
 
+        <CmsStructuredBlocks pathKey={pathKey} />
+
         <section className="home-section home-section--surface site-page-premium__band-first">
           <div className="container home-section__inner">
             <div className="site-page-hotline card-elevated">
-              <a className="site-page-hotline__link" href={`tel:${brand.phoneTel}`}>
-                {brand.phoneDisplay}
+              <a className="site-page-hotline__link" href={phoneHref}>
+                {phoneDisplay}
               </a>
               <span className="site-page-hotline__sep" aria-hidden>
                 ·
               </span>
-              <a className="site-page-hotline__link" href={brand.whatsappHref} target="_blank" rel="noreferrer">
+              <a className="site-page-hotline__link" href={whatsappHref} target="_blank" rel="noreferrer">
                 {t("chatbot.whatsapp")}
               </a>
               <span className="site-page-hotline__sep" aria-hidden>

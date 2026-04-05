@@ -54,11 +54,11 @@ class ContentPageSeeder extends Seeder
     {
         return [
             'hero' => [
-                'title' => 'Shaping Confident Learners with a Global Mindset',
-                'subtitle' => 'Where education meets passion, and identity meets innovation. Boys grow, belong, and lead.',
-                'primaryCta' => 'Book a Tour',
-                'secondaryCta' => 'Explore Programs',
-                'location' => 'Riyadh - Al Nakhil, King Fahd Road',
+                'title' => 'KOON Model Bilingual Schools',
+                'subtitle' => 'Balanced bilingual education across Madinah (Al Rawabi) and Riyadh — national curriculum with international strands, inquiry, and readiness for what comes next.',
+                'primaryCta' => 'Book a tour',
+                'secondaryCta' => 'Register now',
+                'location' => 'Riyadh — Al Nakhil, King Fahd Road',
             ],
             'programs' => [
                 [
@@ -118,11 +118,11 @@ class ContentPageSeeder extends Seeder
     {
         return [
             'hero' => [
-                'title' => 'نربي جيلاً واثقاً، يفكر بعقلٍ مفتوح على العالم',
-                'subtitle' => 'تعليم يجمع بين الشغف والهوية: نهيئ أبناءكم لغدٍ أفضل، في بيئة يشعرون فيها بالانتماء والمسؤولية.',
-                'primaryCta' => 'احجز زيارة',
-                'secondaryCta' => 'تعرّف على البرامج',
-                'location' => 'الرياض - حي النخيل، طريق الملك فهد',
+                'title' => 'مدارس كون النموذجية ثنائية اللغة',
+                'subtitle' => 'تعليم ثنائي اللغة متوازن في المدينة المنورة (الروابي) والرياض — منهج وطني مع أبعاد دولية، وتعلّم بالاستقصاء وتجهيز للمرحلة القادمة.',
+                'primaryCta' => 'احجز جولة',
+                'secondaryCta' => 'سجّل الآن',
+                'location' => 'الرياض — حي النخيل، طريق الملك فهد',
             ],
             'programs' => [
                 [

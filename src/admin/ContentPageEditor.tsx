@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { adminFetch } from "./adminApi"
+import { useAdminI18n } from "./adminI18n"
 import { templateForSlug } from "./defaultPayloads"
 
 const SLUGS = ["landing-page", "about-page", "admissions-page", "contact-page"] as const
@@ -16,6 +17,7 @@ type PageRow = {
 }
 
 export function ContentPageEditor() {
+  const { t, isRtl } = useAdminI18n()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isNew = id === undefined
@@ -50,14 +52,14 @@ export function ContentPageEditor() {
         setPayloadText(JSON.stringify(row.payload, null, 2))
       } catch {
         if (!cancelled) {
-          setError("Failed to load page")
+          setError(t("admin.contentEditor.loadFailed"))
         }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [id, isNew])
+  }, [id, isNew, t])
 
   useEffect(() => {
     if (isNew) {
@@ -72,7 +74,7 @@ export function ContentPageEditor() {
     try {
       payload = JSON.parse(payloadText) as Record<string, unknown>
     } catch {
-      setError("Payload must be valid JSON.")
+      setError(t("admin.contentEditor.invalidJson"))
       return
     }
 
@@ -98,7 +100,7 @@ export function ContentPageEditor() {
           const msg =
             typeof data === "object" && data !== null && "message" in data
               ? String((data as { message: string }).message)
-              : "Save failed"
+              : t("admin.contentEditor.saveFailed")
           setError(msg)
           return
         }
@@ -126,7 +128,7 @@ export function ContentPageEditor() {
           setError(
             typeof data === "object" && data !== null && "message" in data
               ? String((data as { message: string }).message)
-              : "Update failed",
+              : t("admin.contentEditor.updateFailed"),
           )
           return
         }
@@ -144,31 +146,33 @@ export function ContentPageEditor() {
           setError(
             typeof data === "object" && data !== null && "message" in data
               ? String((data as { message: string }).message)
-              : "Update failed",
+              : t("admin.contentEditor.updateFailed"),
           )
           return
         }
       }
       navigate("/admin/content-pages", { replace: true })
     } catch {
-      setError("Network error")
+      setError(t("admin.contentEditor.networkError"))
     } finally {
       setPending(false)
     }
   }
 
   return (
-    <div>
+    <div dir={isRtl ? "rtl" : "ltr"}>
       <p style={{ marginBottom: "1rem" }}>
-        <Link to="/admin/content-pages">← Content pages</Link>
+        <Link to="/admin/content-pages">{t("admin.contentEditor.backLink")}</Link>
       </p>
-      <h1 style={{ marginTop: 0 }}>{isNew ? "New content page" : `Edit #${id}`}</h1>
+      <h1 style={{ marginTop: 0 }}>
+        {isNew ? t("admin.contentEditor.newTitle") : t("admin.contentEditor.editTitle", { id })}
+      </h1>
       {error ? <p style={{ color: "#b91c1c" }}>{error}</p> : null}
       <form onSubmit={(e) => void onSubmit(e)} style={{ display: "grid", gap: "1rem", maxWidth: "720px" }}>
         {isNew ? (
           <>
             <label style={{ display: "grid", gap: "0.25rem" }}>
-              Slug
+              {t("admin.contentEditor.slug")}
               <select value={slug} onChange={(e) => setSlug(e.target.value as Slug)}>
                 {SLUGS.map((s) => (
                   <option key={s} value={s}>
@@ -178,7 +182,7 @@ export function ContentPageEditor() {
               </select>
             </label>
             <label style={{ display: "grid", gap: "0.25rem" }}>
-              Locale
+              {t("admin.contentEditor.locale")}
               <select value={locale} onChange={(e) => setLocale(e.target.value as "en" | "ar")}>
                 <option value="en">en</option>
                 <option value="ar">ar</option>
@@ -191,23 +195,23 @@ export function ContentPageEditor() {
           </p>
         )}
         <label style={{ display: "grid", gap: "0.25rem" }}>
-          Published at (optional)
+          {t("admin.contentEditor.publishedAt")}
           <input type="datetime-local" value={publishedAt} onChange={(e) => setPublishedAt(e.target.value)} />
         </label>
         {slug === "landing-page" ? (
           <>
             <label style={{ display: "grid", gap: "0.25rem" }}>
-              Hero background image (optional)
+              {t("admin.contentEditor.heroImage")}
               <input type="file" accept="image/*" onChange={(e) => setHeroFile(e.target.files?.[0] ?? null)} />
             </label>
             <label style={{ display: "grid", gap: "0.25rem" }}>
-              Hero image alt
-              <input type="text" value={heroAlt} onChange={(e) => setHeroAlt(e.target.value)} />
+              {t("admin.contentEditor.heroAlt")}
+              <input type="text" value={heroAlt} onChange={(e) => setHeroAlt(e.currentTarget.value)} />
             </label>
           </>
         ) : null}
         <label style={{ display: "grid", gap: "0.25rem" }}>
-          Payload (JSON)
+          {t("admin.contentEditor.payload")}
           <textarea
             value={payloadText}
             onChange={(e) => setPayloadText(e.target.value)}
@@ -216,7 +220,7 @@ export function ContentPageEditor() {
           />
         </label>
         <button type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save"}
+          {pending ? t("admin.contentEditor.saving") : t("admin.contentEditor.save")}
         </button>
       </form>
     </div>

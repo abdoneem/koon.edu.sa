@@ -3,6 +3,7 @@ import { IconSearch, IconSortAscending } from "@tabler/icons-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { adminFetch } from "./adminApi"
+import { useAdminI18n } from "./adminI18n"
 
 type Row = {
   id: number
@@ -15,6 +16,7 @@ type Row = {
 type SortKey = "slug" | "locale" | "updated_at" | "published_at"
 
 export function ContentPagesList() {
+  const { t, isRtl, localeTag, listSortLocale } = useAdminI18n()
   const [rows, setRows] = useState<Row[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
@@ -35,14 +37,14 @@ export function ContentPagesList() {
         }
       } catch {
         if (!cancelled) {
-          setError("تعذر تحميل الصفحات.")
+          setError(t("admin.contentPages.loadError"))
         }
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [t])
 
   const filtered = useMemo(() => {
     if (!rows) {
@@ -66,49 +68,49 @@ export function ContentPagesList() {
         return -1
       }
       if (typeof va === "string" && typeof vb === "string") {
-        return va.localeCompare(vb, "ar") * mul
+        return va.localeCompare(vb, listSortLocale) * mul
       }
       return (new Date(va as string).getTime() - new Date(vb as string).getTime()) * mul
     })
     return list
-  }, [rows, search, sort, direction])
+  }, [rows, search, sort, direction, listSortLocale])
 
   return (
-    <Paper withBorder shadow="sm" p="md" radius="md" dir="rtl">
+    <Paper withBorder shadow="sm" p="md" radius="md" dir={isRtl ? "rtl" : "ltr"}>
       <Group justify="space-between" align="flex-end" mb="md" wrap="wrap">
-        <Title order={3}>صفحات المحتوى</Title>
+        <Title order={3}>{t("admin.contentPages.title")}</Title>
         <Button component={Link} to="/admin/content-pages/new">
-          + صفحة جديدة
+          {t("admin.contentPages.newPage")}
         </Button>
       </Group>
 
       <Group mb="md" align="flex-end" gap="md" wrap="wrap">
         <TextInput
-          label="تصفية"
-          placeholder="الرمز أو اللغة…"
+          label={t("admin.contentPages.filterLabel")}
+          placeholder={t("admin.contentPages.filterPlaceholder")}
           leftSection={<IconSearch size={16} />}
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
           style={{ flex: "1 1 200px", minWidth: 180 }}
         />
         <Select
-          label="ترتيب"
+          label={t("admin.contentPages.sortLabel")}
           leftSection={<IconSortAscending size={16} />}
           data={[
-            { value: "slug", label: "الرمز" },
-            { value: "locale", label: "اللغة" },
-            { value: "updated_at", label: "آخر تحديث" },
-            { value: "published_at", label: "تاريخ النشر" },
+            { value: "slug", label: t("admin.contentPages.sortSlug") },
+            { value: "locale", label: t("admin.contentPages.sortLocale") },
+            { value: "updated_at", label: t("admin.contentPages.sortUpdated") },
+            { value: "published_at", label: t("admin.contentPages.sortPublished") },
           ]}
           value={sort}
           onChange={(v) => setSort((v as SortKey) ?? "slug")}
           style={{ width: 180 }}
         />
         <Select
-          label="الاتجاه"
+          label={t("admin.contentPages.directionLabel")}
           data={[
-            { value: "asc", label: "تصاعدي" },
-            { value: "desc", label: "تنازلي" },
+            { value: "asc", label: t("admin.contentPages.dirAsc") },
+            { value: "desc", label: t("admin.contentPages.dirDesc") },
           ]}
           value={direction}
           onChange={(v) => setDirection((v as "asc" | "desc") ?? "asc")}
@@ -118,14 +120,14 @@ export function ContentPagesList() {
 
       {error ? <div style={{ color: "var(--mantine-color-red-6)" }}>{error}</div> : null}
       {!rows ? (
-        <div>جاري التحميل…</div>
+        <div>{t("admin.contentPages.loading")}</div>
       ) : (
         <Table striped highlightOnHover withTableBorder stickyHeader>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>الرمز</Table.Th>
-              <Table.Th>اللغة</Table.Th>
-              <Table.Th>النشر</Table.Th>
+              <Table.Th>{t("admin.contentPages.colSlug")}</Table.Th>
+              <Table.Th>{t("admin.contentPages.colLocale")}</Table.Th>
+              <Table.Th>{t("admin.contentPages.colPublished")}</Table.Th>
               <Table.Th />
             </Table.Tr>
           </Table.Thead>
@@ -134,10 +136,12 @@ export function ContentPagesList() {
               <Table.Tr key={r.id}>
                 <Table.Td>{r.slug}</Table.Td>
                 <Table.Td>{r.locale}</Table.Td>
-                <Table.Td>{r.published_at ? new Date(r.published_at).toLocaleString("ar-SA") : "—"}</Table.Td>
+                <Table.Td>
+                  {r.published_at ? new Date(r.published_at).toLocaleString(localeTag) : t("admin.common.emDash")}
+                </Table.Td>
                 <Table.Td>
                   <Anchor component={Link} to={`/admin/content-pages/${r.id}/edit`} size="sm">
-                    تحرير
+                    {t("admin.contentPages.edit")}
                   </Anchor>
                 </Table.Td>
               </Table.Tr>
@@ -146,7 +150,9 @@ export function ContentPagesList() {
         </Table>
       )}
       {filtered?.length === 0 ? (
-        <div style={{ marginTop: 12 }}>{search.trim() ? "لا نتائج لهذا البحث." : "لا توجد صفوف. أنشئ صفحة أو شغّل db:seed."}</div>
+        <div style={{ marginTop: 12 }}>
+          {search.trim() ? t("admin.contentPages.emptySearch") : t("admin.contentPages.empty")}
+        </div>
       ) : null}
     </Paper>
   )

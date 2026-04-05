@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
+import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery, studentLifeBlockImage } from "../content/siteImagery"
@@ -9,6 +10,8 @@ type Block = { title: string; description: string; photoAlt: string }
 
 export function StudentLifePage() {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const pathKey = pathname.replace(/\/$/, "") || "/"
   const reduce = useReducedMotion()
 
   const blocksRaw = t("studentLifePage.blocks", { returnObjects: true }) as Block[] | undefined
@@ -45,6 +48,8 @@ export function StudentLifePage() {
           imageSrc={siteImagery.pageHero.studentLife}
           imageAlt={t("studentLifePage.heroImageAlt")}
         />
+
+        <CmsStructuredBlocks pathKey={pathKey} />
 
         <section className="home-section home-section--surface site-page-premium__band-first">
           <div className="container home-section__inner">

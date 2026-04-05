@@ -2,10 +2,25 @@ KOON - Replace WordPress in cPanel (public_html)
 =================================================
 
 Your site root is public_html. Laravel must NOT live entirely inside public_html
-(or app code would be downloadable). Use this layout:
+(or app code would be downloadable). Pick one layout:
 
+  Layout A (koon.edu.sa live server): Laravel in the account HOME (same level as public_html)
+  -----------------------------------------------------------------
+  /home/kooneduroot/                  <- artisan, app/, vendor/, .env, storage/, ...
+  /home/kooneduroot/public_html/      <- ONLY what is inside Laravel's public/ folder
+
+  In public_html/index.php set:  $laravelFolder = '';
+
+  In secrets/sftp.env set:  SFTP_APP_DIR=   (empty)
+
+  Layout B (zip bundle): Laravel in a subfolder
+  ----------------------------------------------
   /home/kooneduroot/koon-hosting/     <- full Laravel (app, bootstrap, vendor, ...)
   /home/kooneduroot/public_html/      <- ONLY what is inside Laravel's public/ folder
+
+  In public_html/index.php set:  $laravelFolder = 'koon-hosting';
+
+  In secrets/sftp.env set:  SFTP_APP_DIR=koon-hosting
 
 A) Backup and clear WordPress
 -----------------------------
@@ -15,17 +30,19 @@ A) Backup and clear WordPress
 
 B) Upload Laravel (full project)
 --------------------------------
-  - Upload the whole koon-hosting folder to your HOME directory (same level as
-    public_html), e.g. /home/kooneduroot/koon-hosting/
+  Layout A: merge the koon-hosting bundle into HOME (so artisan sits next to
+    public_html), or upload files accordingly.
+  Layout B: upload the whole koon-hosting folder to your HOME directory, e.g.
+    /home/kooneduroot/koon-hosting/
   - You must see: artisan, app/, vendor/, public/, .env.example, ...
 
 C) Configure environment
 ------------------------
-  - In koon-hosting: copy .env.example to .env
+  - Copy .env.example to .env in the Laravel root (home or koon-hosting)
   - Set APP_URL=https://koon.edu.sa (or your real domain, https)
   - Set DB_* for MySQL (host is often localhost on cPanel)
   - APP_DEBUG=false
-  - In Terminal (SSH): cd ~/koon-hosting
+  - In Terminal (SSH): cd to Laravel root (e.g. ~ or ~/koon-hosting)
       php artisan key:generate
       php artisan migrate --force
       php artisan storage:link
@@ -40,12 +57,7 @@ D) Put the web root files into public_html
 
 E) index.php (already done in this bundle)
 ------------------------------------------
-  public/index.php is built for cPanel: it loads Laravel from the folder next to
-  public_html (default name: koon-hosting). If your uploaded folder is NOT named
-  koon-hosting, edit ONE line in public_html/index.php:
-
-      $laravelFolder = 'koon-hosting';
-
+  public/index.php (cPanel) uses $laravelFolder: '' = Layout A, 'koon-hosting' = Layout B.
   Local development still uses the normal Laravel index in the git repo; only this
   published copy uses the cPanel paths.
 
@@ -63,11 +75,12 @@ H) "Oops! Something went wrong" / blank or broken site
 -------------------------------------------------------
   - public_html must contain ONLY the contents of koon-hosting/public — do not put
     an extra "public" folder inside public_html (no public_html/public/...).
-  - public_html/index.php must be the one from this bundle (points to ~/koon-hosting).
+  - public_html/index.php must be the one from this bundle ($laravelFolder must match your layout).
     Do not leave an old WordPress index.php.
   - The bundled .htaccess sets DirectoryIndex index.php index.html — upload it as-is.
-  - In ~/koon-hosting, vendor/ must exist. If you uploaded without vendor, run SSH:
-      cd ~/koon-hosting && composer install --no-dev --optimize-autoloader
+  - In the Laravel root, vendor/ must exist. If you uploaded without vendor, run SSH:
+      cd ~   # or cd ~/koon-hosting
+      composer install --no-dev --optimize-autoloader
   - Check PHP version is 8.2+ (cPanel "Select PHP Version").
   - WordPress + Wordfence: if public_html/.user.ini sets auto_prepend_file to
     wordfence-waf.php but that file is missing (e.g. after replacing the site with
@@ -75,3 +88,15 @@ H) "Oops! Something went wrong" / blank or broken site
     that line in .user.ini (see scripts/upload-public-user-ini-clean.py).
   - Open ~/errors.log or cPanel Errors, or temporarily APP_DEBUG=true in .env to see
     the real exception (then set back to false).
+
+I) Structured CMS (admin + /api/pages, /api/settings)
+-----------------------------------------------------
+  After deploying new backend code, run migrations in the Laravel root or CMS API
+  calls return HTTP 500 and the site keeps showing old static copy:
+
+    cd ~   # Laravel root next to public_html
+    php artisan migrate --force
+
+  If shell/SSH is disabled, use cPanel "Terminal" (if available) or ask the host
+  to enable one-off Artisan. Without cms_* tables, admin saves exist only in code
+  expectations — the public site will not show CMS blocks.

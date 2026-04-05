@@ -13,6 +13,9 @@ publish
 dist-ssr
 *.local
 
+# SFTP / deploy secrets (copy from secrets/sftp.env.example)
+secrets/sftp.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

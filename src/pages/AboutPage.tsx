@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
+import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
@@ -9,6 +10,8 @@ type Pillar = { id: string; title: string; description: string }
 
 export function AboutPage() {
   const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const pathKey = pathname.replace(/\/$/, "") || "/"
   const reduce = useReducedMotion()
 
   const pillarsRaw = t("aboutPage.pillars", { returnObjects: true }) as Pillar[] | undefined
@@ -45,6 +48,8 @@ export function AboutPage() {
           imageSrc={siteImagery.about}
           imageAlt={t("imagery.aboutHeroAlt")}
         />
+
+        <CmsStructuredBlocks pathKey={pathKey} />
 
         <section className="home-section home-section--surface site-page-premium__band-first">
           <div className="container home-section__inner">

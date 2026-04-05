@@ -1,12 +1,15 @@
-import { Alert, Anchor, Button, Paper, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core"
+import { Alert, Anchor, Button, Group, Paper, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core"
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom"
 import { env } from "../config/env"
 import { adminFetch } from "./adminApi"
+import { useAdminI18n } from "./adminI18n"
+import { AdminLanguageSwitcher } from "./AdminLanguageSwitcher"
 import { getAdminToken, setAdminToken } from "./authToken"
 
 export function AdminLoginPage() {
+  const { t, isRtl } = useAdminI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? "/admin"
@@ -22,11 +25,14 @@ export function AdminLoginPage() {
 
   if (!env.apiBaseUrl) {
     return (
-      <Stack p="xl" maw={480} mx="auto" dir="rtl">
-        <Title order={2}>دخول الإدارة</Title>
-        <Alert color="orange">اضبط VITE_API_BASE_URL في .env.local ثم أعد تشغيل Vite.</Alert>
+      <Stack p="xl" maw={480} mx="auto" dir={isRtl ? "rtl" : "ltr"}>
+        <Group justify="flex-end">
+          <AdminLanguageSwitcher />
+        </Group>
+        <Title order={2}>{t("admin.login.title")}</Title>
+        <Alert color="orange">{t("admin.login.configureApi")}</Alert>
         <Anchor component={Link} to="/">
-          العودة للموقع
+          {t("admin.login.backToSite")}
         </Anchor>
       </Stack>
     )
@@ -50,52 +56,62 @@ export function AdminLoginPage() {
         const msg =
           data.message ??
           (data.errors?.email?.[0] ?? data.errors?.password?.[0]) ??
-          "فشل تسجيل الدخول"
+          t("admin.login.loginFailed")
         setError(msg)
         return
       }
       if (!data.token) {
-        setError("لم يُرجع الخادم رمز الدخول")
+        setError(t("admin.login.noToken"))
         return
       }
       setAdminToken(data.token)
       navigate(from, { replace: true })
     } catch {
-      setError("خطأ في الشبكة")
+      setError(t("admin.login.networkError"))
     } finally {
       setPending(false)
     }
   }
 
   return (
-    <Stack align="center" justify="center" mih="100vh" bg="gray.0" p="md" dir="rtl">
+    <Stack align="center" justify="center" mih="100vh" bg="gray.0" p="md" dir={isRtl ? "rtl" : "ltr"}>
+      <Group w="100%" maw={420} justify="flex-end" mb="xs">
+        <AdminLanguageSwitcher />
+      </Group>
       <Paper withBorder shadow="md" p="xl" radius="md" maw={420} w="100%">
         <Title order={2} ta="center" mb="xs">
-          دخول لوحة الإدارة
+          {t("admin.login.title")}
         </Title>
         <Text c="dimmed" size="sm" ta="center" mb="lg">
-          حساب مُصرّح من فريق كون
+          {t("admin.login.subtitle")}
         </Text>
         <form onSubmit={(e) => void onSubmit(e)}>
           <Stack gap="md">
             {error ? (
-              <Alert color="red" title="تنبيه">
+              <Alert color="red" title={t("admin.login.alertTitle")}>
                 {error}
               </Alert>
             ) : null}
-            <TextInput label="البريد" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.currentTarget.value)} />
+            <TextInput
+              label={t("admin.login.email")}
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.currentTarget.value)}
+            />
             <PasswordInput
-              label="كلمة المرور"
+              label={t("admin.login.password")}
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.currentTarget.value)}
             />
             <Button type="submit" fullWidth loading={pending}>
-              دخول
+              {t("admin.login.submit")}
             </Button>
             <Anchor component={Link} to="/" size="sm" ta="center" display="block">
-              العودة للموقع العام
+              {t("admin.login.backToSite")}
             </Anchor>
           </Stack>
         </form>

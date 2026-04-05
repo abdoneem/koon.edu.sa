@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async"
 import { useTranslation } from "react-i18next"
 import { useLocation } from "react-router-dom"
+import { usePathCmsSeo } from "../hooks/usePathCmsSeo"
 
 const PUBLIC_SEO_PATHS: Record<string, { title: string; desc: string }> = {
   "/": { title: "seo.paths.home.title", desc: "seo.paths.home.description" },
@@ -25,6 +26,8 @@ const PUBLIC_SEO_PATHS: Record<string, { title: string; desc: string }> = {
 export function DocumentHead() {
   const { pathname } = useLocation()
   const { t } = useTranslation()
+  const pathKey = pathname.replace(/\/$/, "") || "/"
+  const cmsSeo = usePathCmsSeo(pathKey)
 
   if (pathname.startsWith("/admin/login")) {
     return (
@@ -46,15 +49,18 @@ export function DocumentHead() {
     )
   }
 
-  const pathKey = pathname.replace(/\/$/, "") || "/"
   const keys = PUBLIC_SEO_PATHS[pathKey] ?? PUBLIC_SEO_PATHS["/"]
+  const title = cmsSeo?.title ?? t(keys.title)
+  const description = cmsSeo?.description ?? t(keys.desc)
 
   return (
     <Helmet>
-      <title>{t(keys.title)}</title>
-      <meta name="description" content={t(keys.desc)} />
+      <title>{title}</title>
+      <meta name="description" content={description} />
       <meta name="robots" content="index, follow" />
       <meta property="og:site_name" content={t("seo.siteName")} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
     </Helmet>
   )
 }

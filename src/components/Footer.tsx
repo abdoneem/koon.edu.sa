@@ -2,6 +2,7 @@ import { IconBrandSnapchat, IconBrandX, IconBrandYoutube } from "@tabler/icons-r
 import { useTranslation } from "react-i18next"
 import { NavLink } from "react-router-dom"
 import { brand } from "../config/brand"
+import { useCmsSite } from "../context/CmsSiteContext"
 import { Logo } from "./Logo"
 
 const HOME_ANCHORS: { hash: string; i18n: "nav.whyKoon" | "nav.media" | "nav.facilities" | "nav.accreditationsNav" | "nav.excellenceNav" | "nav.articlesNav" | "nav.bookTour" | "nav.virtualTour" | "nav.portalsNav" }[] = [
@@ -18,6 +19,7 @@ const HOME_ANCHORS: { hash: string; i18n: "nav.whyKoon" | "nav.media" | "nav.fac
 
 export function Footer() {
   const { t } = useTranslation()
+  const { phoneDisplay, phoneHref, emailDisplay, emailHref } = useCmsSite()
 
   return (
     <footer className="site-footer">
@@ -35,10 +37,10 @@ export function Footer() {
         <div className="footer-col">
           <span className="footer-heading">{t("footer.contact")}</span>
           <p>
-            <a href={`tel:${t("footer.phone")}`}>{t("footer.phone")}</a>
+            <a href={phoneHref}>{phoneDisplay}</a>
           </p>
           <p>
-            <a href={`mailto:${t("footer.email")}`}>{t("footer.email")}</a>
+            <a href={emailHref}>{emailDisplay}</a>
           </p>
         </div>
         <div className="footer-col footer-col--social">

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { brand } from "../config/brand"
+import { useCmsSite } from "../context/CmsSiteContext"
 
 interface LogoProps {
   className?: string
@@ -7,9 +7,10 @@ interface LogoProps {
 
 export function Logo({ className = "" }: LogoProps) {
   const { t } = useTranslation()
+  const { logoSrc } = useCmsSite()
   return (
     <img
-      src={brand.logoSrc}
+      src={logoSrc}
       alt={t("brand")}
       className={`site-logo ${className}`.trim()}
       width={44}
