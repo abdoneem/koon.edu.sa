@@ -1,9 +1,28 @@
-import { useEffect, useState } from "react"
+import { Alert, Button, Group, Modal, NativeSelect, Paper, Stack, Text, TextInput, Textarea, Title } from "@mantine/core"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import {
+  type AboutForm,
+  type AdmissionsForm,
+  type ContactForm,
+  type LandingHeroForm,
+  aboutFromPayload,
+  admissionsFromPayload,
+  buildAboutPayload,
+  buildAdmissionsPayload,
+  buildContactPayload,
+  buildLandingPayload,
+  contactFromPayload,
+  emptyContact,
+  emptyLandingHero,
+  landingHeroFromPayload,
+  landingRestJsonFromPayload,
+} from "./contentPagePayloadUtils"
 import { adminFetch } from "./adminApi"
 import { useAdminI18n } from "./adminI18n"
 import { templateForSlug } from "./defaultPayloads"
+import { LandingCollectionsEditor } from "./LandingCollectionsEditor"
 
 const SLUGS = ["landing-page", "about-page", "admissions-page", "contact-page"] as const
 type Slug = (typeof SLUGS)[number]
@@ -18,6 +37,21 @@ type PageRow = {
 
 export function ContentPageEditor() {
   const { t, isRtl } = useAdminI18n()
+  const slugSelectData = useMemo(
+    () =>
+      SLUGS.map((s) => ({
+        value: s,
+        label: (
+          {
+            "landing-page": t("admin.contentEditor.slugOptions.landing-page"),
+            "about-page": t("admin.contentEditor.slugOptions.about-page"),
+            "admissions-page": t("admin.contentEditor.slugOptions.admissions-page"),
+            "contact-page": t("admin.contentEditor.slugOptions.contact-page"),
+          } satisfies Record<Slug, string>
+        )[s],
+      })),
+    [t],
+  )
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isNew = id === undefined
@@ -25,11 +59,46 @@ export function ContentPageEditor() {
   const [slug, setSlug] = useState<Slug>("landing-page")
   const [locale, setLocale] = useState<"en" | "ar">("en")
   const [publishedAt, setPublishedAt] = useState("")
-  const [payloadText, setPayloadText] = useState(templateForSlug("landing-page"))
   const [heroAlt, setHeroAlt] = useState("")
   const [heroFile, setHeroFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const [resetModalOpen, setResetModalOpen] = useState(false)
+  const [resetPending, setResetPending] = useState(false)
+
+  const [contact, setContact] = useState<ContactForm>(emptyContact)
+  const [landingHero, setLandingHero] = useState<LandingHeroForm>(emptyLandingHero)
+  const [landingRestJson, setLandingRestJson] = useState("{}")
+  const [about, setAbout] = useState<AboutForm>({
+    title: "",
+    description: "",
+    pillars: [{ id: "", title: "", description: "" }],
+  })
+  const [admissions, setAdmissions] = useState<AdmissionsForm>({
+    title: "",
+    description: "",
+    steps: [{ id: "", title: "", description: "" }],
+  })
+
+  function applyPayloadToForms(p: Record<string, unknown>, s: Slug) {
+    switch (s) {
+      case "contact-page":
+        setContact(contactFromPayload(p))
+        break
+      case "landing-page":
+        setLandingHero(landingHeroFromPayload(p))
+        setLandingRestJson(landingRestJsonFromPayload(p))
+        break
+      case "about-page":
+        setAbout(aboutFromPayload(p))
+        break
+      case "admissions-page":
+        setAdmissions(admissionsFromPayload(p))
+        break
+      default:
+        break
+    }
+  }
 
   useEffect(() => {
     if (isNew) {
@@ -49,7 +118,7 @@ export function ContentPageEditor() {
         setSlug(row.slug as Slug)
         setLocale(row.locale as "en" | "ar")
         setPublishedAt(row.published_at ? row.published_at.slice(0, 16) : "")
-        setPayloadText(JSON.stringify(row.payload, null, 2))
+        applyPayloadToForms(row.payload, row.slug as Slug)
       } catch {
         if (!cancelled) {
           setError(t("admin.contentEditor.loadFailed"))
@@ -62,19 +131,71 @@ export function ContentPageEditor() {
   }, [id, isNew, t])
 
   useEffect(() => {
-    if (isNew) {
-      setPayloadText(templateForSlug(slug))
+    if (!isNew) {
+      return
+    }
+    try {
+      const raw = JSON.parse(templateForSlug(slug)) as Record<string, unknown>
+      applyPayloadToForms(raw, slug)
+    } catch {
+      /* ignore — applyPayloadToForms not called with invalid template */
     }
   }, [slug, isNew])
+
+  async function resetToSeededDefaults() {
+    if (isNew || id === undefined) {
+      return
+    }
+    setResetPending(true)
+    setError(null)
+    try {
+      const res = await adminFetch(`/api/admin/content-pages/${id}/reset-to-seeded`, { method: "POST" })
+      const data = (await res.json().catch(() => ({}))) as PageRow & { message?: string }
+      if (!res.ok) {
+        setError(
+          typeof data.message === "string" ? data.message : t("admin.contentEditor.resetToSeededFailed"),
+        )
+        return
+      }
+      setSlug(data.slug as Slug)
+      setLocale(data.locale as "en" | "ar")
+      setPublishedAt(data.published_at ? data.published_at.slice(0, 16) : "")
+      applyPayloadToForms(data.payload, data.slug as Slug)
+      setHeroAlt("")
+      setHeroFile(null)
+      setResetModalOpen(false)
+    } catch {
+      setError(t("admin.contentEditor.networkError"))
+    } finally {
+      setResetPending(false)
+    }
+  }
+
+  const buildPayload = useCallback((): Record<string, unknown> => {
+    switch (slug) {
+      case "contact-page":
+        return buildContactPayload(contact)
+      case "landing-page":
+        return buildLandingPayload(landingHero, landingRestJson)
+      case "about-page":
+        return buildAboutPayload(about)
+      case "admissions-page":
+        return buildAdmissionsPayload(admissions)
+    }
+  }, [slug, contact, landingHero, landingRestJson, about, admissions])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
     let payload: Record<string, unknown>
     try {
-      payload = JSON.parse(payloadText) as Record<string, unknown>
-    } catch {
-      setError(t("admin.contentEditor.invalidJson"))
+      payload = buildPayload()
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message === "invalidRestJson"
+          ? t("admin.contentEditor.invalidRestJson")
+          : t("admin.contentEditor.invalidJson"),
+      )
       return
     }
 
@@ -159,70 +280,360 @@ export function ContentPageEditor() {
     }
   }
 
-  return (
-    <div dir={isRtl ? "rtl" : "ltr"}>
-      <p style={{ marginBottom: "1rem" }}>
-        <Link to="/admin/content-pages">{t("admin.contentEditor.backLink")}</Link>
-      </p>
-      <h1 style={{ marginTop: 0 }}>
-        {isNew ? t("admin.contentEditor.newTitle") : t("admin.contentEditor.editTitle", { id })}
-      </h1>
-      {error ? <p style={{ color: "#b91c1c" }}>{error}</p> : null}
-      <form onSubmit={(e) => void onSubmit(e)} style={{ display: "grid", gap: "1rem", maxWidth: "720px" }}>
-        {isNew ? (
-          <>
-            <label style={{ display: "grid", gap: "0.25rem" }}>
-              {t("admin.contentEditor.slug")}
-              <select value={slug} onChange={(e) => setSlug(e.target.value as Slug)}>
-                {SLUGS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label style={{ display: "grid", gap: "0.25rem" }}>
-              {t("admin.contentEditor.locale")}
-              <select value={locale} onChange={(e) => setLocale(e.target.value as "en" | "ar")}>
-                <option value="en">en</option>
-                <option value="ar">ar</option>
-              </select>
-            </label>
-          </>
-        ) : (
-          <p>
-            <strong>{slug}</strong> · <strong>{locale}</strong>
-          </p>
-        )}
-        <label style={{ display: "grid", gap: "0.25rem" }}>
-          {t("admin.contentEditor.publishedAt")}
-          <input type="datetime-local" value={publishedAt} onChange={(e) => setPublishedAt(e.target.value)} />
-        </label>
-        {slug === "landing-page" ? (
-          <>
-            <label style={{ display: "grid", gap: "0.25rem" }}>
-              {t("admin.contentEditor.heroImage")}
-              <input type="file" accept="image/*" onChange={(e) => setHeroFile(e.target.files?.[0] ?? null)} />
-            </label>
-            <label style={{ display: "grid", gap: "0.25rem" }}>
-              {t("admin.contentEditor.heroAlt")}
-              <input type="text" value={heroAlt} onChange={(e) => setHeroAlt(e.currentTarget.value)} />
-            </label>
-          </>
-        ) : null}
-        <label style={{ display: "grid", gap: "0.25rem" }}>
-          {t("admin.contentEditor.payload")}
-          <textarea
-            value={payloadText}
-            onChange={(e) => setPayloadText(e.target.value)}
-            rows={22}
-            style={{ fontFamily: "ui-monospace, monospace", fontSize: "0.85rem" }}
+  const structuredVisual = (
+    <Stack gap="md">
+      {slug === "contact-page" ? (
+        <>
+          <TextInput
+            label={t("admin.contentEditor.contactTitle")}
+            value={contact.title}
+            onChange={(e) => setContact((c) => ({ ...c, title: e.currentTarget.value }))}
           />
-        </label>
-        <button type="submit" disabled={pending}>
-          {pending ? t("admin.contentEditor.saving") : t("admin.contentEditor.save")}
-        </button>
-      </form>
-    </div>
+          <Textarea
+            label={t("admin.contentEditor.contactDescription")}
+            minRows={3}
+            value={contact.description}
+            onChange={(e) => setContact((c) => ({ ...c, description: e.currentTarget.value }))}
+          />
+          <TextInput
+            label={t("admin.contentEditor.contactPhone")}
+            value={contact.phone}
+            onChange={(e) => setContact((c) => ({ ...c, phone: e.currentTarget.value }))}
+          />
+          <TextInput
+            label={t("admin.contentEditor.contactEmail")}
+            type="email"
+            value={contact.email}
+            onChange={(e) => setContact((c) => ({ ...c, email: e.currentTarget.value }))}
+          />
+          <Textarea
+            label={t("admin.contentEditor.contactAddress")}
+            minRows={2}
+            value={contact.address}
+            onChange={(e) => setContact((c) => ({ ...c, address: e.currentTarget.value }))}
+          />
+        </>
+      ) : null}
+
+      {slug === "landing-page" ? (
+        <>
+          <Title order={5}>{t("admin.contentEditor.heroBlock")}</Title>
+          <TextInput
+            label={t("admin.contentEditor.heroTitle")}
+            value={landingHero.title}
+            onChange={(e) => setLandingHero((h) => ({ ...h, title: e.currentTarget.value }))}
+          />
+          <TextInput
+            label={t("admin.contentEditor.heroSubtitle")}
+            value={landingHero.subtitle}
+            onChange={(e) => setLandingHero((h) => ({ ...h, subtitle: e.currentTarget.value }))}
+          />
+          <Group grow>
+            <TextInput
+              label={t("admin.contentEditor.heroPrimaryCta")}
+              value={landingHero.primaryCta}
+              onChange={(e) => setLandingHero((h) => ({ ...h, primaryCta: e.currentTarget.value }))}
+            />
+            <TextInput
+              label={t("admin.contentEditor.heroSecondaryCta")}
+              value={landingHero.secondaryCta}
+              onChange={(e) => setLandingHero((h) => ({ ...h, secondaryCta: e.currentTarget.value }))}
+            />
+          </Group>
+          <TextInput
+            label={t("admin.contentEditor.heroLocation")}
+            value={landingHero.location}
+            onChange={(e) => setLandingHero((h) => ({ ...h, location: e.currentTarget.value }))}
+          />
+          <TextInput
+            label={t("admin.contentEditor.heroTrust")}
+            value={landingHero.trustLine}
+            onChange={(e) => setLandingHero((h) => ({ ...h, trustLine: e.currentTarget.value }))}
+          />
+          <LandingCollectionsEditor restJson={landingRestJson} onChange={setLandingRestJson} />
+        </>
+      ) : null}
+
+      {slug === "about-page" ? (
+        <>
+          <TextInput
+            label={t("admin.contentEditor.pageTitleField")}
+            value={about.title}
+            onChange={(e) => setAbout((a) => ({ ...a, title: e.currentTarget.value }))}
+          />
+          <Textarea
+            label={t("admin.contentEditor.pageDescription")}
+            minRows={3}
+            value={about.description}
+            onChange={(e) => setAbout((a) => ({ ...a, description: e.currentTarget.value }))}
+          />
+          <div>
+            <Title order={5}>{t("admin.contentEditor.pillarsSection")}</Title>
+            <Text size="sm" c="dimmed" mt={4}>
+              {t("admin.contentEditor.pillarsSectionHint")}
+            </Text>
+          </div>
+          <Stack gap="sm">
+            {about.pillars.map((row, i) => (
+              <Paper key={i} withBorder p="sm" radius="sm">
+                <Group grow align="flex-start">
+                  <TextInput
+                    label={t("admin.landingBlocks.idOptional")}
+                    value={row.id}
+                    onChange={(e) => {
+                      const next = [...about.pillars]
+                      next[i] = { ...next[i], id: e.currentTarget.value }
+                      setAbout((a) => ({ ...a, pillars: next }))
+                    }}
+                  />
+                  <TextInput
+                    label={t("admin.contentEditor.pillarTitle")}
+                    value={row.title}
+                    onChange={(e) => {
+                      const next = [...about.pillars]
+                      next[i] = { ...next[i], title: e.currentTarget.value }
+                      setAbout((a) => ({ ...a, pillars: next }))
+                    }}
+                  />
+                </Group>
+                <Textarea
+                  mt="xs"
+                  label={t("admin.contentEditor.pillarBody")}
+                  minRows={3}
+                  value={row.description}
+                  onChange={(e) => {
+                    const next = [...about.pillars]
+                    next[i] = { ...next[i], description: e.currentTarget.value }
+                    setAbout((a) => ({ ...a, pillars: next }))
+                  }}
+                />
+                <Button
+                  mt="xs"
+                  size="compact-xs"
+                  color="red"
+                  variant="light"
+                  type="button"
+                  onClick={() => {
+                    const next = about.pillars.filter((_, j) => j !== i)
+                    setAbout((a) => ({
+                      ...a,
+                      pillars: next.length ? next : [{ id: "", title: "", description: "" }],
+                    }))
+                  }}
+                >
+                  {t("admin.landingBlocks.removeRow")}
+                </Button>
+              </Paper>
+            ))}
+            <Button
+              size="xs"
+              variant="light"
+              type="button"
+              onClick={() =>
+                setAbout((a) => ({
+                  ...a,
+                  pillars: [...a.pillars, { id: "", title: "", description: "" }],
+                }))
+              }
+            >
+              {t("admin.landingBlocks.addRow")}
+            </Button>
+          </Stack>
+        </>
+      ) : null}
+
+      {slug === "admissions-page" ? (
+        <>
+          <TextInput
+            label={t("admin.contentEditor.pageTitleField")}
+            value={admissions.title}
+            onChange={(e) => setAdmissions((a) => ({ ...a, title: e.currentTarget.value }))}
+          />
+          <Textarea
+            label={t("admin.contentEditor.pageDescription")}
+            minRows={3}
+            value={admissions.description}
+            onChange={(e) => setAdmissions((a) => ({ ...a, description: e.currentTarget.value }))}
+          />
+          <div>
+            <Title order={5}>{t("admin.contentEditor.stepsSection")}</Title>
+            <Text size="sm" c="dimmed" mt={4}>
+              {t("admin.contentEditor.stepsSectionHint")}
+            </Text>
+          </div>
+          <Stack gap="sm">
+            {admissions.steps.map((row, i) => (
+              <Paper key={i} withBorder p="sm" radius="sm">
+                <Group grow align="flex-start">
+                  <TextInput
+                    label={t("admin.landingBlocks.idOptional")}
+                    value={row.id}
+                    onChange={(e) => {
+                      const next = [...admissions.steps]
+                      next[i] = { ...next[i], id: e.currentTarget.value }
+                      setAdmissions((a) => ({ ...a, steps: next }))
+                    }}
+                  />
+                  <TextInput
+                    label={t("admin.contentEditor.stepTitle")}
+                    value={row.title}
+                    onChange={(e) => {
+                      const next = [...admissions.steps]
+                      next[i] = { ...next[i], title: e.currentTarget.value }
+                      setAdmissions((a) => ({ ...a, steps: next }))
+                    }}
+                  />
+                </Group>
+                <Textarea
+                  mt="xs"
+                  label={t("admin.contentEditor.stepBody")}
+                  minRows={3}
+                  value={row.description}
+                  onChange={(e) => {
+                    const next = [...admissions.steps]
+                    next[i] = { ...next[i], description: e.currentTarget.value }
+                    setAdmissions((a) => ({ ...a, steps: next }))
+                  }}
+                />
+                <Button
+                  mt="xs"
+                  size="compact-xs"
+                  color="red"
+                  variant="light"
+                  type="button"
+                  onClick={() => {
+                    const next = admissions.steps.filter((_, j) => j !== i)
+                    setAdmissions((a) => ({
+                      ...a,
+                      steps: next.length ? next : [{ id: "", title: "", description: "" }],
+                    }))
+                  }}
+                >
+                  {t("admin.landingBlocks.removeRow")}
+                </Button>
+              </Paper>
+            ))}
+            <Button
+              size="xs"
+              variant="light"
+              type="button"
+              onClick={() =>
+                setAdmissions((a) => ({
+                  ...a,
+                  steps: [...a.steps, { id: "", title: "", description: "" }],
+                }))
+              }
+            >
+              {t("admin.landingBlocks.addRow")}
+            </Button>
+          </Stack>
+        </>
+      ) : null}
+    </Stack>
+  )
+
+  return (
+    <Stack gap="lg" maw={800} dir={isRtl ? "rtl" : "ltr"}>
+      <Button component={Link} to="/admin/content-pages" variant="subtle" size="compact-sm">
+        {t("admin.contentEditor.backLink")}
+      </Button>
+      <Title order={2}>{isNew ? t("admin.contentEditor.newTitle") : t("admin.contentEditor.editTitle", { id })}</Title>
+
+      {error ? (
+        <Alert color="red" title={t("admin.contentEditor.alertTitle")}>
+          {error}
+        </Alert>
+      ) : null}
+
+      <Paper withBorder shadow="sm" p="lg" radius="md" component="form" onSubmit={(e) => void onSubmit(e)}>
+        <Stack gap="md">
+          {isNew ? (
+            <Group grow>
+              <NativeSelect
+                label={t("admin.contentEditor.slug")}
+                data={slugSelectData}
+                value={slug}
+                onChange={(e) => setSlug(e.currentTarget.value as Slug)}
+              />
+              <NativeSelect
+                label={t("admin.contentEditor.locale")}
+                data={[
+                  { value: "en", label: "en" },
+                  { value: "ar", label: "ar" },
+                ]}
+                value={locale}
+                onChange={(e) => setLocale(e.currentTarget.value as "en" | "ar")}
+              />
+            </Group>
+          ) : (
+            <Text size="sm" c="dimmed">
+              <strong>{slug}</strong> · <strong>{locale}</strong>
+            </Text>
+          )}
+
+          <TextInput
+            label={t("admin.contentEditor.publishedAt")}
+            type="datetime-local"
+            value={publishedAt}
+            onChange={(e) => setPublishedAt(e.currentTarget.value)}
+          />
+
+          {slug === "landing-page" ? (
+            <Stack gap="xs">
+              <div>
+                <Text size="sm" fw={500} mb={4}>
+                  {t("admin.contentEditor.heroImage")}
+                </Text>
+                <input
+                  type="file"
+                  accept="image/*"
+                  aria-label={t("admin.contentEditor.heroImage")}
+                  onChange={(e) => setHeroFile(e.currentTarget.files?.[0] ?? null)}
+                />
+              </div>
+              <TextInput
+                label={t("admin.contentEditor.heroAlt")}
+                value={heroAlt}
+                onChange={(e) => setHeroAlt(e.currentTarget.value)}
+              />
+            </Stack>
+          ) : null}
+
+          {structuredVisual}
+
+          {!isNew ? (
+            <Button type="button" variant="light" color="orange" onClick={() => setResetModalOpen(true)}>
+              {t("admin.contentEditor.resetToSeeded")}
+            </Button>
+          ) : null}
+
+          <Button type="submit" loading={pending}>
+            {pending ? t("admin.contentEditor.saving") : t("admin.contentEditor.save")}
+          </Button>
+        </Stack>
+      </Paper>
+
+      {!isNew ? (
+        <Modal
+          opened={resetModalOpen}
+          onClose={() => setResetModalOpen(false)}
+          title={t("admin.contentEditor.resetToSeededTitle")}
+          radius="md"
+          dir={isRtl ? "rtl" : "ltr"}
+        >
+          <Stack gap="md">
+            <Text size="sm">{t("admin.contentEditor.resetToSeededBody")}</Text>
+            <Group justify="flex-end" gap="sm">
+              <Button variant="default" onClick={() => setResetModalOpen(false)}>
+                {t("admin.contentEditor.cancel")}
+              </Button>
+              <Button color="orange" loading={resetPending} onClick={() => void resetToSeededDefaults()}>
+                {t("admin.contentEditor.resetToSeededConfirm")}
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      ) : null}
+    </Stack>
   )
 }

@@ -1,10 +1,15 @@
 import { motion, useReducedMotion } from "framer-motion"
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
 import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
+import { useCmsContent } from "../hooks/useCmsContent"
+import { fetchAboutPageContent } from "../services/cmsClient"
+import type { AboutPageContent } from "../types/cms"
+import { coalesceString } from "../utils/coalesce"
 
 type Pillar = { id: string; title: string; description: string }
 
@@ -14,8 +19,20 @@ export function AboutPage() {
   const pathKey = pathname.replace(/\/$/, "") || "/"
   const reduce = useReducedMotion()
 
-  const pillarsRaw = t("aboutPage.pillars", { returnObjects: true }) as Pillar[] | undefined
-  const pillars = Array.isArray(pillarsRaw) && pillarsRaw.length > 0 ? pillarsRaw : []
+  const fallback = useMemo((): AboutPageContent => {
+    const raw = t("aboutPage.pillars", { returnObjects: true }) as Pillar[] | undefined
+    return {
+      title: t("aboutPage.title"),
+      description: t("aboutPage.description"),
+      pillars: Array.isArray(raw) && raw.length > 0 ? raw : [],
+    }
+  }, [t])
+
+  const { content, error, isLoading } = useCmsContent(fetchAboutPageContent, fallback)
+  const pillars =
+    Array.isArray(content.pillars) && content.pillars.length > 0 ? content.pillars : fallback.pillars
+  const heroTitle = coalesceString(content.title, fallback.title)
+  const heroLead = coalesceString(content.description, fallback.description)
 
   const introParagraphsRaw = t("aboutExtended.introParagraphs", { returnObjects: true }) as string[] | undefined
   const introParagraphs = Array.isArray(introParagraphsRaw) ? introParagraphsRaw : []
@@ -43,8 +60,8 @@ export function AboutPage() {
       <div className="site-page-premium">
         <SitePageHero
           eyebrow={t("nav.about")}
-          title={t("aboutPage.title")}
-          lead={t("aboutPage.description")}
+          title={heroTitle}
+          lead={heroLead}
           imageSrc={siteImagery.about}
           imageAlt={t("imagery.aboutHeroAlt")}
         />
@@ -53,6 +70,16 @@ export function AboutPage() {
 
         <section className="home-section home-section--surface site-page-premium__band-first">
           <div className="container home-section__inner">
+            {isLoading ? (
+              <p className="card-elevated site-page-status" role="status">
+                {t("common.loading")}
+              </p>
+            ) : null}
+            {error ? (
+              <p className="card-elevated site-page-status site-page-status--warn" role="alert">
+                {error}
+              </p>
+            ) : null}
             {pillars.length > 0 ? (
               <ul className="site-pillar-grid" role="list">
                 {pillars.map((pillar) => (

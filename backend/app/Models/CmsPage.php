@@ -9,10 +9,13 @@ class CmsPage extends Model
 {
     protected $fillable = [
         'title',
+        'page_subtitle',
+        'body_html',
         'slug',
         'locale',
         'meta_title',
         'meta_description',
+        'header_background',
         'is_active',
         'published_at',
     ];

@@ -48,6 +48,18 @@ C) Configure environment
       php artisan storage:link
   - chmod -R 775 storage bootstrap/cache (if needed)
 
+  IMPORTANT — .env is NOT read from public_html
+  ----------------------------------------------
+  Laravel loads .env only from the application root (same folder as artisan):
+    Layout B:  /home/USER/koon-hosting/.env
+    Layout A:  /home/USER/.env
+  If you edit or upload .env only under public_html, nothing will change for the app
+  (it will look like “.env does not update”). Use FileZilla to open the koon-hosting
+  folder (or your home folder if Layout A) and edit .env there.
+  For security: do not leave a real .env in public_html (it could be web-accessible).
+  Remove stray composer.json / vite config from public_html if they are not inside
+  a normal Laravel public/ deploy — the web root should look like index.php + assets.
+
 D) Put the web root files into public_html
 --------------------------------------------
   This publish bundle already has the correct index.php and .htaccess for cPanel.
@@ -73,6 +85,13 @@ G) SPA API URL (this build)
 
 H) "Oops! Something went wrong" / blank or broken site
 -------------------------------------------------------
+  - public_html/index.php $laravelFolder MUST match where you uploaded Laravel:
+    Layout A (artisan next to public_html): $laravelFolder = ''; SFTP_APP_DIR empty in secrets/sftp.env.
+    Layout B (~/koon-hosting): $laravelFolder = 'koon-hosting'; SFTP_APP_DIR=koon-hosting.
+    publish-hosting.ps1 reads secrets/sftp.env and patches index.php before you SFTP.
+  - If the site is HTTP 500 with an empty body, check public_html/.user.ini: remove
+    auto_prepend_file=...wordfence... if WordPress was removed. The publish bundle adds
+    a neutral public/.user.ini — upload/replace on the server if needed.
   - public_html must contain ONLY the contents of koon-hosting/public — do not put
     an extra "public" folder inside public_html (no public_html/public/...).
   - public_html/index.php must be the one from this bundle ($laravelFolder must match your layout).
@@ -88,6 +107,15 @@ H) "Oops! Something went wrong" / blank or broken site
     that line in .user.ini (see scripts/upload-public-user-ini-clean.py).
   - Open ~/errors.log or cPanel Errors, or temporarily APP_DEBUG=true in .env to see
     the real exception (then set back to false).
+  - From your PC: .\scripts.ps1 -Action ssh-diagnose (or python scripts/ssh_diagnose_server.py)
+    runs SSH and prints artisan about + laravel.log. If the host says "Shell access is not
+    enabled", use cPanel "Errors" / "Metrics" / File Manager to read storage/logs/laravel.log
+    or ask the host to enable Terminal for one-off artisan commands.
+  - Same credentials as SFTP: python scripts/sftp_fetch_laravel_log.py (or
+    .\scripts.ps1 -Action sftp-fetch-log) tails laravel.log without SSH shell.
+  - Common 500: MySQL not reachable but CACHE_STORE=database / SESSION_DRIVER=database in
+    .env — set CACHE_STORE=file, SESSION_DRIVER=file, QUEUE_CONNECTION=sync until DB_* is
+    correct; use DB_HOST=127.0.0.1 instead of localhost on many hosts.
 
 I) Structured CMS (admin + /api/pages, /api/settings)
 -----------------------------------------------------
@@ -96,6 +124,33 @@ I) Structured CMS (admin + /api/pages, /api/settings)
 
     cd ~   # Laravel root next to public_html
     php artisan migrate --force
+
+  If admin login returns 500 and laravel.log shows missing tables (e.g. roles,
+  permissions, model_has_roles), migrations were never applied to that database.
+  Apply migrations and idempotent seeders in one step:
+
+    php artisan koon:deploy-database
+
+  Same as: migrate --force, then db:seed --force. Re-running is safe: seeders use
+  firstOrCreate / sync patterns and do not wipe existing CMS page payloads or
+  reset existing admin passwords (new admin users still get ADMIN_PASSWORD from .env).
+
+  Options:
+    php artisan koon:deploy-database --no-seed    # migrations only
+    php artisan koon:deploy-database --seed-only  # seeders only (after migrate elsewhere)
+
+  If shell/SSH is disabled, from your PC run (uploads a one-time PHP to public_html,
+  calls migrate + seed over HTTPS with a secret token, then deletes the file):
+    python scripts/sftp_one_shot_deploy_database.py
+    .\scripts.ps1 -Action sftp-deploy-db-one-shot
+  Optional in secrets/sftp.env: ONE_SHOT_PUBLIC_URL=https://your-domain
+
+  Admin password contains $: Dotenv treats $ as variable interpolation, so
+  DEFAULT_ADMIN_PASSWORD=... on the server often hashes the WRONG string. Fix:
+    - Put the plaintext in secrets/admin_password_reset.txt (one line, gitignored), then:
+      python scripts/sftp_one_shot_set_admin_password.py --password-file secrets/admin_password_reset.txt
+      .\scripts.ps1 -Action sftp-set-admin-password-file
+    - Or set DEFAULT_ADMIN_PASSWORD_BASE64 in server .env (echo -n 'pass' | base64, one line).
 
   If shell/SSH is disabled, use cPanel "Terminal" (if available) or ask the host
   to enable one-off Artisan. Without cms_* tables, admin saves exist only in code

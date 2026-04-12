@@ -2,21 +2,15 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { NavLink, useLocation } from "react-router-dom"
+import { useCmsSite } from "../context/CmsSiteContext"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 import { Logo } from "./Logo"
+import { MainNavMenuDesktop, MainNavMenuMobile } from "./MainNavMenu"
 import { PortalStrip } from "./PortalStrip"
-
-/** 5 essentials — الصفحة الرئيسية من الشعار؛ بقية الأقسام كمراسي. */
-const NAV = [
-  { to: "/about", i18n: "nav.about" as const },
-  { to: "/academics", i18n: "nav.academics" as const },
-  { to: "/student-life", i18n: "nav.studentLife" as const },
-  { to: "/admissions", i18n: "nav.admissions" as const },
-  { to: "/contact", i18n: "nav.contact" as const },
-] as const
 
 export function Header() {
   const { t } = useTranslation()
+  const { navTree } = useCmsSite()
   const location = useLocation()
   const reduce = useReducedMotion()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -57,11 +51,7 @@ export function Header() {
           </NavLink>
 
           <nav className="main-nav main-nav--compact desktop-only" aria-label={t("nav.ariaMain")}>
-            {NAV.map((item) => (
-              <NavLink key={item.to} to={item.to} className={navLinkClassName}>
-                {t(item.i18n)}
-              </NavLink>
-            ))}
+            <MainNavMenuDesktop items={navTree} navLinkClassName={navLinkClassName} />
           </nav>
 
           <div className="header-actions">
@@ -104,11 +94,7 @@ export function Header() {
             >
               <div className="container mobile-drawer__inner">
                 <nav className="mobile-drawer__nav" aria-label={t("nav.ariaMobile")}>
-                  {NAV.map((item) => (
-                    <NavLink key={item.to} to={item.to} className={navLinkClassName} onClick={() => setMenuOpen(false)}>
-                      {t(item.i18n)}
-                    </NavLink>
-                  ))}
+                  <MainNavMenuMobile items={navTree} navLinkClassName={navLinkClassName} onNavigate={() => setMenuOpen(false)} />
                   <a href="/#book-tour" className="btn mobile-cta mobile-cta--book" onClick={() => setMenuOpen(false)}>
                     {t("nav.bookVisit")}
                   </a>

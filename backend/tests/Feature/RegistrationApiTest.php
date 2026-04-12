@@ -5,14 +5,10 @@ namespace Tests\Feature;
 use App\Models\RegistrationSubmission;
 use App\Models\User;
 use Database\Seeders\RegistrationOptionsSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Tests\TestCase;
 
-class RegistrationApiTest extends TestCase
+class RegistrationApiTest extends FeatureTestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -49,6 +45,7 @@ class RegistrationApiTest extends TestCase
     public function test_admin_can_list_and_update_registration(): void
     {
         $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('super_admin');
         $token = $user->createToken('t')->plainTextToken;
 
         $row = RegistrationSubmission::query()->create([
@@ -76,6 +73,7 @@ class RegistrationApiTest extends TestCase
     public function test_admin_registrations_list_supports_filter_sort_and_search(): void
     {
         $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('super_admin');
         $token = $user->createToken('t')->plainTextToken;
 
         RegistrationSubmission::query()->create([
@@ -117,6 +115,7 @@ class RegistrationApiTest extends TestCase
     public function test_admin_export_registrations_returns_xlsx(): void
     {
         $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('super_admin');
         $token = $user->createToken('t')->plainTextToken;
 
         RegistrationSubmission::query()->create([

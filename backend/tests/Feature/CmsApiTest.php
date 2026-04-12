@@ -7,14 +7,13 @@ use App\Models\CmsSection;
 use App\Models\CmsSectionItem;
 use App\Models\CmsSetting;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
-use Tests\TestCase;
+use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\PermissionRegistrar;
 
-class CmsApiTest extends TestCase
+class CmsApiTest extends FeatureTestCase
 {
-    use RefreshDatabase;
-
     public function test_public_pages_returns_fallback_when_missing(): void
     {
         $this->getJson('/api/pages/about?locale=en')
@@ -72,6 +71,7 @@ class CmsApiTest extends TestCase
     public function test_admin_can_manage_cms_page_tree(): void
     {
         $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('super_admin');
         $token = $user->createToken('t')->plainTextToken;
 
         $create = $this->withToken($token)->postJson('/api/admin/cms-pages', [
@@ -120,11 +120,116 @@ class CmsApiTest extends TestCase
     {
         CmsSetting::query()->create(['key' => 'email', 'value' => '']);
         $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('super_admin');
         $token = $user->createToken('t')->plainTextToken;
 
         $this->withToken($token)->putJson('/api/admin/cms-settings', [
             'email' => 'a@b.co',
             'phone' => '050',
         ])->assertOk()->assertJsonPath('settings.email', 'a@b.co');
+    }
+
+    public function test_admin_nav_tree_must_be_valid_structure(): void
+    {
+        CmsSetting::query()->create(['key' => 'email', 'value' => '']);
+        $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('super_admin');
+        $token = $user->createToken('t')->plainTextToken;
+
+        $this->withToken($token)->putJson('/api/admin/cms-settings', [
+            'nav_tree_en' => [
+                ['id' => 'x', 'label' => 'Bad', 'href' => '/ok', 'children' => [['oops' => true]]],
+            ],
+        ])->assertStatus(422);
+
+        $this->withToken($token)->putJson('/api/admin/cms-settings', [
+            'nav_tree_en' => [
+                [
+                    'id' => 'parent',
+                    'label' => 'Parent',
+                    'href' => '/parent',
+                    'children' => [
+                        ['id' => 'child', 'label' => 'Child', 'href' => '/child'],
+                    ],
+                ],
+            ],
+        ])->assertOk();
+
+        $raw = CmsSetting::query()->where('key', 'nav_tree_en')->value('value');
+        $this->assertIsString($raw);
+        $decoded = json_decode($raw, true);
+        $this->assertIsArray($decoded);
+        $this->assertSame('Child', $decoded[0]['children'][0]['label']);
+    }
+
+    public function test_guest_cannot_upload_cms_media(): void
+    {
+        $file = UploadedFile::fake()->image('x.png', 10, 10);
+        $this->withHeaders(['Accept' => 'application/json'])
+            ->post('/api/admin/cms-media', ['file' => $file])
+            ->assertUnauthorized();
+    }
+
+    public function test_user_without_cms_manage_cannot_upload_cms_media(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('admissions_staff');
+        $token = $user->createToken('t')->plainTextToken;
+        $file = UploadedFile::fake()->image('x.png', 10, 10);
+
+        $this->withToken($token)->post('/api/admin/cms-media', ['file' => $file])
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_upload_cms_image(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->assignRole('super_admin');
+        $token = $user->createToken('t')->plainTextToken;
+        $file = UploadedFile::fake()->image('banner.jpg', 100, 50);
+
+        $response = $this->withToken($token)->post('/api/admin/cms-media', [
+            'file' => $file,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonStructure(['url']);
+
+        $url = $response->json('url');
+        $this->assertIsString($url);
+        $this->assertNotSame('', $url);
+
+        $files = Storage::disk('public')->allFiles('cms');
+        $this->assertNotEmpty($files);
+        $this->assertMatchesRegularExpression('/\.(webp|jpg|jpeg|png)$/i', $files[0]);
+    }
+
+    public function test_cms_media_requires_media_manage_even_with_cms_manage(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->syncPermissions(['cms_manage']);
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $token = $user->createToken('t')->plainTextToken;
+        $file = UploadedFile::fake()->image('x.png', 10, 10);
+
+        $this->withToken($token)->post('/api/admin/cms-media', ['file' => $file])
+            ->assertForbidden();
+    }
+
+    public function test_cms_settings_requires_cms_settings_manage_permission(): void
+    {
+        CmsSetting::query()->create(['key' => 'email', 'value' => '']);
+        $user = User::factory()->create(['password' => Hash::make('secret')]);
+        $user->syncPermissions(['cms_manage']);
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $token = $user->createToken('t')->plainTextToken;
+
+        $this->withToken($token)->getJson('/api/admin/cms-settings')->assertForbidden();
+        $this->withToken($token)->putJson('/api/admin/cms-settings', [
+            'email' => 'a@b.co',
+        ])->assertForbidden();
     }
 }

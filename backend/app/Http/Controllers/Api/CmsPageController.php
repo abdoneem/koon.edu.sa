@@ -40,10 +40,13 @@ class CmsPageController extends Controller
             'page' => [
                 'id' => $page->id,
                 'title' => $page->title,
+                'page_subtitle' => $page->page_subtitle,
+                'body_html' => $page->body_html,
                 'slug' => $page->slug,
                 'locale' => $page->locale,
                 'meta_title' => $page->meta_title,
                 'meta_description' => $page->meta_description,
+                'header_background' => $page->header_background,
             ],
             'sections' => $page->sections->map(fn ($s) => [
                 'id' => $s->id,

@@ -60,6 +60,7 @@ const AR: HomePageBundle = {
       annualFee: "حسب النشاط",
     },
   ],
+  programsSection: { eyebrow: "", title: "", lead: "" },
   highlights: [
     {
       id: "h1",
@@ -169,6 +170,7 @@ const AR: HomePageBundle = {
     },
   ],
   articlesSectionLead: "نختار لكم مقالات عملية حول التعلّم، التوازن، والشراكة مع المدرسة — بأسلوب أكاديمي مبسّط.",
+  articlesSectionTitle: "",
   articleCards: [
     {
       id: "a1",
@@ -189,8 +191,26 @@ const AR: HomePageBundle = {
       meta: "٣ دقائق قراءة · الأسرة",
     },
   ],
+  whyKoon: {
+    eyebrow: "القيم المؤسسية",
+    title: "لماذا تختار مدارس كون؟",
+    lead:
+      "خمس قيم مؤسسية ترتبط بمحاور الاعتماد ورؤية المملكة 2030 لتنمية القدرات البشرية—توجّه القرار في الفصول والعمليات لا في العبارات فقط.",
+    visionLabel: "الرؤية",
+    visionText: "المطور التعليمي الريادي في صناعة قادة المواطنة العالمية بلغتين.",
+    missionLabel: "الرسالة",
+    missionText:
+      "إعداد متعلم مبدع ثنائي اللغة عبر فهم عميق ونواتج قابلة للقياس — قيم راسخة، وقدرة تنافسية، وأثر مستدام يعزز المواطنة العالمية.",
+    philosophyLabel: "الفلسفة",
+    philosophyText:
+      "بناء معرفي جذري: المعرفة لا تُلقن بل تُبنى — نهندس الزمن والتدريس والهياكل ليقود الطالب الاستقصاء ومهارات التفكير العليا.",
+    accordionSummary: "اقرأ الفلسفة الكاملة",
+    accordionLead:
+      "تطرح مدارس كون نفسها كخيار تعليمي استثنائي ليس فقط بسبب مرافقها المتطورة أو مناهجها الحديثة، بل بسبب الفلسفة العميقة التي تربط بين «الأصالة» و«العالمية». إن التساؤل الجوهري حول جدوى الالتحاق بمدارس كون يجد إجابته في خمس قيم مؤسسية تشكل الركيزة الأساسية للتميز في هذه المنظومة (الأصالة والمواطنة- التمكين والأثر- الاتقان والابتكار- الشفافية والشراكة- المرونة التشغيلية)، وهي ركائز تم اشتقاقها لتواكب معايير الاعتماد الدولي ورؤية المملكة.",
+  },
   excellence: {
     title: "ركن التميز",
+    subtitle: "",
     body:
       "نكرّم نتائج طلابنا عبر مناشط شهرية ولوحات تكريم تركز على الجهد والتحسن المستمر، لا على المقارنة السلبية.",
     bullets: ["تكريم شهري للتميز الأكاديمي", "مبادرات خدمة مجتمعية طلابية", "مسابقات علمية وفنية مراقَبة"],
@@ -269,6 +289,7 @@ const EN: HomePageBundle = {
       annualFee: "Activity-dependent",
     },
   ],
+  programsSection: { eyebrow: "", title: "", lead: "" },
   highlights: [
     {
       id: "h1",
@@ -380,6 +401,7 @@ const EN: HomePageBundle = {
   ],
   articlesSectionLead:
     "Practical reads on learning, balance, and family–school partnership—in a clear, academic tone.",
+  articlesSectionTitle: "",
   articleCards: [
     {
       id: "a1",
@@ -400,8 +422,26 @@ const EN: HomePageBundle = {
       meta: "3 min read · Families",
     },
   ],
+  whyKoon: {
+    eyebrow: "Institutional values",
+    title: "Why Koon?",
+    lead:
+      "Five institutional values anchor accreditation alignment and Saudi Vision 2030 human-capacity goals—they guide decisions in classrooms and operations, not only marketing.",
+    visionLabel: "Vision",
+    visionText: "The pioneering education developer shaping leaders of global citizenship—in two languages.",
+    missionLabel: "Mission",
+    missionText:
+      "Nurture a creative, bilingual learner through deep understanding and measurable outcomes—firm values, competitive capability, and sustainable impact for global citizenship.",
+    philosophyLabel: "Philosophy",
+    philosophyText:
+      "Radical constructivism: knowledge is built by the learner—we engineer time, teaching, and structures so students drive inquiry and higher-order thinking.",
+    accordionSummary: "Read our full philosophy",
+    accordionLead:
+      "KOON presents itself as an exceptional educational choice not only because of its advanced facilities or modern curricula, but because of the deep philosophy that links “authenticity” and “global outlook.” The fundamental question about the value of joining KOON is answered in five institutional values that form the cornerstone of excellence in this system (Authenticity & Citizenship — Empowerment & Impact — Mastery & Innovation — Transparency & Partnership — Operational Agility)—pillars derived to align with international accreditation standards and the Kingdom’s Vision.",
+  },
   excellence: {
     title: "Excellence corner",
+    subtitle: "",
     body: "We celebrate effort and growth through monthly showcases and boards that highlight improvement, not negative comparison.",
     bullets: ["Monthly academic recognition", "Student-led community initiatives", "Supervised contests"],
   },

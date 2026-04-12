@@ -21,8 +21,9 @@ class AdminCmsSectionItemController extends Controller
     public function update(UpdateCmsSectionItemRequest $request, CmsSectionItem $cms_section_item): JsonResponse
     {
         $cms_section_item->update($request->validated());
+        $cms_section_item->refresh();
 
-        return response()->json($cms_section_item->fresh());
+        return response()->json($cms_section_item);
     }
 
     public function destroy(CmsSectionItem $cms_section_item): JsonResponse

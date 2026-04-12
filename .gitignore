@@ -15,6 +15,7 @@ dist-ssr
 
 # SFTP / deploy secrets (copy from secrets/sftp.env.example)
 secrets/sftp.env
+secrets/admin_password_reset.txt
 
 # Editor directories and files
 .vscode/*

@@ -2,9 +2,11 @@
  * Internal page hero — optional full-bleed photo with scrim; otherwise premium gradient band.
  */
 interface SitePageHeroProps {
-  eyebrow: string
+  /** Optional small label above the title (hidden when empty). */
+  eyebrow?: string
   title: string
-  lead: string
+  /** Optional intro under the title (hidden when empty). */
+  lead?: string
   /** Optional second line (e.g. registration hotline context) */
   sublead?: string
   /** Background photo (cover); paired with imageAlt for accessibility */
@@ -14,6 +16,8 @@ interface SitePageHeroProps {
 
 export function SitePageHero({ eyebrow, title, lead, sublead, imageSrc, imageAlt = "" }: SitePageHeroProps) {
   const hasMedia = Boolean(imageSrc)
+  const showEyebrow = Boolean(eyebrow?.trim())
+  const showLead = Boolean(lead?.trim())
 
   return (
     <header
@@ -35,9 +39,9 @@ export function SitePageHero({ eyebrow, title, lead, sublead, imageSrc, imageAlt
       {hasMedia ? <div className="site-page-hero__scrim" aria-hidden /> : null}
 
       <div className="container site-page-hero__inner">
-        <span className="home-eyebrow home-eyebrow--on-dark">{eyebrow}</span>
+        {showEyebrow ? <span className="home-eyebrow home-eyebrow--on-dark">{eyebrow}</span> : null}
         <h1 className="home-display home-display--light">{title}</h1>
-        <p className="home-lead home-lead--light site-page-hero__lead">{lead}</p>
+        {showLead ? <p className="home-lead home-lead--light site-page-hero__lead">{lead}</p> : null}
         {sublead ? (
           <p className="home-lead home-lead--light site-page-hero__sublead">{sublead}</p>
         ) : null}

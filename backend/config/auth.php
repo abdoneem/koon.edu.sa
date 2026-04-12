@@ -42,6 +42,15 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        /*
+         * Used by Sanctum API tokens and Spatie Permission (`guard_name` = sanctum).
+         * Without this entry, Role::users() cannot resolve the User model.
+         */
+        'sanctum' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
     ],
 
     /*

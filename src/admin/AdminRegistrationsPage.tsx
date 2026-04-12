@@ -339,7 +339,7 @@ export function AdminRegistrationsPage() {
                     <Table.Tr key={row.id}>
                       <Table.Td>{row.id}</Table.Td>
                       <Table.Td>{row.student_full_name}</Table.Td>
-                      <Table.Td style={{ direction: "ltr", textAlign: "right" }}>{row.parent_mobile}</Table.Td>
+                      <Table.Td style={{ direction: "ltr", textAlign: "end" }}>{row.parent_mobile}</Table.Td>
                       <Table.Td>{gradeLabel(row.grade_level, optLang)}</Table.Td>
                       <Table.Td>
                         <Badge variant="light" color={statusColors[row.status]} size="sm">

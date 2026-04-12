@@ -53,7 +53,7 @@ export function CmsPagesList() {
       return null
     }
     const q = search.trim().toLowerCase()
-    let list = q
+    const list = q
       ? rows.filter(
           (r) =>
             r.slug.toLowerCase().includes(q) ||
@@ -153,9 +153,19 @@ export function CmsPagesList() {
                   {r.published_at ? new Date(r.published_at).toLocaleString(localeTag) : t("admin.common.emDash")}
                 </Table.Td>
                 <Table.Td>
-                  <Anchor component={Link} to={`/admin/cms-pages/${r.id}/edit`} size="sm">
-                    {t("admin.cmsPages.edit")}
-                  </Anchor>
+                  <Group gap="sm" wrap="nowrap">
+                    <Anchor component={Link} to={`/admin/cms-pages/${r.id}/edit`} size="sm">
+                      {t("admin.cmsPages.edit")}
+                    </Anchor>
+                    <Anchor
+                      href={`${typeof window !== "undefined" ? window.location.origin : ""}/${encodeURIComponent(r.slug)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="sm"
+                    >
+                      {t("admin.cmsPages.view")}
+                    </Anchor>
+                  </Group>
                 </Table.Td>
               </Table.Tr>
             ))}

@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
 import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
@@ -5,6 +6,11 @@ import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
 import { useCmsSite } from "../context/CmsSiteContext"
+import { useCmsContent } from "../hooks/useCmsContent"
+import { fetchContactPageContent } from "../services/cmsClient"
+import type { ContactPageContent } from "../types/cms"
+import { ContactPageForm } from "../components/contact/ContactPageForm"
+import { coalesceString } from "../utils/coalesce"
 
 const MADINAH_MAP_EMBED =
   "https://www.openstreetmap.org/export/embed.html?bbox=39.548%2C24.498%2C39.598%2C24.538&layer=mapnik"
@@ -18,13 +24,27 @@ export function ContactPage() {
   const pathKey = pathname.replace(/\/$/, "") || "/"
   const { phoneDisplay, phoneHref, emailDisplay, emailHref, whatsappHref } = useCmsSite()
 
+  const fallback = useMemo(
+    (): ContactPageContent => ({
+      title: t("contactPage.title"),
+      description: t("contactPage.description"),
+      phone: "",
+      email: "",
+      address: "",
+    }),
+    [t],
+  )
+  const { content, error, isLoading } = useCmsContent(fetchContactPageContent, fallback)
+  const heroTitle = coalesceString(content.title, fallback.title)
+  const heroLead = coalesceString(content.description, fallback.description)
+
   return (
     <PageLayout>
       <div className="site-page-premium">
         <SitePageHero
           eyebrow={t("nav.contact")}
-          title={t("contactPage.title")}
-          lead={t("contactPage.description")}
+          title={heroTitle}
+          lead={heroLead}
           imageSrc={siteImagery.pageHero.contact}
           imageAlt={t("contactPage.heroImageAlt")}
         />
@@ -33,21 +53,41 @@ export function ContactPage() {
 
         <section className="home-section home-section--surface site-page-premium__band-first">
           <div className="container home-section__inner">
-            <article className="card-elevated site-contact-card">
-              <p className="site-contact-card__line">{t("contactPage.address")}</p>
-              <p className="site-contact-card__line">{t("contactPage.addressRiyadh")}</p>
-              <p className="site-contact-card__line">
-                <a href={phoneHref}>{phoneDisplay}</a>
+            {isLoading ? (
+              <p className="card-elevated site-page-status" role="status">
+                {t("common.loading")}
               </p>
-              <p className="site-contact-card__line">
-                <a href={emailHref}>{emailDisplay}</a>
+            ) : null}
+            {error ? (
+              <p className="card-elevated site-page-status site-page-status--warn" role="alert">
+                {error}
               </p>
-              <p className="site-contact-card__line">
-                <a href={whatsappHref} target="_blank" rel="noreferrer">
-                  {t("chatbot.whatsapp")}
-                </a>
-              </p>
-            </article>
+            ) : null}
+            <div className="card-elevated site-contact-split">
+              <div className="site-contact-split__form">
+                <header className="site-contact-split__form-header">
+                  <h2 className="site-contact-split__form-title">{t("contactPage.formTitle")}</h2>
+                  <p className="site-contact-split__form-intro">{t("contactPage.formIntro")}</p>
+                </header>
+                <ContactPageForm />
+              </div>
+              <aside className="site-contact-split__info" aria-label={t("contactPage.infoAsideAria")}>
+                <h3 className="site-contact-split__info-heading">{t("contactPage.infoHeading")}</h3>
+                <p className="site-contact-card__line">{t("contactPage.address")}</p>
+                <p className="site-contact-card__line">{t("contactPage.addressRiyadh")}</p>
+                <p className="site-contact-card__line">
+                  <a href={phoneHref}>{phoneDisplay}</a>
+                </p>
+                <p className="site-contact-card__line">
+                  <a href={emailHref}>{emailDisplay}</a>
+                </p>
+                <p className="site-contact-card__line">
+                  <a href={whatsappHref} target="_blank" rel="noreferrer">
+                    {t("chatbot.whatsapp")}
+                  </a>
+                </p>
+              </aside>
+            </div>
 
             <div className="card-elevated site-contact-map">
               <h2 className="home-display home-display--sm">{t("contactPage.mapTitle")}</h2>

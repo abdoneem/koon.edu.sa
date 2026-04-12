@@ -22,7 +22,10 @@ class AdminCmsSectionController extends Controller
     {
         $cms_section->update($request->validated());
 
-        return response()->json($cms_section->fresh()->load('items'));
+        $cms_section->refresh();
+        $cms_section->load('items');
+
+        return response()->json($cms_section);
     }
 
     public function destroy(CmsSection $cms_section): JsonResponse

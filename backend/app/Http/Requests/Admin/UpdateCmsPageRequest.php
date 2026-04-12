@@ -35,6 +35,9 @@ class UpdateCmsPageRequest extends FormRequest
             'locale' => ['sometimes', 'string', Rule::in(['en', 'ar'])],
             'meta_title' => ['sometimes', 'nullable', 'string', 'max:500'],
             'meta_description' => ['sometimes', 'nullable', 'string', 'max:20000'],
+            'page_subtitle' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'body_html' => ['sometimes', 'nullable', 'string', 'max:500000'],
+            'header_background' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'is_active' => ['sometimes', 'boolean'],
             'published_at' => ['sometimes', 'nullable', 'date'],
         ];

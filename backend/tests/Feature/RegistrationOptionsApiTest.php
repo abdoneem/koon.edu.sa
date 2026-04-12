@@ -3,13 +3,9 @@
 namespace Tests\Feature;
 
 use Database\Seeders\RegistrationOptionsSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class RegistrationOptionsApiTest extends TestCase
+class RegistrationOptionsApiTest extends FeatureTestCase
 {
-    use RefreshDatabase;
-
     public function test_registration_options_returns_grades_and_nationalities(): void
     {
         $this->seed(RegistrationOptionsSeeder::class);

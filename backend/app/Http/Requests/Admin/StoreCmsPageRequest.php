@@ -29,6 +29,9 @@ class StoreCmsPageRequest extends FormRequest
             'locale' => ['required', 'string', Rule::in(['en', 'ar'])],
             'meta_title' => ['nullable', 'string', 'max:500'],
             'meta_description' => ['nullable', 'string', 'max:20000'],
+            'page_subtitle' => ['nullable', 'string', 'max:500'],
+            'body_html' => ['nullable', 'string', 'max:500000'],
+            'header_background' => ['nullable', 'string', 'max:2000'],
             'is_active' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
         ];

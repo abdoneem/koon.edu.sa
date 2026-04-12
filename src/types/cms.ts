@@ -29,19 +29,48 @@ export interface HighlightContent {
   description: string
 }
 
+/** Homepage “Why KOON” intro + vision/mission/philosophy strip + accordion (optional in API). */
+export interface WhyKoonLandingContent {
+  eyebrow?: string
+  title?: string
+  lead?: string
+  visionLabel?: string
+  visionText?: string
+  missionLabel?: string
+  missionText?: string
+  philosophyLabel?: string
+  philosophyText?: string
+  accordionSummary?: string
+  accordionLead?: string
+}
+
 /** Optional homepage sections — same shape as `HomePageBundle` slices; omitted in API = use i18n/defaults. */
 export interface LandingPageContent {
   hero: HeroContent
   programs: ProgramContent[]
   highlights: HighlightContent[]
   stats?: { value: string; label: string }[]
-  news?: { id: string; title: string; excerpt: string; date?: string; image?: string }[]
+  news?: {
+    id: string
+    slug?: string
+    title: string
+    excerpt: string
+    date?: string
+    publishedAt?: string
+    image?: string
+    body?: string
+  }[]
   gallery?: { id: string; src: string; alt: string; caption: string; mediaKind?: "image" | "video" }[]
   partners?: { id: string; name: string; abbreviation: string }[]
   admissionSteps?: { id: string; title: string; description: string }[]
-  articleCards?: { id: string; title: string; excerpt: string; meta: string }[]
+  articleCards?: { id: string; slug?: string; title: string; excerpt: string; meta: string; publishedAt?: string; body?: string }[]
   articlesSectionLead?: string
-  excellence?: { title?: string; body?: string; bullets?: string[] }
+  /** Optional override for the articles teaser section `<h2>`. */
+  articlesSectionTitle?: string
+  /** Optional headings above the programs grid (fallback: `homePage.*` i18n). */
+  programsSection?: { eyebrow?: string; title?: string; lead?: string }
+  whyKoon?: WhyKoonLandingContent
+  excellence?: { title?: string; subtitle?: string; body?: string; bullets?: string[] }
   virtualTour?: { note?: string }
   mediaTicker?: string[]
   policyBullets?: string[]

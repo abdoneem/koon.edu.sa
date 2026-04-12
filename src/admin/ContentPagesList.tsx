@@ -51,7 +51,7 @@ export function ContentPagesList() {
       return null
     }
     const q = search.trim().toLowerCase()
-    let list = q
+    const list = q
       ? rows.filter((r) => r.slug.toLowerCase().includes(q) || r.locale.toLowerCase().includes(q))
       : [...rows]
     const mul = direction === "asc" ? 1 : -1

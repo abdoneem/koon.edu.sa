@@ -151,8 +151,9 @@ class AdminRegistrationSubmissionController extends Controller
 
         $registration->fill($data);
         $registration->save();
+        $registration->refresh();
 
-        return response()->json($registration->fresh());
+        return response()->json($registration);
     }
 
     private function registrationListQuery(Request $request): Builder

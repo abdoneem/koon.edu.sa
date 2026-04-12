@@ -17,6 +17,7 @@ After a successful run (not dry-run), copies bundle -> publish/last/koon-hosting
   pip install paramiko
   python scripts/sftp_deploy.py
   python scripts/sftp_deploy.py --full --dry-run
+  python -u scripts/sftp_deploy.py --verbose   # log every uploaded file
 """
 
 from __future__ import annotations
@@ -26,13 +27,22 @@ import os
 import posixpath
 import shutil
 import sys
+import time
 from pathlib import Path
 
-try:
-    import paramiko
-except ImportError:
-    print("Install paramiko: pip install paramiko", file=sys.stderr)
-    sys.exit(1)
+# Paramiko is imported lazily in main() so "python -u ..." shows lines immediately.
+# A top-level `import paramiko` can block 10–60s on Windows (cryptography DLLs + AV scan)
+# with no terminal output, which looks like a hang.
+
+
+def _load_paramiko():
+    try:
+        import paramiko
+    except ImportError:
+        print("Install paramiko: pip install paramiko", file=sys.stderr)
+        sys.exit(1)
+    return paramiko
+
 
 MTIME_SLACK_SEC = 2.0
 
@@ -124,7 +134,7 @@ def load_config(path: Path) -> dict[str, str]:
     return parse_colon_config(path)
 
 
-def mkdir_p(sftp: paramiko.SFTPClient, remote_dir: str) -> None:
+def mkdir_p(sftp, remote_dir: str) -> None:
     remote_dir = remote_dir.replace("\\", "/").rstrip("/")
     if not remote_dir.startswith("/"):
         raise ValueError(f"mkdir_p expects absolute path, got {remote_dir!r}")
@@ -165,7 +175,7 @@ def file_needs_upload(current: Path, baseline: Path | None, *, full: bool) -> bo
     return False
 
 
-def detect_home(sftp: paramiko.SFTPClient, username: str, override: str | None) -> str:
+def detect_home(sftp, username: str, override: str | None) -> str:
     if override and override.strip():
         return override.strip().rstrip("/")
     try:
@@ -178,8 +188,14 @@ def detect_home(sftp: paramiko.SFTPClient, username: str, override: str | None) 
     return f"/home/{username}"
 
 
+def _short_rel(rel: str, max_len: int = 72) -> str:
+    if len(rel) <= max_len:
+        return rel
+    return rel[: max_len - 3] + "..."
+
+
 def upload_tree(
-    sftp: paramiko.SFTPClient,
+    sftp,
     local_root: Path,
     remote_root: str,
     *,
@@ -188,18 +204,46 @@ def upload_tree(
     baseline_root: Path | None,
     full: bool,
     skip_vendor: bool,
+    verbose: bool,
 ) -> tuple[int, int, int]:
     """Returns uploaded, skipped, total_scanned."""
     local_root = local_root.resolve()
     if not local_root.is_dir():
         raise SystemExit(f"Not a directory: {local_root}")
+    prefix = f"[{label}] " if label else ""
+    print(
+        f"{prefix}Indexing local tree (rglob) under {local_root.name}/ ... (large bundles can take 30-90s)",
+        flush=True,
+    )
     files = sorted(p for p in local_root.rglob("*") if p.is_file())
     total = len(files)
-    prefix = f"[{label}] " if label else ""
+    excluded_by_rule = sum(
+        1
+        for p in files
+        if deploy_path_excluded(p.relative_to(local_root).as_posix(), skip_vendor=skip_vendor)
+    )
+    eligible = total - excluded_by_rule
+    print(
+        f"{prefix}Local scan: {total} files, {eligible} eligible to consider"
+        + (f" ({excluded_by_rule} excluded)" if excluded_by_rule else "")
+        + f" -> {remote_root}",
+        flush=True,
+    )
     uploaded = 0
     skipped = 0
     excluded = 0
+    t0 = time.monotonic()
+    heartbeat_every = 300
+
     for i, path in enumerate(files, 1):
+        if not dry_run and heartbeat_every > 0 and i > 0 and i % heartbeat_every == 0:
+            elapsed = time.monotonic() - t0
+            print(
+                f"{prefix}... heartbeat: {i}/{total} paths scanned | "
+                f"uploaded={uploaded} skipped={skipped} excluded={excluded} | {elapsed:.0f}s",
+                flush=True,
+            )
+
         rel = path.relative_to(local_root).as_posix()
         if deploy_path_excluded(rel, skip_vendor=skip_vendor):
             excluded += 1
@@ -210,26 +254,42 @@ def upload_tree(
         if not file_needs_upload(path, prev, full=full):
             skipped += 1
             if dry_run and skipped <= 3 and uploaded == 0:
-                print(f"{prefix}(skip) {rel}")
+                print(f"{prefix}(skip) {rel}", flush=True)
             continue
         uploaded += 1
         if dry_run:
             if uploaded <= 5 or i == total:
-                print(f"{prefix}PUT {rel}")
+                print(f"{prefix}PUT {rel}", flush=True)
             elif uploaded == 6:
-                print(f"{prefix}… (more changed files in dry-run)")
+                print(f"{prefix}... (more changed files in dry-run)", flush=True)
             continue
         mkdir_p(sftp, remote_dir)
         sftp.put(str(path), remote_file)
-        if uploaded == 1 or uploaded % 50 == 0 or i == total:
-            print(f"{prefix}{uploaded} uploaded, {skipped} skipped, {i}/{total} scanned", flush=True)
+        elapsed = time.monotonic() - t0
+        pct = 100 * i // max(total, 1)
+        if verbose or uploaded == 1 or uploaded % 10 == 0 or i == total:
+            print(
+                f"{prefix}PUT #{uploaded} {_short_rel(rel)} | scan {i}/{total} ({pct}%) | {elapsed:.0f}s elapsed",
+                flush=True,
+            )
+
+    elapsed = time.monotonic() - t0
     if dry_run:
         ex = f", {excluded} excluded" if excluded else ""
-        print(f"{prefix}dry-run: would upload {uploaded}, skip {skipped}{ex} (of {total})")
+        print(
+            f"{prefix}dry-run: would upload {uploaded}, skip {skipped}{ex} (of {total}) in {elapsed:.1f}s",
+            flush=True,
+        )
     elif not full and skipped:
-        print(f"{prefix}done: {uploaded} uploaded, {skipped} unchanged (skipped)")
-    elif excluded and not dry_run:
-        print(f"{prefix}({excluded} paths excluded from upload)", flush=True)
+        print(
+            f"{prefix}done: {uploaded} uploaded, {skipped} unchanged (skipped) in {elapsed:.1f}s",
+            flush=True,
+        )
+    else:
+        print(
+            f"{prefix}done: {uploaded} uploaded, {skipped} skipped, {excluded} excluded in {elapsed:.1f}s",
+            flush=True,
+        )
     return uploaded, skipped, total
 
 
@@ -242,6 +302,7 @@ def save_baseline(bundle: Path, repo: Path) -> None:
 
 
 def main() -> None:
+    print("sftp_deploy: resolving repo and CLI args …", flush=True)
     repo = Path(__file__).resolve().parents[1]
     default_bundle = repo / "publish" / "koon-hosting"
 
@@ -258,6 +319,11 @@ def main() -> None:
         "--skip-vendor",
         action="store_true",
         help="Do not upload vendor/ (use when composer.lock unchanged; run composer on server if deps changed).",
+    )
+    p.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Log every uploaded file (noisy). Default: every 10 files + path.",
     )
     args = p.parse_args()
 
@@ -294,6 +360,7 @@ def main() -> None:
 
     print(f"Config: {cfg_path}", flush=True)
     skip_vendor = bool(args.skip_vendor)
+    verbose = bool(args.verbose)
     mode = "FULL" if full else "incremental (size/mtime vs publish/last)"
     if skip_vendor and not full:
         mode += "; vendor/ skipped"
@@ -301,6 +368,11 @@ def main() -> None:
     print(f"Bundle: {bundle}", flush=True)
     print(f"Connecting to {host}:{port} (SFTP)…", flush=True)
 
+    print(
+        "Loading paramiko / cryptography (first run can take 10–60s on Windows; not frozen) …",
+        flush=True,
+    )
+    paramiko = _load_paramiko()
     transport = paramiko.Transport((host, port))
     transport.connect(username=user, password=password)
     print("Connected. Starting uploads…", flush=True)
@@ -320,7 +392,7 @@ def main() -> None:
         if args.dry_run:
             print("DRY RUN - no files transferred\n", flush=True)
 
-        print("Laravel tree…", flush=True)
+        print("== Phase 1/2: Laravel app (uploading; progress every 10 files) ==", flush=True)
         up1, sk1, t1 = upload_tree(
             sftp,
             bundle,
@@ -330,9 +402,10 @@ def main() -> None:
             baseline_root=baseline,
             full=full,
             skip_vendor=skip_vendor,
+            verbose=verbose,
         )
 
-        print("public_html…", flush=True)
+        print("== Phase 2/2: public_html (web root) ==", flush=True)
         up2, sk2, t2 = upload_tree(
             sftp,
             public_local,
@@ -342,19 +415,31 @@ def main() -> None:
             baseline_root=baseline / "public" if baseline else None,
             full=full,
             skip_vendor=False,
+            verbose=verbose,
         )
 
         if not args.dry_run and not args.no_baseline:
-            print("\nUpdating local baseline publish/last/koon-hosting …")
+            print("\nUpdating local baseline publish/last/koon-hosting …", flush=True)
             save_baseline(bundle, repo)
-            print("Baseline saved for next incremental run.")
+            print("Baseline saved for next incremental run.", flush=True)
 
         if not args.dry_run:
-            print("\nDone. On server: php artisan migrate --force (if needed), php artisan config:cache")
+            print(
+                "\nDone. On server: php artisan migrate --force (if needed), php artisan config:cache",
+                flush=True,
+            )
     finally:
         sftp.close()
         transport.close()
 
 
 if __name__ == "__main__":
+    # Line-buffer stdout/stderr where supported (extra safety besides python -u).
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            try:
+                _stream.reconfigure(line_buffering=True)
+            except OSError:
+                pass
+    print("sftp_deploy: started (before paramiko import).", flush=True)
     main()

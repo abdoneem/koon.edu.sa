@@ -1,5 +1,8 @@
 import type { TFunction } from "i18next"
 import { brand } from "../config/brand"
+import { getDefaultSiteNav } from "../content/siteNavDefaults"
+import type { Locale } from "../types/cms"
+import { type SiteNavItem, parseSiteNavTreeJson } from "../types/siteNav"
 
 export type CmsSiteResolved = {
   logoSrc: string
@@ -8,6 +11,8 @@ export type CmsSiteResolved = {
   emailDisplay: string
   emailHref: string
   whatsappHref: string
+  /** Main header navigation (from CMS or defaults). */
+  navTree: SiteNavItem[]
 }
 
 function trimmed(v: string | null | undefined): string | undefined {
@@ -75,6 +80,7 @@ export function resolveWhatsappHref(raw: string, fallback: string): string {
 export function buildCmsSiteResolved(
   settings: Record<string, string | null | undefined>,
   t: TFunction,
+  locale: Locale,
 ): CmsSiteResolved {
   const phone = trimmed(settings.phone)
   const email = trimmed(settings.email)
@@ -84,6 +90,10 @@ export function buildCmsSiteResolved(
   const emailFallback = String(t("footer.email"))
   const phoneFallbackDisplay = String(t("footer.phone"))
 
+  const navKey = locale === "ar" ? "nav_tree_ar" : "nav_tree_en"
+  const parsedNav = parseSiteNavTreeJson(settings[navKey])
+  const navTree = parsedNav ?? getDefaultSiteNav(locale)
+
   return {
     logoSrc: logo ? normalizeLogoSrc(logo, brand.logoSrc) : brand.logoSrc,
     phoneDisplay: phone ?? phoneFallbackDisplay,
@@ -91,5 +101,6 @@ export function buildCmsSiteResolved(
     emailDisplay: email ?? emailFallback,
     emailHref: email ? `mailto:${email}` : `mailto:${emailFallback}`,
     whatsappHref: whatsapp ? resolveWhatsappHref(whatsapp, brand.whatsappHref) : brand.whatsappHref,
+    navTree,
   }
 }

@@ -1,5 +1,7 @@
 import {
   Accordion,
+  ActionIcon,
+  Anchor,
   Button,
   Group,
   Modal,
@@ -8,60 +10,22 @@ import {
   Select,
   Stack,
   Switch,
-  Table,
+  Text,
   TextInput,
   Textarea,
   Title,
+  Tooltip,
 } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
-import { IconPlus, IconTrash } from "@tabler/icons-react"
-import { type FormEvent, useCallback, useEffect, useState } from "react"
+import { IconChevronDown, IconChevronUp, IconPlus } from "@tabler/icons-react"
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { CmsMediaUploadField } from "./CmsMediaUploadField"
+import { CmsRichTextEditor } from "./cms/CmsRichTextEditor"
+import { CmsSectionFields } from "./cms/CmsSectionFields"
+import { collectImageUrlsFromSections, type CmsSectionItemRow, type CmsSectionRow, type CmsPageRow } from "./cms/cmsEditorTypes"
 import { adminFetch } from "./adminApi"
 import { useAdminI18n } from "./adminI18n"
-
-const SECTION_TYPES = [
-  { value: "hero", label: "hero" },
-  { value: "cards", label: "cards" },
-  { value: "faq", label: "faq" },
-  { value: "gallery", label: "gallery" },
-  { value: "text", label: "text" },
-  { value: "custom", label: "custom" },
-] as const
-
-type CmsSectionItemRow = {
-  id: number
-  cms_section_id: number
-  title: string | null
-  description: string | null
-  image: string | null
-  icon: string | null
-  link: string | null
-  sort_order: number
-}
-
-type CmsSectionRow = {
-  id: number
-  cms_page_id: number
-  type: string
-  title: string | null
-  subtitle: string | null
-  sort_order: number
-  is_active: boolean
-  items: CmsSectionItemRow[]
-}
-
-type CmsPageRow = {
-  id: number
-  title: string
-  slug: string
-  locale: string
-  meta_title: string | null
-  meta_description: string | null
-  is_active: boolean
-  published_at: string | null
-  sections: CmsSectionRow[]
-}
 
 export function CmsPageEditor() {
   const { t, isRtl } = useAdminI18n()
@@ -77,6 +41,10 @@ export function CmsPageEditor() {
   const [metaDescription, setMetaDescription] = useState("")
   const [isActive, setIsActive] = useState(true)
   const [publishedAt, setPublishedAt] = useState("")
+  const [pageSubtitle, setPageSubtitle] = useState("")
+  const [headerBackground, setHeaderBackground] = useState("")
+  const [bodyHtml, setBodyHtml] = useState("")
+  const [editorNonce, setEditorNonce] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -88,14 +56,14 @@ export function CmsPageEditor() {
   const [newSectionOrder, setNewSectionOrder] = useState<number | string>(0)
   const [newSectionActive, setNewSectionActive] = useState(true)
 
-  const [itemModal, itemModalHandlers] = useDisclosure(false)
-  const [itemSectionId, setItemSectionId] = useState<number | null>(null)
-  const [newItemTitle, setNewItemTitle] = useState("")
-  const [newItemDescription, setNewItemDescription] = useState("")
-  const [newItemImage, setNewItemImage] = useState("")
-  const [newItemIcon, setNewItemIcon] = useState("")
-  const [newItemLink, setNewItemLink] = useState("")
-  const [newItemOrder, setNewItemOrder] = useState<number | string>(0)
+  const sectionTypeOptions = useMemo(
+    () =>
+      (["hero", "cards", "faq", "gallery", "text", "custom"] as const).map((v) => ({
+        value: v,
+        label: t(`admin.cmsEditor.sectionKind.${v}`),
+      })),
+    [t],
+  )
 
   const loadPage = useCallback(async () => {
     if (isNew || !id) {
@@ -116,6 +84,10 @@ export function CmsPageEditor() {
       setMetaDescription(row.meta_description ?? "")
       setIsActive(row.is_active)
       setPublishedAt(row.published_at ? row.published_at.slice(0, 16) : "")
+      setPageSubtitle(row.page_subtitle ?? "")
+      setHeaderBackground(row.header_background ?? "")
+      setBodyHtml(row.body_html ?? "")
+      setEditorNonce((n) => n + 1)
     } catch {
       setLoadError(t("admin.cmsEditor.loadError"))
     }
@@ -139,6 +111,9 @@ export function CmsPageEditor() {
             locale,
             meta_title: metaTitle || null,
             meta_description: metaDescription || null,
+            page_subtitle: pageSubtitle.trim() || null,
+            header_background: headerBackground.trim() || null,
+            body_html: bodyHtml.trim() ? bodyHtml : null,
             is_active: isActive,
             published_at: publishedAt ? new Date(publishedAt).toISOString() : null,
           }),
@@ -165,6 +140,9 @@ export function CmsPageEditor() {
           locale,
           meta_title: metaTitle || null,
           meta_description: metaDescription || null,
+          page_subtitle: pageSubtitle.trim() || null,
+          header_background: headerBackground.trim() || null,
+          body_html: bodyHtml.trim() ? bodyHtml : null,
           is_active: isActive,
           published_at: publishedAt ? new Date(publishedAt).toISOString() : null,
         }),
@@ -237,6 +215,54 @@ export function CmsPageEditor() {
     }
   }
 
+  async function swapSectionOrder(a: CmsSectionRow, b: CmsSectionRow) {
+    setPending(true)
+    setError(null)
+    const ao = a.sort_order
+    const bo = b.sort_order
+    try {
+      const r1 = await adminFetch(`/api/admin/cms-sections/${a.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ sort_order: bo }),
+      })
+      const r2 = await adminFetch(`/api/admin/cms-sections/${b.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ sort_order: ao }),
+      })
+      if (!r1.ok || !r2.ok) {
+        setError(t("admin.cmsEditor.errPatchSection"))
+        return
+      }
+      await loadPage()
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function swapItemOrder(a: CmsSectionItemRow, b: CmsSectionItemRow) {
+    setPending(true)
+    setError(null)
+    const ao = a.sort_order
+    const bo = b.sort_order
+    try {
+      const r1 = await adminFetch(`/api/admin/cms-section-items/${a.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ sort_order: bo }),
+      })
+      const r2 = await adminFetch(`/api/admin/cms-section-items/${b.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ sort_order: ao }),
+      })
+      if (!r1.ok || !r2.ok) {
+        setError(t("admin.cmsEditor.errPatchItem"))
+        return
+      }
+      await loadPage()
+    } finally {
+      setPending(false)
+    }
+  }
+
   async function deleteSection(sectionId: number) {
     if (!window.confirm(t("admin.cmsEditor.confirmDeleteSection"))) {
       return
@@ -254,39 +280,29 @@ export function CmsPageEditor() {
     }
   }
 
-  function openAddItem(sectionId: number) {
-    setItemSectionId(sectionId)
-    setNewItemTitle("")
-    setNewItemDescription("")
-    setNewItemImage("")
-    setNewItemIcon("")
-    setNewItemLink("")
-    setNewItemOrder(0)
-    itemModalHandlers.open()
-  }
-
-  async function addItem() {
-    if (!itemSectionId) {
+  async function addItem(sectionId: number, initial?: Partial<CmsSectionItemRow>) {
+    if (!page) {
       return
     }
+    const sec = page.sections.find((s) => s.id === sectionId)
+    const nextOrder = sec && sec.items.length > 0 ? Math.max(...sec.items.map((i) => i.sort_order)) + 1 : 0
     setPending(true)
     try {
-      const res = await adminFetch(`/api/admin/cms-sections/${itemSectionId}/items`, {
+      const res = await adminFetch(`/api/admin/cms-sections/${sectionId}/items`, {
         method: "POST",
         body: JSON.stringify({
-          title: newItemTitle || null,
-          description: newItemDescription || null,
-          image: newItemImage || null,
-          icon: newItemIcon || null,
-          link: newItemLink || null,
-          sort_order: Number(newItemOrder) || 0,
+          title: initial?.title !== undefined ? initial.title : null,
+          description: initial?.description !== undefined ? initial.description : null,
+          image: initial?.image !== undefined ? initial.image : null,
+          icon: initial?.icon !== undefined ? initial.icon : null,
+          link: initial?.link !== undefined ? initial.link : null,
+          sort_order: initial?.sort_order !== undefined ? initial.sort_order : nextOrder,
         }),
       })
       if (!res.ok) {
         setError(t("admin.cmsEditor.errAddItem"))
         return
       }
-      itemModalHandlers.close()
       await loadPage()
     } finally {
       setPending(false)
@@ -357,6 +373,10 @@ export function CmsPageEditor() {
   }
 
   const sections = page?.sections ?? []
+  const sortedSections = [...sections].sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
+  const imageUrlOptions = page
+    ? collectImageUrlsFromSections(page.sections, page.header_background?.trim() ? [page.header_background] : [])
+    : []
 
   return (
     <Stack gap="lg" dir={isRtl ? "rtl" : "ltr"}>
@@ -371,7 +391,31 @@ export function CmsPageEditor() {
 
       <Paper withBorder shadow="sm" p="md" radius="md" component="form" onSubmit={(e) => void savePageMeta(e)}>
         <Stack gap="md">
+          <Group justify="space-between" align="center" wrap="wrap">
+            <Title order={5}>{t("admin.cmsEditor.pageMetaHeading")}</Title>
+            {!isNew && slug.trim() ? (
+              <Anchor href={`${window.location.origin}/${encodeURIComponent(slug.trim())}`} target="_blank" rel="noopener noreferrer" size="sm">
+                {t("admin.cmsEditor.viewPublic")}
+              </Anchor>
+            ) : null}
+          </Group>
           <TextInput label={t("admin.cmsEditor.pageTitle")} required value={title} onChange={(e) => setTitle(e.currentTarget.value)} />
+          <TextInput
+            label={t("admin.cmsEditor.pageSubtitle")}
+            description={t("admin.cmsEditor.pageSubtitleHint")}
+            value={pageSubtitle}
+            onChange={(e) => setPageSubtitle(e.currentTarget.value)}
+          />
+          <CmsMediaUploadField label={t("admin.cmsEditor.headerBackground")} value={headerBackground} onChange={setHeaderBackground} />
+          <div>
+            <Text size="sm" fw={600} mb={6}>
+              {t("admin.cmsEditor.bodyHtml")}
+            </Text>
+            <Text size="xs" c="dimmed" mb="xs">
+              {t("admin.cmsEditor.bodyHtmlHint")}
+            </Text>
+            <CmsRichTextEditor key={`${page?.id ?? "new"}-${editorNonce}`} initialHtml={bodyHtml} onChange={setBodyHtml} />
+          </div>
           <Group grow>
             <TextInput
               label={t("admin.cmsEditor.slug")}
@@ -432,141 +476,70 @@ export function CmsPageEditor() {
             <div style={{ color: "var(--mantine-color-dimmed)" }}>{t("admin.cmsEditor.noSections")}</div>
           ) : (
             <Accordion variant="separated">
-              {sections.map((sec) => (
+              {sortedSections.map((sec, idx) => (
                 <Accordion.Item key={sec.id} value={String(sec.id)}>
                   <Accordion.Control>
-                    <Group justify="space-between" wrap="nowrap" pr="sm">
+                    <Group justify="space-between" wrap="nowrap" pr="sm" align="center">
                       <span>
-                        <strong>{sec.type}</strong>
+                        <strong>{t(`admin.cmsEditor.sectionKind.${sec.type}`, { defaultValue: sec.type })}</strong>
                         {sec.title ? ` — ${sec.title}` : ""}
                       </span>
-                      <span style={{ fontSize: 12, color: "var(--mantine-color-dimmed)" }}>
-                        {t("admin.cmsEditor.orderSummary", { order: sec.sort_order })}{" "}
-                        {sec.is_active ? "" : t("admin.cmsEditor.disabled")}
-                      </span>
+                      <Group gap={4} wrap="nowrap">
+                        <Tooltip label={t("admin.cmsEditor.sectionMoveUp")}>
+                          <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            disabled={pending || idx === 0}
+                            aria-label={t("admin.cmsEditor.sectionMoveUp")}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const prev = sortedSections[idx - 1]
+                              if (prev) {
+                                void swapSectionOrder(sec, prev)
+                              }
+                            }}
+                          >
+                            <IconChevronUp size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label={t("admin.cmsEditor.sectionMoveDown")}>
+                          <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            disabled={pending || idx >= sortedSections.length - 1}
+                            aria-label={t("admin.cmsEditor.sectionMoveDown")}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const next = sortedSections[idx + 1]
+                              if (next) {
+                                void swapSectionOrder(sec, next)
+                              }
+                            }}
+                          >
+                            <IconChevronDown size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                        <span style={{ fontSize: 12, color: "var(--mantine-color-dimmed)" }}>
+                          {t("admin.cmsEditor.orderSummary", { order: sec.sort_order })}{" "}
+                          {sec.is_active ? "" : t("admin.cmsEditor.disabled")}
+                        </span>
+                      </Group>
                     </Group>
                   </Accordion.Control>
                   <Accordion.Panel>
-                    <Stack gap="sm">
-                      <Group grow>
-                        <Select
-                          label={t("admin.cmsEditor.sectionType")}
-                          data={[...SECTION_TYPES]}
-                          value={sec.type}
-                          onChange={(v) => {
-                            if (v) {
-                              void patchSection(sec, { type: v })
-                            }
-                          }}
-                        />
-                        <TextInput
-                          label={t("admin.cmsEditor.orderLabel")}
-                          type="number"
-                          defaultValue={String(sec.sort_order)}
-                          key={`sec-ord-${sec.id}-${sec.sort_order}`}
-                          onBlur={(e) => {
-                            const v = parseInt(e.currentTarget.value, 10)
-                            if (!Number.isNaN(v)) {
-                              void patchSection(sec, { sort_order: v })
-                            }
-                          }}
-                        />
-                      </Group>
-                      <TextInput
-                        label={t("admin.cmsEditor.sectionTitle")}
-                        value={sec.title ?? ""}
-                        onBlur={(e) => patchSection(sec, { title: e.currentTarget.value || null })}
-                      />
-                      <TextInput
-                        label={t("admin.cmsEditor.sectionSubtitle")}
-                        value={sec.subtitle ?? ""}
-                        onBlur={(e) => patchSection(sec, { subtitle: e.currentTarget.value || null })}
-                      />
-                      <Switch
-                        label={t("admin.cmsEditor.sectionActive")}
-                        checked={sec.is_active}
-                        onChange={(e) => patchSection(sec, { is_active: e.currentTarget.checked })}
-                      />
-                      <Group>
-                        <Button
-                          size="xs"
-                          variant="light"
-                          leftSection={<IconPlus size={14} />}
-                          onClick={() => openAddItem(sec.id)}
-                        >
-                          {t("admin.cmsEditor.item")}
-                        </Button>
-                        <Button
-                          size="xs"
-                          color="red"
-                          variant="light"
-                          leftSection={<IconTrash size={14} />}
-                          onClick={() => void deleteSection(sec.id)}
-                        >
-                          {t("admin.cmsEditor.deleteSection")}
-                        </Button>
-                      </Group>
-
-                      {sec.items.length > 0 ? (
-                        <Table striped withTableBorder withColumnBorders style={{ fontSize: 13 }}>
-                          <Table.Thead>
-                            <Table.Tr>
-                              <Table.Th>{t("admin.cmsEditor.colItemTitle")}</Table.Th>
-                              <Table.Th>{t("admin.cmsEditor.colItemDesc")}</Table.Th>
-                              <Table.Th>{t("admin.cmsEditor.colItemLink")}</Table.Th>
-                              <Table.Th w={70}>{t("admin.cmsEditor.colItemOrder")}</Table.Th>
-                              <Table.Th w={90} />
-                            </Table.Tr>
-                          </Table.Thead>
-                          <Table.Tbody>
-                            {sec.items.map((it) => (
-                              <Table.Tr key={it.id}>
-                                <Table.Td>
-                                  <TextInput
-                                    size="xs"
-                                    value={it.title ?? ""}
-                                    onBlur={(e) => patchItem(it, { title: e.currentTarget.value || null })}
-                                  />
-                                </Table.Td>
-                                <Table.Td>
-                                  <TextInput
-                                    size="xs"
-                                    value={it.description ?? ""}
-                                    onBlur={(e) => patchItem(it, { description: e.currentTarget.value || null })}
-                                  />
-                                </Table.Td>
-                                <Table.Td>
-                                  <TextInput
-                                    size="xs"
-                                    value={it.link ?? ""}
-                                    onBlur={(e) => patchItem(it, { link: e.currentTarget.value || null })}
-                                  />
-                                </Table.Td>
-                                <Table.Td>
-                                  <TextInput
-                                    size="xs"
-                                    type="number"
-                                    defaultValue={String(it.sort_order)}
-                                    key={`it-ord-${it.id}-${it.sort_order}`}
-                                    onBlur={(e) => {
-                                      const v = parseInt(e.currentTarget.value, 10)
-                                      if (!Number.isNaN(v)) {
-                                        void patchItem(it, { sort_order: v })
-                                      }
-                                    }}
-                                  />
-                                </Table.Td>
-                                <Table.Td>
-                                  <Button size="compact-xs" color="red" variant="light" onClick={() => void deleteItem(it.id)}>
-                                    {t("admin.cmsEditor.delete")}
-                                  </Button>
-                                </Table.Td>
-                              </Table.Tr>
-                            ))}
-                          </Table.Tbody>
-                        </Table>
-                      ) : null}
-                    </Stack>
+                    <CmsSectionFields
+                      section={sec}
+                      imageUrlOptions={imageUrlOptions}
+                      pending={pending}
+                      t={t}
+                      sectionTypes={sectionTypeOptions}
+                      onPatchSection={patchSection}
+                      onPatchItem={patchItem}
+                      onDeleteItem={deleteItem}
+                      onSwapItems={swapItemOrder}
+                      onAddItem={(sectionId, initial) => void addItem(sectionId, initial)}
+                      onDeleteSection={deleteSection}
+                    />
                   </Accordion.Panel>
                 </Accordion.Item>
               ))}
@@ -579,7 +552,7 @@ export function CmsPageEditor() {
         <Stack gap="sm">
           <Select
             label={t("admin.cmsEditor.sectionType")}
-            data={[...SECTION_TYPES]}
+            data={[...sectionTypeOptions]}
             value={newSectionType}
             onChange={(v) => setNewSectionType(v ?? "text")}
           />
@@ -600,30 +573,6 @@ export function CmsPageEditor() {
               {t("admin.cmsEditor.cancel")}
             </Button>
             <Button loading={pending} onClick={() => void addSection()} disabled={!page}>
-              {t("admin.cmsEditor.add")}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-      <Modal opened={itemModal} onClose={itemModalHandlers.close} title={t("admin.cmsEditor.modalNewItem")} radius="md">
-        <Stack gap="sm">
-          <TextInput label={t("admin.cmsEditor.itemTitle")} value={newItemTitle} onChange={(e) => setNewItemTitle(e.currentTarget.value)} />
-          <Textarea
-            label={t("admin.cmsEditor.itemDescription")}
-            minRows={2}
-            value={newItemDescription}
-            onChange={(e) => setNewItemDescription(e.currentTarget.value)}
-          />
-          <TextInput label={t("admin.cmsEditor.itemImage")} value={newItemImage} onChange={(e) => setNewItemImage(e.currentTarget.value)} />
-          <TextInput label={t("admin.cmsEditor.itemIcon")} value={newItemIcon} onChange={(e) => setNewItemIcon(e.currentTarget.value)} />
-          <TextInput label={t("admin.cmsEditor.itemLink")} value={newItemLink} onChange={(e) => setNewItemLink(e.currentTarget.value)} />
-          <NumberInput label={t("admin.cmsEditor.itemOrder")} min={0} value={newItemOrder} onChange={setNewItemOrder} />
-          <Group justify="flex-end">
-            <Button variant="default" onClick={itemModalHandlers.close}>
-              {t("admin.cmsEditor.cancel")}
-            </Button>
-            <Button loading={pending} onClick={() => void addItem()}>
               {t("admin.cmsEditor.add")}
             </Button>
           </Group>

@@ -23,28 +23,44 @@ import { Link } from "react-router-dom"
 import { brand } from "../../config/brand"
 import { useCmsSite } from "../../context/CmsSiteContext"
 import { studentLifeBlockImage } from "../../content/siteImagery"
+import type { HighlightContent } from "../../types/cms"
 import type { HomePageBundle } from "../../types/homePageBundle"
+import { formatNewsDateForDisplay, newsDateTimeAttr } from "../../utils/newsDateInput"
 import { coalesceArray, coalesceString } from "../../utils/coalesce"
+import type { LandingBulkSection } from "../inline/HomeLandingBulkEditModal"
 import { HomeBookTourForm } from "./HomeBookTourForm"
 import { HomePortalCards } from "./HomePortalCards"
 
 interface Props {
   bundle: HomePageBundle
+  /** When set, used for the value grid (keeps HomePage + inline modal in sync). */
+  highlights?: HighlightContent[]
+  inlineEditEnabled?: boolean
+  onInlineEditHighlights?: () => void
+  onEditBulkSection?: (section: LandingBulkSection) => void
 }
 
 const VALUE_ICONS = [IconFlag, IconTrendingUp, IconSparkles, IconEye, IconBolt] as const
 
 const ADMISSIONS_STEP_ICONS = [IconMapPin, IconBooks, IconSend, IconFileCheck] as const
 
-export function HomeLandingSections({ bundle }: Props) {
+export function HomeLandingSections({
+  bundle,
+  highlights: highlightsProp,
+  inlineEditEnabled,
+  onInlineEditHighlights,
+  onEditBulkSection,
+}: Props) {
   const { phoneDisplay, phoneHref, emailDisplay, emailHref } = useCmsSite()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const reduce = useReducedMotion()
 
-  const highlights = coalesceArray(
-    t("highlights.items", { returnObjects: true }) as { id: string; title: string; description: string }[],
-    bundle.highlights,
-  )
+  const highlights = highlightsProp
+    ? highlightsProp
+    : coalesceArray(
+        t("highlights.items", { returnObjects: true }) as { id: string; title: string; description: string }[],
+        bundle.highlights,
+      )
   const stages = t("academicsStagesDetail", { returnObjects: true }) as Record<string, string>
   const studentBlocks = t("studentLifePage.blocks", { returnObjects: true }) as {
     title: string
@@ -55,14 +71,20 @@ export function HomeLandingSections({ bundle }: Props) {
     t("admissionsPage.policiesBullets", { returnObjects: true }) as string[],
     bundle.policyBullets,
   )
-  const admissionsSteps = t("homePage.admissionsSteps", { returnObjects: true }) as {
+  const i18nAdmissionsSteps = t("homePage.admissionsSteps", { returnObjects: true }) as {
     id: string
     title: string
     blurb: string
   }[]
+  const bundleAdmissionsSteps = bundle.admissionSteps.map((s) => ({
+    id: s.id,
+    title: s.title,
+    blurb: s.description,
+  }))
+  const admissionsSteps = coalesceArray(i18nAdmissionsSteps, bundleAdmissionsSteps)
 
-  const excellenceBody = coalesceString(t("excellenceCorner.body"), bundle.excellence.body)
-  const articlesIntro = coalesceString(t("articlesTeaser.body"), bundle.articlesSectionLead)
+  const excellenceBody = coalesceString(bundle.excellence.body, t("excellenceCorner.body"))
+  const articlesIntro = coalesceString(bundle.articlesSectionLead, t("articlesTeaser.body"))
 
   return (
     <>
@@ -70,32 +92,56 @@ export function HomeLandingSections({ bundle }: Props) {
         <div className="home-section__bg home-section__bg--mesh" aria-hidden />
         <div className="container home-section__inner">
           <div className="home-why-bento">
+            {inlineEditEnabled && onInlineEditHighlights ? (
+              <button
+                type="button"
+                className="home-why-bento__inline-edit"
+                onClick={onInlineEditHighlights}
+                aria-label={t("inlineEdit.editHighlightsAria")}
+              >
+                {t("inlineEdit.editHighlights")}
+              </button>
+            ) : null}
+            {inlineEditEnabled && onEditBulkSection ? (
+              <button
+                type="button"
+                className="home-why-bento__inline-edit home-why-bento__inline-edit--why-intro"
+                onClick={() => onEditBulkSection("whyKoon")}
+                aria-label={t("inlineEdit.editWhyKoonIntroAria")}
+              >
+                {t("inlineEdit.editWhyKoonIntro")}
+              </button>
+            ) : null}
             <div className="home-why-bento__intro">
-              <span className="home-eyebrow">{t("highlights.eyebrow")}</span>
+              <span className="home-eyebrow">{bundle.whyKoon.eyebrow}</span>
               <h2 id="home-why-heading" className="home-display">
-                {t("highlights.title")}
+                {bundle.whyKoon.title}
               </h2>
-              {t("highlights.lead") ? (
-                <p className="home-lead home-lead--on-dark home-lead--tight">{t("highlights.lead")}</p>
+              {bundle.whyKoon.lead?.trim() ? (
+                <p className="home-lead home-lead--on-dark home-lead--tight">{bundle.whyKoon.lead}</p>
+              ) : inlineEditEnabled && onEditBulkSection ? (
+                <p className="home-lead home-lead--on-dark home-lead--tight home-lead--inline-placeholder">
+                  {t("inlineEdit.emptySectionLead")}
+                </p>
               ) : null}
               <div className="home-identity-strip" aria-label={t("homePage.identityAria")}>
                 <div className="home-identity-strip__item">
-                  <span className="home-identity-strip__label">{t("aboutExtended.visionBlockTitle")}</span>
-                  <p className="home-identity-strip__text">{t("aboutExtended.visionBlockBody")}</p>
+                  <span className="home-identity-strip__label">{bundle.whyKoon.visionLabel}</span>
+                  <p className="home-identity-strip__text">{bundle.whyKoon.visionText}</p>
                 </div>
                 <div className="home-identity-strip__item">
-                  <span className="home-identity-strip__label">{t("aboutExtended.missionBlockTitle")}</span>
-                  <p className="home-identity-strip__text">{t("homePage.missionSummary")}</p>
+                  <span className="home-identity-strip__label">{bundle.whyKoon.missionLabel}</span>
+                  <p className="home-identity-strip__text">{bundle.whyKoon.missionText}</p>
                 </div>
                 <div className="home-identity-strip__item">
-                  <span className="home-identity-strip__label">{t("homePage.philosophyLabel")}</span>
-                  <p className="home-identity-strip__text">{t("homePage.philosophySummary")}</p>
+                  <span className="home-identity-strip__label">{bundle.whyKoon.philosophyLabel}</span>
+                  <p className="home-identity-strip__text">{bundle.whyKoon.philosophyText}</p>
                 </div>
               </div>
               <details className="home-m-accordion home-m-accordion--why">
-                <summary className="home-m-accordion__summary">{t("homePage.accordionPhilosophy")}</summary>
+                <summary className="home-m-accordion__summary">{bundle.whyKoon.accordionSummary}</summary>
                 <div className="home-m-accordion__panel">
-                  <p className="home-lead home-lead--on-dark home-why-lead-columns">{t("whyKoonPage.lead")}</p>
+                  <p className="home-lead home-lead--on-dark home-why-lead-columns">{bundle.whyKoon.accordionLead}</p>
                 </div>
               </details>
             </div>
@@ -165,10 +211,28 @@ export function HomeLandingSections({ bundle }: Props) {
           </div>
 
           <div className="home-programs-block">
-            <div className="home-programs-block__head">
-              <span className="home-eyebrow">{t("homePage.programsEyebrow")}</span>
-              <h3 className="home-display home-display--sm">{t("homePage.programsGridTitle")}</h3>
-              <p className="home-lead home-lead--tight">{t("homePage.programsLead")}</p>
+            <div className="home-programs-block__head home-programs-block__head--inline">
+              {inlineEditEnabled && onEditBulkSection ? (
+                <div className="home-inline-edit-row">
+                  <button
+                    type="button"
+                    className="home-inline-section-edit"
+                    onClick={() => onEditBulkSection("programs")}
+                    aria-label={t("inlineEdit.editProgramsAria")}
+                  >
+                    {t("inlineEdit.editPrograms")}
+                  </button>
+                </div>
+              ) : null}
+              <span className="home-eyebrow">
+                {coalesceString(bundle.programsSection.eyebrow, t("homePage.programsEyebrow"))}
+              </span>
+              <h3 className="home-display home-display--sm">
+                {coalesceString(bundle.programsSection.title, t("homePage.programsGridTitle"))}
+              </h3>
+              <p className="home-lead home-lead--tight">
+                {coalesceString(bundle.programsSection.lead, t("homePage.programsLead"))}
+              </p>
             </div>
             <ul className="home-program-grid home-program-grid--three">
               {bundle.programs.map((prog, i) => (
@@ -201,7 +265,27 @@ export function HomeLandingSections({ bundle }: Props) {
 
       <section id="admissions" className="home-section home-section--surface home-section--admissions">
         <div className="container home-section__inner">
-          <header className="home-adm-section-head">
+          <header className="home-adm-section-head home-adm-section-head--inline">
+            {inlineEditEnabled && onEditBulkSection ? (
+              <div className="home-inline-edit-row">
+                <button
+                  type="button"
+                  className="home-inline-section-edit"
+                  onClick={() => onEditBulkSection("admissionSteps")}
+                  aria-label={t("inlineEdit.editAdmStepsAria")}
+                >
+                  {t("inlineEdit.editAdmSteps")}
+                </button>
+                <button
+                  type="button"
+                  className="home-inline-section-edit"
+                  onClick={() => onEditBulkSection("policyBullets")}
+                  aria-label={t("inlineEdit.editPoliciesAria")}
+                >
+                  {t("inlineEdit.editPolicies")}
+                </button>
+              </div>
+            ) : null}
             <span className="home-eyebrow home-eyebrow--navy">{t("homePage.admissionsEyebrow")}</span>
             <h2 className="home-display">{t("homePage.admissionsHeadline")}</h2>
             <p className="home-lead home-lead--tight">{t("homePage.admissionsSubline")}</p>
@@ -342,7 +426,19 @@ export function HomeLandingSections({ bundle }: Props) {
 
       <section id="accreditations" className="home-section home-section--trust">
         <div className="container home-section__inner">
-          <header className="home-section__head home-section__head--center">
+          <header className="home-section__head home-section__head--center home-section__head--inline">
+            {inlineEditEnabled && onEditBulkSection ? (
+              <div className="home-inline-edit-row">
+                <button
+                  type="button"
+                  className="home-inline-section-edit"
+                  onClick={() => onEditBulkSection("partners")}
+                  aria-label={t("inlineEdit.editPartnersAria")}
+                >
+                  {t("inlineEdit.editPartners")}
+                </button>
+              </div>
+            ) : null}
             <h2 className="home-display">{t("accreditations.title")}</h2>
             <p className="home-lead">{t("accreditations.body")}</p>
           </header>
@@ -361,10 +457,26 @@ export function HomeLandingSections({ bundle }: Props) {
 
       <section id="excellence" className="home-section home-section--surface">
         <div className="container home-section__inner">
-          <div className="home-excellence-bento card-elevated">
+          <div className="home-excellence-bento card-elevated home-excellence-bento--inline">
+            {inlineEditEnabled && onEditBulkSection ? (
+              <div className="home-inline-edit-row">
+                <button
+                  type="button"
+                  className="home-inline-section-edit"
+                  onClick={() => onEditBulkSection("excellence")}
+                  aria-label={t("inlineEdit.editExcellenceAria")}
+                >
+                  {t("inlineEdit.editExcellence")}
+                </button>
+              </div>
+            ) : null}
             <div className="home-excellence-bento__copy">
-              <span className="home-eyebrow">{t("excellenceCorner.subtitle")}</span>
-              <h2 className="home-display home-display--sm">{t("excellenceCorner.title")}</h2>
+              <span className="home-eyebrow">
+                {coalesceString(bundle.excellence.subtitle, t("excellenceCorner.subtitle"))}
+              </span>
+              <h2 className="home-display home-display--sm">
+                {coalesceString(bundle.excellence.title, t("excellenceCorner.title"))}
+              </h2>
               <p className="home-lead home-lead--tight">{excellenceBody}</p>
             </div>
             <details className="home-m-accordion home-m-accordion--excellence">
@@ -388,9 +500,34 @@ export function HomeLandingSections({ bundle }: Props) {
 
       <section id="articles" className="home-section home-section--muted">
         <div className="container home-section__inner">
-          <header className="home-section__head">
-            <h2 className="home-display">{t("articlesTeaser.title")}</h2>
+          <header className="home-section__head home-section__head--inline">
+            {inlineEditEnabled && onEditBulkSection ? (
+              <div className="home-inline-edit-row">
+                <button
+                  type="button"
+                  className="home-inline-section-edit"
+                  onClick={() => onEditBulkSection("articleCards")}
+                  aria-label={t("inlineEdit.editArticleCardsAria")}
+                >
+                  {t("inlineEdit.editArticleCards")}
+                </button>
+                <button
+                  type="button"
+                  className="home-inline-section-edit"
+                  onClick={() => onEditBulkSection("articlesLead")}
+                  aria-label={t("inlineEdit.editArticlesLeadAria")}
+                >
+                  {t("inlineEdit.editArticlesLead")}
+                </button>
+              </div>
+            ) : null}
+            <h2 className="home-display">
+              {coalesceString(bundle.articlesSectionTitle, t("articlesTeaser.title"))}
+            </h2>
             <p className="home-lead">{articlesIntro}</p>
+            <Link to="/articles" className="home-text-link">
+              {t("homePage.ctaFullPage")}
+            </Link>
           </header>
           <details className="home-m-accordion home-m-accordion--articles">
             <summary className="home-m-accordion__summary">{t("homePage.accordionArticles")}</summary>
@@ -401,7 +538,9 @@ export function HomeLandingSections({ bundle }: Props) {
                     <span className="home-editorial-card__meta">{a.meta}</span>
                     <h3>{a.title}</h3>
                     <p>{a.excerpt}</p>
-                    <span className="home-editorial-card__faux-link">{t("homePage.ctaFullPage")}</span>
+                    <Link to={`/articles/${encodeURIComponent(a.slug?.trim() || a.id)}`} className="home-editorial-card__faux-link">
+                      {t("homePage.ctaFullPage")}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -411,8 +550,36 @@ export function HomeLandingSections({ bundle }: Props) {
       </section>
 
       <section id="media" className="home-section home-section--dark">
-        <div className="container home-section__inner">
-          <header className="home-section__head home-section__head--center home-section__head--light">
+        <div className="container home-section__inner home-media-section--inline">
+          <header className="home-section__head home-section__head--center home-section__head--light home-section__head--inline">
+            {inlineEditEnabled && onEditBulkSection ? (
+              <div className="home-inline-edit-row">
+                <button
+                  type="button"
+                  className="home-inline-section-edit home-inline-section-edit--dark"
+                  onClick={() => onEditBulkSection("gallery")}
+                  aria-label={t("inlineEdit.editGalleryAria")}
+                >
+                  {t("inlineEdit.editGallery")}
+                </button>
+                <button
+                  type="button"
+                  className="home-inline-section-edit home-inline-section-edit--dark"
+                  onClick={() => onEditBulkSection("news")}
+                  aria-label={t("inlineEdit.editNewsAria")}
+                >
+                  {t("inlineEdit.editNews")}
+                </button>
+                <button
+                  type="button"
+                  className="home-inline-section-edit home-inline-section-edit--dark"
+                  onClick={() => onEditBulkSection("mediaTicker")}
+                  aria-label={t("inlineEdit.editTickerAria")}
+                >
+                  {t("inlineEdit.editTicker")}
+                </button>
+              </div>
+            ) : null}
             <h2 className="home-display home-display--light">{t("mediaCenterPage.title")}</h2>
             <p className="home-lead home-lead--light">{t("mediaCenterPage.intro")}</p>
           </header>
@@ -427,14 +594,20 @@ export function HomeLandingSections({ bundle }: Props) {
               <ul className="home-media-news-list" aria-label={t("mediaCenterPage.newsTitle")}>
                 {bundle.news.slice(0, 4).map((item) => (
                   <li key={item.id} className="home-media-news-list__item">
-                    <a href="#news" className="home-media-news-list__link">
+                    <Link to={`/news/${encodeURIComponent(item.slug?.trim() || item.id)}`} className="home-media-news-list__link">
                       <span className="home-media-news-list__title">{item.title}</span>
                       {item.date ? (
-                        <time className="home-media-news-list__date" dateTime={item.date}>
-                          {item.date}
+                        <time
+                          className="home-media-news-list__date"
+                          {...(() => {
+                            const attr = newsDateTimeAttr(item.date)
+                            return attr ? { dateTime: attr } : {}
+                          })()}
+                        >
+                          {formatNewsDateForDisplay(item.date, i18n.language)}
                         </time>
                       ) : null}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -518,7 +691,8 @@ export function HomeLandingSections({ bundle }: Props) {
         <div className="container home-section__inner home-book-split">
           <div className="home-book-copy card-elevated">
             <h2 className="home-display">{t("bookTourPage.title")}</h2>
-            <details className="home-m-accordion home-m-accordion--book">
+            {/* @ts-expect-error defaultOpen: valid HTML; types omit it. Needed because ≥769px hides summary (home-mobile.css). */}
+            <details className="home-m-accordion home-m-accordion--book" defaultOpen>
               <summary className="home-m-accordion__summary">{t("homePage.accordionBookDetails")}</summary>
               <div className="home-m-accordion__panel">
                 <p className="home-lead">{t("bookTourPage.intro")}</p>
@@ -550,10 +724,23 @@ export function HomeLandingSections({ bundle }: Props) {
       </section>
 
       <section id="virtual-tour" className="home-section home-section--surface">
-        <div className="container home-section__inner home-virtual-split">
+        <div className="container home-section__inner home-virtual-split home-virtual-split--inline">
+          {inlineEditEnabled && onEditBulkSection ? (
+            <div className="home-inline-edit-row">
+              <button
+                type="button"
+                className="home-inline-section-edit"
+                onClick={() => onEditBulkSection("virtualTour")}
+                aria-label={t("inlineEdit.editVirtualTourAria")}
+              >
+                {t("inlineEdit.editVirtualTour")}
+              </button>
+            </div>
+          ) : null}
           <div className="home-virtual-copy card-elevated">
             <h2 className="home-display">{t("virtualTourPage.title")}</h2>
-            <details className="home-m-accordion home-m-accordion--virtual">
+            {/* @ts-expect-error — valid HTML; @types/react omits defaultOpen on <details> */}
+            <details className="home-m-accordion home-m-accordion--virtual" defaultOpen>
               <summary className="home-m-accordion__summary">{t("homePage.accordionVirtualMore")}</summary>
               <div className="home-m-accordion__panel">
                 <p className="home-lead">{t("virtualTourPage.body")}</p>

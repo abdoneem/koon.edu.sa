@@ -2,9 +2,7 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-
-class SpaRoutingTest extends TestCase
+class SpaRoutingTest extends FeatureTestCase
 {
     public function test_nested_paths_serve_spa_when_index_html_exists(): void
     {

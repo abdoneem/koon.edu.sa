@@ -30,7 +30,10 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => $user->only(['id', 'name', 'email']),
+            'user' => array_merge($user->only(['id', 'name', 'email']), [
+                'roles' => $user->getRoleNames()->values()->all(),
+                'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+            ]),
         ]);
     }
 

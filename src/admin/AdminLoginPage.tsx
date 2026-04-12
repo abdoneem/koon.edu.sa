@@ -6,7 +6,7 @@ import { env } from "../config/env"
 import { adminFetch } from "./adminApi"
 import { useAdminI18n } from "./adminI18n"
 import { AdminLanguageSwitcher } from "./AdminLanguageSwitcher"
-import { getAdminToken, setAdminToken } from "./authToken"
+import { getAdminToken, setAdminSession } from "./authToken"
 
 export function AdminLoginPage() {
   const { t, isRtl } = useAdminI18n()
@@ -51,6 +51,10 @@ export function AdminLoginPage() {
         token?: string
         message?: string
         errors?: Record<string, string[]>
+        user?: {
+          roles?: string[]
+          permissions?: string[]
+        }
       }
       if (!res.ok) {
         const msg =
@@ -64,7 +68,11 @@ export function AdminLoginPage() {
         setError(t("admin.login.noToken"))
         return
       }
-      setAdminToken(data.token)
+      setAdminSession({
+        token: data.token,
+        roles: data.user?.roles ?? [],
+        permissions: data.user?.permissions ?? [],
+      })
       navigate(from, { replace: true })
     } catch {
       setError(t("admin.login.networkError"))

@@ -3,13 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\ContentPage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class ContentApiTest extends TestCase
+class ContentApiTest extends FeatureTestCase
 {
-    use RefreshDatabase;
-
     private static function sampleLandingPayload(): array
     {
         return [

@@ -2,7 +2,6 @@ import {
   Alert,
   Button,
   Container,
-  Divider,
   Grid,
   Group,
   Loader,
@@ -182,8 +181,6 @@ export function RegistrationPage() {
     void submitRegistration(form.values)
   }
 
-  const dividerLabelPos = isRtl ? "right" : "left"
-
   const optionsBlock =
     optionsError != null ? (
       <Alert color="red" title={t("registrationPage.alertErrorTitle")}>
@@ -338,11 +335,9 @@ export function RegistrationPage() {
                       ) : null}
 
                       <div>
-                        <Divider
-                          label={t("registrationPage.sectionCampus")}
-                          labelPosition={dividerLabelPos}
-                          className="registration-section-divider"
-                        />
+                        <div className="registration-section-heading" role="separator">
+                          <span className="registration-section-heading__text">{t("registrationPage.sectionCampus")}</span>
+                        </div>
                         <Text size="sm" c="dimmed" mt="xs" mb="md">
                           {t("registrationPage.sectionCampusHint")}
                         </Text>
@@ -374,11 +369,9 @@ export function RegistrationPage() {
                       </div>
 
                       <div>
-                        <Divider
-                          label={t("registrationPage.sectionGuardian")}
-                          labelPosition={dividerLabelPos}
-                          className="registration-section-divider"
-                        />
+                        <div className="registration-section-heading" role="separator">
+                          <span className="registration-section-heading__text">{t("registrationPage.sectionGuardian")}</span>
+                        </div>
                         <Text size="sm" c="dimmed" mt="xs" mb="md">
                           {t("registrationPage.sectionGuardianHint")}
                         </Text>
@@ -417,11 +410,9 @@ export function RegistrationPage() {
                       </div>
 
                       <div>
-                        <Divider
-                          label={t("registrationPage.sectionStudent")}
-                          labelPosition={dividerLabelPos}
-                          className="registration-section-divider"
-                        />
+                        <div className="registration-section-heading" role="separator">
+                          <span className="registration-section-heading__text">{t("registrationPage.sectionStudent")}</span>
+                        </div>
                         <Text size="sm" c="dimmed" mt="xs" mb="md">
                           {t("registrationPage.sectionStudentHint")}
                         </Text>

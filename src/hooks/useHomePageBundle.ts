@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { env } from "../config/env"
 import { getHomePageBundleDefaults } from "../content/homePageBundleDefaults"
@@ -14,6 +14,11 @@ export function useHomePageBundle() {
 
   const [cms, setCms] = useState<LandingPageContent | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
+  const [reloadToken, setReloadToken] = useState(0)
+
+  const refetch = useCallback(() => {
+    setReloadToken((n) => n + 1)
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -44,7 +49,7 @@ export function useHomePageBundle() {
     return () => {
       active = false
     }
-  }, [locale])
+  }, [locale, reloadToken])
 
   const bundle = useMemo(() => {
     if (cms === undefined) {
@@ -56,5 +61,5 @@ export function useHomePageBundle() {
   const hasLiveCms = Boolean(cms)
   const isLoading = cms === undefined && Boolean(env.apiBaseUrl)
 
-  return { bundle, hasLiveCms, isLoading, error, locale }
+  return { bundle, hasLiveCms, isLoading, error, locale, refetch }
 }

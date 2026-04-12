@@ -37,7 +37,10 @@ class AdminCmsPageController extends Controller
     {
         $cms_page->update($request->validated());
 
-        return response()->json($cms_page->fresh()->load(['sections.items']));
+        $cms_page->refresh();
+        $cms_page->load(['sections.items']);
+
+        return response()->json($cms_page);
     }
 
     public function destroy(CmsPage $cms_page): JsonResponse

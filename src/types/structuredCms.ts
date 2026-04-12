@@ -27,10 +27,13 @@ export type CmsPageBundleSection = {
 export type CmsPageBundlePage = {
   id: number
   title: string
+  page_subtitle?: string | null
+  body_html?: string | null
   slug: string
   locale: string
   meta_title: string | null
   meta_description: string | null
+  header_background?: string | null
 }
 
 export type CmsPageBundleResponse = {

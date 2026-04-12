@@ -8,9 +8,19 @@ import type { HomePageBundle } from "../../types/homePageBundle"
 interface Props {
   bundle: HomePageBundle
   hasLiveCms: boolean
+  /** Staff inline edit: show control on hero when edit mode is on. */
+  inlineEditEnabled?: boolean
+  onInlineEditHero?: () => void
+  onInlineEditStats?: () => void
 }
 
-export function HomeDocHeroPremium({ bundle, hasLiveCms }: Props) {
+export function HomeDocHeroPremium({
+  bundle,
+  hasLiveCms,
+  inlineEditEnabled,
+  onInlineEditHero,
+  onInlineEditStats,
+}: Props) {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
 
@@ -41,6 +51,16 @@ export function HomeDocHeroPremium({ bundle, hasLiveCms }: Props) {
       </div>
 
       <div className="container home-hero-premium__shell">
+        {inlineEditEnabled && onInlineEditHero ? (
+          <button
+            type="button"
+            className="home-hero-premium__inline-edit"
+            onClick={onInlineEditHero}
+            aria-label={t("inlineEdit.editHeroAria")}
+          >
+            {t("inlineEdit.editHero")}
+          </button>
+        ) : null}
         <div className="home-hero-premium__center">
           <p className="home-hero-premium__eyebrow">{t("homePage.heroKicker")}</p>
           <h1 className="home-hero-premium__title">{headline}</h1>
@@ -60,7 +80,17 @@ export function HomeDocHeroPremium({ bundle, hasLiveCms }: Props) {
             </a>
           </div>
 
-          <div className="home-hero-premium__stats" aria-label={t("homePage.statsAria")}>
+          <div className="home-hero-premium__stats home-hero-premium__stats--inline" aria-label={t("homePage.statsAria")}>
+            {inlineEditEnabled && onInlineEditStats ? (
+              <button
+                type="button"
+                className="home-hero-premium__inline-edit home-hero-premium__inline-edit--stats"
+                onClick={onInlineEditStats}
+                aria-label={t("inlineEdit.editStatsAria")}
+              >
+                {t("inlineEdit.editStats")}
+              </button>
+            ) : null}
             {bundle.stats.map((s) => (
               <div key={s.label} className="home-hero-stat">
                 <span className="home-hero-stat__value">{s.value}</span>
