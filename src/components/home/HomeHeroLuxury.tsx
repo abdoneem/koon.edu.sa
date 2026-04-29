@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import type { HeroContent } from "../../types/cms"
 
 interface HomeHeroLuxuryProps {
@@ -18,6 +19,7 @@ export function HomeHeroLuxury({
   imageAlt,
 }: HomeHeroLuxuryProps) {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
 
   return (
     <section className="hl-hero" id="home" aria-labelledby="hl-hero-heading">
@@ -32,13 +34,13 @@ export function HomeHeroLuxury({
         <h1 id="hl-hero-heading">{hero.title}</h1>
         <p className="hl-hero__subtitle">{hero.subtitle}</p>
         <div className="hl-hero__actions">
-          <Link to="/contact" className="hl-btn hl-btn--primary">
+          <Link to={href("/contact")} className="hl-btn hl-btn--primary">
             {hero.primaryCta}
           </Link>
-          <Link to="/registration" className="hl-btn hl-btn--ghost">
+          <Link to={href("/registration")} className="hl-btn hl-btn--ghost">
             {hero.secondaryCta}
           </Link>
-          <Link to="/media" className="hl-btn hl-btn--outline">
+          <Link to={href("/media")} className="hl-btn hl-btn--outline">
             {t("hero.newsLink")}
           </Link>
         </div>

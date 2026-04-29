@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import { programImageForId } from "../../content/siteImagery"
 import type { ProgramContent } from "../../types/cms"
 
@@ -10,6 +11,7 @@ interface HomeProgramsLuxuryProps {
 
 export function HomeProgramsLuxury({ programs, feeLabel }: HomeProgramsLuxuryProps) {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
 
   return (
     <section className="hl-section hl-programs" id="programs" aria-labelledby="hl-prog-heading">
@@ -25,7 +27,7 @@ export function HomeProgramsLuxury({ programs, feeLabel }: HomeProgramsLuxuryPro
             return (
               <Link
                 key={program.id || program.name}
-                to="/academics"
+                to={href("/academics")}
                 className="hl-prog-card"
                 aria-label={aria}
               >

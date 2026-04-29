@@ -16,6 +16,7 @@ import {
 } from "@tabler/icons-react"
 import { useEffect, useState } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
+import { i18nLangToPublicLocale, withLocalePath } from "../i18n/localeRouting"
 import { adminFetch } from "./adminApi"
 import { ADMIN_PERMISSIONS } from "./adminPermissions"
 import { useAdminI18n } from "./adminI18n"
@@ -23,7 +24,8 @@ import { AdminLanguageSwitcher } from "./AdminLanguageSwitcher"
 import { getAdminSession, hasAdminPermission, setAdminSession, setAdminToken } from "./authToken"
 
 export function AdminLayout() {
-  const { t, isRtl } = useAdminI18n()
+  const { t, isRtl, i18n } = useAdminI18n()
+  const publicSiteHome = withLocalePath(i18nLangToPublicLocale(i18n.language), "/")
   const [opened, { toggle }] = useDisclosure()
   const [, bump] = useState(0)
   const navigate = useNavigate()
@@ -78,8 +80,11 @@ export function AdminLayout() {
         <Group h="100%" justify="space-between" wrap="nowrap">
           <Group gap="sm">
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" aria-label={t("admin.layout.burgerAria")} />
-            <Text fw={700} size="lg">
+            <Text fw={700} size="lg" visibleFrom="sm" style={{ whiteSpace: "nowrap" }}>
               {t("admin.layout.appTitle")}
+            </Text>
+            <Text fw={800} size="lg" hiddenFrom="sm" style={{ whiteSpace: "nowrap" }}>
+              {t("admin.layout.appTitleShort")}
             </Text>
           </Group>
           <Group gap="sm" wrap="nowrap">
@@ -199,7 +204,7 @@ export function AdminLayout() {
             />
           </>
         ) : null}
-        <NavLink component={Link} to="/" label={t("admin.layout.navPublicSite")} />
+        <NavLink component={Link} to={publicSiteHome} label={t("admin.layout.navPublicSite")} />
       </AppShell.Navbar>
 
       <AppShell.Main bg="gray.0">

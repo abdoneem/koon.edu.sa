@@ -2,11 +2,13 @@ import { Button, Group, Modal, Stack, Text } from "@mantine/core"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 
 const STORAGE_KEY = "koon-madinah-launch-banner-v1"
 
 export function LaunchAnnouncementModal() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const [opened, setOpened] = useState(false)
 
   useEffect(() => {
@@ -46,10 +48,10 @@ export function LaunchAnnouncementModal() {
           <Button variant="default" onClick={dismiss}>
             {t("launchModal.ctaDismiss")}
           </Button>
-          <Button component={Link} to="/contact" variant="light" onClick={dismiss}>
+          <Button component={Link} to={href("/contact")} variant="light" onClick={dismiss}>
             {t("launchModal.ctaContact")}
           </Button>
-          <Button component={Link} to="/registration" onClick={dismiss}>
+          <Button component={Link} to={href("/registration")} onClick={dismiss}>
             {t("launchModal.ctaRegister")}
           </Button>
         </Group>

@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import type { HeroContent } from "../../types/cms"
 
 interface HeroSectionProps {
@@ -105,6 +106,7 @@ function HeroCopyContent({
   secondaryTo: string
   programsLinkLabel: string
 }) {
+  const { href } = usePublicLocale()
   return (
     <>
       <p className="eyebrow">{brand}</p>
@@ -112,15 +114,15 @@ function HeroCopyContent({
       <h1>{hero.title}</h1>
       <p className="hero-subtitle">{hero.subtitle}</p>
       <div className="hero-actions">
-        <Link to={primaryTo} className="btn btn-primary">
+        <Link to={href(primaryTo)} className="btn btn-primary">
           {hero.primaryCta}
         </Link>
-        <Link to={secondaryTo} className="btn btn-secondary">
+        <Link to={href(secondaryTo)} className="btn btn-secondary">
           {hero.secondaryCta}
         </Link>
       </div>
       <p className="hero-programs-link-wrap">
-        <Link to="/academics" className="hero-programs-link">
+        <Link to={href("/academics")} className="hero-programs-link">
           {programsLinkLabel}
         </Link>
       </p>

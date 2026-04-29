@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import { siteImagery } from "../../content/siteImagery"
 import { IconBadge } from "../IconBadge"
 import { FigureImage } from "../FigureImage"
@@ -8,6 +9,7 @@ import { IconGlobe } from "../icons/schoolIcons"
 
 export function VirtualTourSection() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const reduce = useReducedMotion()
 
   return (
@@ -39,10 +41,10 @@ export function VirtualTourSection() {
             height={450}
           />
           <div className="virtual-tour-actions">
-            <Link to="/contact" className="btn btn-primary">
+            <Link to={href("/contact")} className="btn btn-primary">
               {t("home.virtualTour.primaryCta")}
             </Link>
-            <Link to="/admissions" className="btn btn-secondary">
+            <Link to={href("/admissions")} className="btn btn-secondary">
               {t("home.virtualTour.secondaryCta")}
             </Link>
           </div>

@@ -2020,6 +2020,8 @@ body.nav-open {
 }
 
 .mobile-drawer__nav a {
+  display: block;
+  width: 100%;
   padding: 0.65rem 0;
   font-weight: 600;
   color: var(--text-900);

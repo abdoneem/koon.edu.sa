@@ -8,6 +8,7 @@ import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
 import { newsCoverOrFallback } from "../content/siteImagery"
 import { useHomePageBundle } from "../hooks/useHomePageBundle"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 import type { HomeNewsItem } from "../types/homePageBundle"
 import { coalesceArray } from "../utils/coalesce"
 import { formatNewsDateForDisplay, newsDateTimeAttr } from "../utils/newsDateInput"
@@ -40,6 +41,7 @@ function normalizeNewsItems(raw: unknown): HomeNewsItem[] {
 
 export function NewsDetailPage() {
   const { t, i18n } = useTranslation()
+  const { href } = usePublicLocale()
   const { id } = useParams<{ id: string }>()
   const { bundle } = useHomePageBundle()
 
@@ -76,7 +78,7 @@ export function NewsDetailPage() {
         <section className="home-section home-section--surface site-page-premium__band-first site-page-article-band">
           <div className="container home-section__inner site-page-prose">
             <p className="site-page-article-back">
-              <Link className="home-text-link" to="/news">
+              <Link className="home-text-link" to={href("/news")}>
                 {t("mediaCenterPage.newsAllLabel")}
               </Link>
             </p>

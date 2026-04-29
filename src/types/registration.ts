@@ -3,13 +3,13 @@ export type RegistrationStatus = "pending" | "reviewed" | "replied" | "new" | "c
 export interface RegistrationSubmission {
   id: number
   father_full_name: string
-  father_national_id: string
-  student_full_name: string
-  student_national_id: string
+  father_national_id: string | null
+  student_full_name: string | null
+  student_national_id: string | null
   parent_mobile: string
-  gender: string
-  grade_level: string
-  nationality: string
+  gender: string | null
+  grade_level: string | null
+  nationality: string | null
   notes: string | null
   internal_notes?: string | null
   status: RegistrationStatus

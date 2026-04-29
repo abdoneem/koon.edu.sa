@@ -9,8 +9,14 @@ Config (first match):
 
 Modes:
   (default)             — incremental: only files new/changed vs publish/last/koon-hosting
-  --skip-vendor         — do not upload vendor/ (smaller sync when composer.lock unchanged)
+  --skip-vendor         — do not upload vendor/ (avoids thousands of files after composer reinstall)
+  --public-only         — only upload public/ → web root (frontend hotfix; skips Laravel app phase)
+  --app-only            — only upload Laravel app tree (skip public_html phase)
   --full                — upload everything; still updates baseline unless --no-baseline
+
+Why so many files on “incremental”? After publish-hosting, composer install refreshes vendor/
+(touches mtimes/sizes). Compared to publish/last, most of vendor/ looks “changed”.
+Use --skip-vendor when composer.lock did not change, or --public-only when only the SPA dist changed.
 
 After a successful run (not dry-run), copies bundle -> publish/last/koon-hosting for next diff.
 
@@ -26,7 +32,9 @@ import argparse
 import os
 import posixpath
 import shutil
+import socket
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -35,11 +43,40 @@ from pathlib import Path
 # with no terminal output, which looks like a hang.
 
 
+_emit_lock = threading.Lock()
+
+
+def _emit(*args: object, **kwargs: object) -> None:
+    """Print and mirror to stderr on Windows; escapes text if the console is not UTF-8 (e.g. cp1252)."""
+
+    def _print_safe(stream: object, *a: object, **kw: object) -> None:
+        try:
+            print(*a, **kw)
+        except UnicodeEncodeError:
+            enc = getattr(stream, "encoding", None) or "utf-8"
+            safe = tuple(
+                (t.encode(enc, errors="replace").decode(enc) if isinstance(t, str) else t) for t in a
+            )
+            print(*safe, **kw)
+
+    with _emit_lock:
+        if "file" in kwargs and kwargs.get("file") not in (None, sys.stdout):
+            _print_safe(kwargs.get("file") or sys.stdout, *args, **kwargs)
+            return
+        kwargs.pop("file", None)
+        kwargs.setdefault("flush", True)
+        _print_safe(sys.stdout, *args, **kwargs)
+        if os.name == "nt":
+            kw = dict(kwargs)
+            kw["file"] = sys.stderr
+            _print_safe(sys.stderr, *args, **kw)
+
+
 def _load_paramiko():
     try:
         import paramiko
     except ImportError:
-        print("Install paramiko: pip install paramiko", file=sys.stderr)
+        _emit("Install paramiko: pip install paramiko", file=sys.stderr)
         sys.exit(1)
     return paramiko
 
@@ -51,6 +88,11 @@ _DEPLOY_DENYLIST = frozenset(
     {
         "database/database.sqlite",
         ".phpunit.result.cache",
+        ".env",
+        ".env.backup",
+        ".env.local",
+        ".env.development",
+        ".env.production",
     }
 )
 
@@ -159,15 +201,33 @@ def remote_join(home: str, *segments: str) -> str:
     return "/" + "/".join(parts)
 
 
+def _local_path_for_put(p: Path) -> str:
+    """Normalize path for Paramiko; on Windows use ``\\\\?\\`` when near MAX_PATH limits."""
+    r = p.resolve()
+    s = str(r)
+    if os.name == "nt" and len(s) >= 240 and not s.startswith("\\\\?\\"):
+        return "\\\\?\\" + s
+    return s
+
+
 def file_needs_upload(current: Path, baseline: Path | None, *, full: bool) -> bool:
+    """Return True if `current` should be uploaded. False if missing/unreadable locally."""
+    try:
+        if not current.is_file():
+            return False
+    except OSError:
+        return False
+
     if full or baseline is None:
         return True
+
     try:
         if not baseline.is_file():
             return True
         s1, s2 = current.stat(), baseline.stat()
     except OSError:
-        return True
+        # Baseline unreadable — upload current if still present
+        return current.is_file()
     if s1.st_size != s2.st_size:
         return True
     if abs(s1.st_mtime - s2.st_mtime) > MTIME_SLACK_SEC:
@@ -207,15 +267,30 @@ def upload_tree(
     verbose: bool,
 ) -> tuple[int, int, int]:
     """Returns uploaded, skipped, total_scanned."""
+    prefix = f"[{label}] " if label else ""
+    _emit(f"{prefix}Resolving local folder (can be slow on OneDrive/network drives) ...", flush=True)
     local_root = local_root.resolve()
     if not local_root.is_dir():
         raise SystemExit(f"Not a directory: {local_root}")
-    prefix = f"[{label}] " if label else ""
-    print(
+    _emit(
         f"{prefix}Indexing local tree (rglob) under {local_root.name}/ ... (large bundles can take 30-90s)",
         flush=True,
     )
-    files = sorted(p for p in local_root.rglob("*") if p.is_file())
+    # Collect files with periodic heartbeat during filesystem scan (rglob can look "stuck" on Windows).
+    files: list[Path] = []
+    scan_t0 = time.monotonic()
+    scan_heartbeat_every = 500
+    for p in local_root.rglob("*"):
+        if not p.is_file():
+            continue
+        files.append(p)
+        if scan_heartbeat_every > 0 and len(files) % scan_heartbeat_every == 0:
+            elapsed = time.monotonic() - scan_t0
+            _emit(
+                f"{prefix}... scan heartbeat: {len(files)} files found so far | {elapsed:.0f}s",
+                flush=True,
+            )
+    files.sort()
     total = len(files)
     excluded_by_rule = sum(
         1
@@ -223,7 +298,7 @@ def upload_tree(
         if deploy_path_excluded(p.relative_to(local_root).as_posix(), skip_vendor=skip_vendor)
     )
     eligible = total - excluded_by_rule
-    print(
+    _emit(
         f"{prefix}Local scan: {total} files, {eligible} eligible to consider"
         + (f" ({excluded_by_rule} excluded)" if excluded_by_rule else "")
         + f" -> {remote_root}",
@@ -232,13 +307,14 @@ def upload_tree(
     uploaded = 0
     skipped = 0
     excluded = 0
+    vanished = 0
     t0 = time.monotonic()
     heartbeat_every = 300
 
     for i, path in enumerate(files, 1):
         if not dry_run and heartbeat_every > 0 and i > 0 and i % heartbeat_every == 0:
             elapsed = time.monotonic() - t0
-            print(
+            _emit(
                 f"{prefix}... heartbeat: {i}/{total} paths scanned | "
                 f"uploaded={uploaded} skipped={skipped} excluded={excluded} | {elapsed:.0f}s",
                 flush=True,
@@ -248,27 +324,44 @@ def upload_tree(
         if deploy_path_excluded(rel, skip_vendor=skip_vendor):
             excluded += 1
             continue
+        if not path.is_file():
+            _emit(
+                f"{prefix}SKIP missing local file (gone after scan / OneDrive / AV): {rel}",
+                flush=True,
+            )
+            vanished += 1
+            continue
         remote_file = posixpath.join(remote_root, rel)
         remote_dir = posixpath.dirname(remote_file)
         prev = (baseline_root / rel) if baseline_root is not None else None
         if not file_needs_upload(path, prev, full=full):
             skipped += 1
             if dry_run and skipped <= 3 and uploaded == 0:
-                print(f"{prefix}(skip) {rel}", flush=True)
+                _emit(f"{prefix}(skip) {rel}", flush=True)
             continue
-        uploaded += 1
         if dry_run:
+            uploaded += 1
             if uploaded <= 5 or i == total:
-                print(f"{prefix}PUT {rel}", flush=True)
+                _emit(f"{prefix}PUT {rel}", flush=True)
             elif uploaded == 6:
-                print(f"{prefix}... (more changed files in dry-run)", flush=True)
+                _emit(f"{prefix}... (more changed files in dry-run)", flush=True)
             continue
         mkdir_p(sftp, remote_dir)
-        sftp.put(str(path), remote_file)
+        try:
+            sftp.put(_local_path_for_put(path), remote_file)
+        except FileNotFoundError as e:
+            _emit(f"{prefix}SKIP upload failed (file vanished): {rel} - {e}", flush=True)
+            vanished += 1
+            continue
+        except OSError as e:
+            _emit(f"{prefix}SKIP upload failed (read error): {rel} - {e}", flush=True)
+            vanished += 1
+            continue
+        uploaded += 1
         elapsed = time.monotonic() - t0
         pct = 100 * i // max(total, 1)
         if verbose or uploaded == 1 or uploaded % 10 == 0 or i == total:
-            print(
+            _emit(
                 f"{prefix}PUT #{uploaded} {_short_rel(rel)} | scan {i}/{total} ({pct}%) | {elapsed:.0f}s elapsed",
                 flush=True,
             )
@@ -276,20 +369,26 @@ def upload_tree(
     elapsed = time.monotonic() - t0
     if dry_run:
         ex = f", {excluded} excluded" if excluded else ""
-        print(
-            f"{prefix}dry-run: would upload {uploaded}, skip {skipped}{ex} (of {total}) in {elapsed:.1f}s",
-            flush=True,
+        msg = (
+            f"{prefix}dry-run: would upload {uploaded}, skip {skipped}{ex} (of {total}) in {elapsed:.1f}s"
         )
+        if vanished:
+            msg += f", {vanished} missing locally"
+        _emit(msg, flush=True)
     elif not full and skipped:
-        print(
-            f"{prefix}done: {uploaded} uploaded, {skipped} unchanged (skipped) in {elapsed:.1f}s",
-            flush=True,
+        msg = (
+            f"{prefix}done: {uploaded} uploaded, {skipped} unchanged (skipped) in {elapsed:.1f}s"
         )
+        if vanished:
+            msg += f", {vanished} missing locally"
+        _emit(msg, flush=True)
     else:
-        print(
-            f"{prefix}done: {uploaded} uploaded, {skipped} skipped, {excluded} excluded in {elapsed:.1f}s",
-            flush=True,
+        msg = (
+            f"{prefix}done: {uploaded} uploaded, {skipped} skipped, {excluded} excluded in {elapsed:.1f}s"
         )
+        if vanished:
+            msg += f", {vanished} missing locally"
+        _emit(msg, flush=True)
     return uploaded, skipped, total
 
 
@@ -302,8 +401,9 @@ def save_baseline(bundle: Path, repo: Path) -> None:
 
 
 def main() -> None:
-    print("sftp_deploy: resolving repo and CLI args …", flush=True)
-    repo = Path(__file__).resolve().parents[1]
+    _emit("sftp_deploy: resolving repo and CLI args ...", flush=True)
+    _script = Path(__file__).resolve()
+    repo = _script.parent.parent
     default_bundle = repo / "publish" / "koon-hosting"
 
     p = argparse.ArgumentParser(description="SFTP deploy koon-hosting bundle.")
@@ -321,15 +421,30 @@ def main() -> None:
         help="Do not upload vendor/ (use when composer.lock unchanged; run composer on server if deps changed).",
     )
     p.add_argument(
+        "--public-only",
+        action="store_true",
+        help="Upload only publish/koon-hosting/public to remote web root (skip Laravel app upload).",
+    )
+    p.add_argument(
+        "--app-only",
+        action="store_true",
+        help="Upload only the Laravel app tree (skip public_html). Baseline not refreshed (partial deploy).",
+    )
+    p.add_argument(
         "--verbose",
         action="store_true",
         help="Log every uploaded file (noisy). Default: every 10 files + path.",
     )
     args = p.parse_args()
 
+    if args.public_only and args.app_only:
+        raise SystemExit("Choose at most one of --public-only / --app-only.")
+    if args.public_only and args.skip_vendor:
+        _emit("Note: --skip-vendor ignored with --public-only (app phase skipped).", flush=True)
     full = bool(args.full)
 
     bundle: Path = args.bundle
+    _emit(f"Checking bundle: {bundle}", flush=True)
     if not bundle.is_dir():
         raise SystemExit(
             f"Bundle missing: {bundle}\nRun: .\\scripts\\publish-hosting.ps1 (from repo root)"
@@ -356,26 +471,64 @@ def main() -> None:
     if full:
         baseline = None
     elif baseline is None:
-        print("Note:   no publish/last/koon-hosting — this run uploads all files (first sync).", flush=True)
+        _emit("Note:   no publish/last/koon-hosting - this run uploads all files (first sync).", flush=True)
 
-    print(f"Config: {cfg_path}", flush=True)
+    _emit(f"Config: {cfg_path}", flush=True)
     skip_vendor = bool(args.skip_vendor)
     verbose = bool(args.verbose)
     mode = "FULL" if full else "incremental (size/mtime vs publish/last)"
     if skip_vendor and not full:
         mode += "; vendor/ skipped"
-    print(f"Mode:   {mode}", flush=True)
-    print(f"Bundle: {bundle}", flush=True)
-    print(f"Connecting to {host}:{port} (SFTP)…", flush=True)
+    if args.public_only:
+        mode += "; PUBLIC ONLY (web root)"
+    elif args.app_only:
+        mode += "; APP ONLY (no public_html)"
+    _emit(f"Mode:   {mode}", flush=True)
+    _emit(f"Bundle: {bundle}", flush=True)
+    _emit(f"Connecting to {host}:{port} (SFTP)...", flush=True)
 
-    print(
-        "Loading paramiko / cryptography (first run can take 10–60s on Windows; not frozen) …",
+    _emit(
+        "Loading paramiko / cryptography (first run can take 10-60s on Windows; not frozen) ...",
         flush=True,
     )
-    paramiko = _load_paramiko()
-    transport = paramiko.Transport((host, port))
+    stop_import_spinner = threading.Event()
+
+    def _import_spinner() -> None:
+        t0 = time.monotonic()
+        while not stop_import_spinner.wait(2.0):
+            elapsed = time.monotonic() - t0
+            _emit(
+                f"... still initializing SSH libraries ({elapsed:.0f}s elapsed; normal on first load)",
+                flush=True,
+            )
+
+    spinner = threading.Thread(target=_import_spinner, name="paramiko-import-spinner", daemon=True)
+    spinner.start()
+    try:
+        paramiko = _load_paramiko()
+    finally:
+        stop_import_spinner.set()
+        spinner.join(timeout=1.0)
+
+    tcp_timeout = float(os.environ.get("SFTP_DEPLOY_TCP_TIMEOUT", "90"))
+    _emit(
+        f"Opening TCP connection to {host}:{port} (timeout {tcp_timeout:.0f}s; export hangs here = firewall/DNS) ...",
+        flush=True,
+    )
+    try:
+        sock = socket.create_connection((host, port), timeout=tcp_timeout)
+    except OSError as e:
+        raise SystemExit(
+            f"Cannot reach SFTP host {host}:{port} over TCP ({e}). "
+            "Check host/port, VPN, firewall, and SFTP_DEPLOY_TCP_TIMEOUT if needed."
+        ) from e
+
+    transport = paramiko.Transport(sock)
+    transport.banner_timeout = 60
+    transport.auth_timeout = 60
+    _emit("Negotiating SSH/SFTP (banner + auth) ...", flush=True)
     transport.connect(username=user, password=password)
-    print("Connected. Starting uploads…", flush=True)
+    _emit("Connected. Starting uploads...", flush=True)
     sftp = paramiko.SFTPClient.from_transport(transport)
     if sftp is None:
         transport.close()
@@ -386,45 +539,67 @@ def main() -> None:
         remote_app = home if app_dir == "" else remote_join(home, app_dir)
         remote_web = remote_join(home, pub_dir)
 
-        print(f"Home:    {home}", flush=True)
-        print(f"Laravel: {remote_app}", flush=True)
-        print(f"Web:     {remote_web}", flush=True)
+        _emit(f"Home:    {home}", flush=True)
+        _emit(f"Laravel: {remote_app}", flush=True)
+        _emit(f"Web:     {remote_web}", flush=True)
         if args.dry_run:
-            print("DRY RUN - no files transferred\n", flush=True)
+            _emit("DRY RUN - no files transferred\n", flush=True)
 
-        print("== Phase 1/2: Laravel app (uploading; progress every 10 files) ==", flush=True)
-        up1, sk1, t1 = upload_tree(
-            sftp,
-            bundle,
-            remote_app,
-            dry_run=args.dry_run,
-            label="app",
-            baseline_root=baseline,
-            full=full,
-            skip_vendor=skip_vendor,
-            verbose=verbose,
-        )
+        up1 = sk1 = t1 = 0
+        up2 = sk2 = t2 = 0
 
-        print("== Phase 2/2: public_html (web root) ==", flush=True)
-        up2, sk2, t2 = upload_tree(
-            sftp,
-            public_local,
-            remote_web,
-            dry_run=args.dry_run,
-            label="web",
-            baseline_root=baseline / "public" if baseline else None,
-            full=full,
-            skip_vendor=False,
-            verbose=verbose,
-        )
+        if not args.public_only:
+            _emit("== Phase 1/2: Laravel app (uploading; progress every 10 files) ==", flush=True)
+            up1, sk1, t1 = upload_tree(
+                sftp,
+                bundle,
+                remote_app,
+                dry_run=args.dry_run,
+                label="app",
+                baseline_root=baseline,
+                full=full,
+                skip_vendor=skip_vendor,
+                verbose=verbose,
+            )
+        else:
+            _emit("Phase 1/2 skipped (--public-only): Laravel tree not uploaded.", flush=True)
 
-        if not args.dry_run and not args.no_baseline:
-            print("\nUpdating local baseline publish/last/koon-hosting …", flush=True)
+        if not args.app_only:
+            _emit(
+                "== Phase 2/2: public_html (web root) =="
+                if not args.public_only
+                else "== Web root only: public/ -> public_html ==",
+                flush=True,
+            )
+            up2, sk2, t2 = upload_tree(
+                sftp,
+                public_local,
+                remote_web,
+                dry_run=args.dry_run,
+                label="web",
+                baseline_root=baseline / "public" if baseline else None,
+                full=full,
+                skip_vendor=False,
+                verbose=verbose,
+            )
+        else:
+            _emit("Phase 2/2 skipped (--app-only): public_html not uploaded.", flush=True)
+
+        partial_deploy = args.public_only or args.app_only
+        baseline_after = not args.dry_run and not args.no_baseline and not partial_deploy
+        if partial_deploy and not args.dry_run and not args.no_baseline:
+            _emit(
+                "\nNote: partial deploy - publish/last/koon-hosting was NOT refreshed "
+                "(run a full two-phase SFTP when possible so incremental diffs stay accurate).",
+                flush=True,
+            )
+        if baseline_after:
+            _emit("\nUpdating local baseline publish/last/koon-hosting ...", flush=True)
             save_baseline(bundle, repo)
-            print("Baseline saved for next incremental run.", flush=True)
+            _emit("Baseline saved for next incremental run.", flush=True)
 
         if not args.dry_run:
-            print(
+            _emit(
                 "\nDone. On server: php artisan migrate --force (if needed), php artisan config:cache",
                 flush=True,
             )
@@ -434,12 +609,16 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # Line-buffer stdout/stderr where supported (extra safety besides python -u).
-    for _stream in (sys.stdout, sys.stderr):
-        if hasattr(_stream, "reconfigure"):
-            try:
-                _stream.reconfigure(line_buffering=True)
-            except OSError:
-                pass
-    print("sftp_deploy: started (before paramiko import).", flush=True)
+    # Must print before stdout.reconfigure(): on some Windows terminals / Cursor PTYs,
+    # TextIOWrapper.reconfigure(line_buffering=True) can block indefinitely with no output.
+    # python -u already disables buffering; skip reconfigure on Windows.
+    _emit("sftp_deploy: started ...", flush=True)
+    if os.name != "nt":
+        for _stream in (sys.stdout, sys.stderr):
+            if hasattr(_stream, "reconfigure"):
+                try:
+                    _stream.reconfigure(line_buffering=True)
+                except OSError:
+                    pass
+    _emit("sftp_deploy: entering main() ...", flush=True)
     main()

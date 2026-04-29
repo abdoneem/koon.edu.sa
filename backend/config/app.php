@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Local SQL diagnostics (AppServiceProvider)
+    |--------------------------------------------------------------------------
+    |
+    | When APP_ENV=local and LOG_QUERIES=true, queries slower than LOG_SLOW_QUERY_MS
+    | are written to the default log channel (usually storage/logs/laravel.log).
+    |
+    */
+
+    'log_queries' => (bool) env('LOG_QUERIES', false),
+
+    'log_slow_query_ms' => (int) env('LOG_SLOW_QUERY_MS', 250),
+
 ];

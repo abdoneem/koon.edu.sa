@@ -38,13 +38,16 @@ B) Upload Laravel (full project)
 
 C) Configure environment
 ------------------------
-  - Copy .env.example to .env in the Laravel root (home or koon-hosting)
+  - Do NOT upload your PC's backend/.env (publish + SFTP exclude it).
+  - Copy .env.production.example to .env in the Laravel root (home or koon-hosting),
+    then set APP_KEY, DB_*, APP_URL, mail, and strong ADMIN_* / base64 password if used.
   - Set APP_URL=https://koon.edu.sa (or your real domain, https)
-  - Set DB_* for MySQL (host is often localhost on cPanel)
+  - Set DB_* for MySQL (host is often 127.0.0.1 on cPanel — try that if localhost fails)
   - APP_DEBUG=false
   - In Terminal (SSH): cd to Laravel root (e.g. ~ or ~/koon-hosting)
       php artisan key:generate
       php artisan migrate --force
+      php artisan db:seed --force
       php artisan storage:link
   - chmod -R 775 storage bootstrap/cache (if needed)
 

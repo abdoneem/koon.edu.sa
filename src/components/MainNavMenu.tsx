@@ -15,16 +15,19 @@ type NavLinkClass = ({ isActive }: { isActive: boolean }) => string | undefined
 function NavMenuLeaf({
   item,
   navLinkClassName,
+  localizeHref,
   onClick,
 }: {
   item: SiteNavItem
   navLinkClassName: NavLinkClass
+  localizeHref?: (href: string) => string
   onClick?: () => void
 }) {
   const rel = item.openInNewTab ? "noopener noreferrer" : undefined
   const target = item.openInNewTab ? "_blank" : undefined
+  const native = useNativeAnchor(item.href)
 
-  if (useNativeAnchor(item.href)) {
+  if (native) {
     return (
       <a
         href={item.href}
@@ -38,8 +41,9 @@ function NavMenuLeaf({
     )
   }
 
+  const to = localizeHref ? localizeHref(item.href) : item.href
   return (
-    <NavLink to={item.href} className={navLinkClassName} onClick={onClick} end={item.href === "/"}>
+    <NavLink to={to} className={navLinkClassName} onClick={onClick} end={item.href === "/"}>
       {item.label}
     </NavLink>
   )
@@ -52,7 +56,15 @@ function filteredChildren(item: SiteNavItem): SiteNavItem[] {
   return item.children.filter((c) => c.label.trim() && c.href.trim())
 }
 
-function MainNavDesktopBranch({ items, navLinkClassName }: { items: SiteNavItem[]; navLinkClassName: NavLinkClass }) {
+function MainNavDesktopBranch({
+  items,
+  navLinkClassName,
+  localizeHref,
+}: {
+  items: SiteNavItem[]
+  navLinkClassName: NavLinkClass
+  localizeHref?: (href: string) => string
+}) {
   return (
     <>
       {items.map((item) => {
@@ -62,12 +74,12 @@ function MainNavDesktopBranch({ items, navLinkClassName }: { items: SiteNavItem[
             <details key={item.id} className="main-nav__dropdown">
               <summary className="main-nav__summary">{item.label}</summary>
               <div className="main-nav__dropdown-panel">
-                <MainNavDesktopBranch items={kids} navLinkClassName={navLinkClassName} />
+                <MainNavDesktopBranch items={kids} navLinkClassName={navLinkClassName} localizeHref={localizeHref} />
               </div>
             </details>
           )
         }
-        return <NavMenuLeaf key={item.id} item={item} navLinkClassName={navLinkClassName} />
+        return <NavMenuLeaf key={item.id} item={item} navLinkClassName={navLinkClassName} localizeHref={localizeHref} />
       })}
     </>
   )
@@ -76,21 +88,25 @@ function MainNavDesktopBranch({ items, navLinkClassName }: { items: SiteNavItem[
 export function MainNavMenuDesktop({
   items,
   navLinkClassName,
+  localizeHref,
 }: {
   items: SiteNavItem[]
   navLinkClassName: NavLinkClass
+  localizeHref?: (href: string) => string
 }) {
-  return <MainNavDesktopBranch items={items} navLinkClassName={navLinkClassName} />
+  return <MainNavDesktopBranch items={items} navLinkClassName={navLinkClassName} localizeHref={localizeHref} />
 }
 
 export function MainNavMenuMobile({
   items,
   navLinkClassName,
+  localizeHref,
   onNavigate,
   depth = 0,
 }: {
   items: SiteNavItem[]
   navLinkClassName: NavLinkClass
+  localizeHref?: (href: string) => string
   onNavigate?: () => void
   depth?: number
 }) {
@@ -102,12 +118,24 @@ export function MainNavMenuMobile({
           return (
             <div key={item.id} className="mobile-nav__group">
               <div className="mobile-nav__group-label">{item.label}</div>
-              <MainNavMenuMobile items={kids} navLinkClassName={navLinkClassName} onNavigate={onNavigate} depth={depth + 1} />
+              <MainNavMenuMobile
+                items={kids}
+                navLinkClassName={navLinkClassName}
+                localizeHref={localizeHref}
+                onNavigate={onNavigate}
+                depth={depth + 1}
+              />
             </div>
           )
         }
         return (
-          <NavMenuLeaf key={item.id} item={item} navLinkClassName={navLinkClassName} onClick={onNavigate} />
+          <NavMenuLeaf
+            key={item.id}
+            item={item}
+            navLinkClassName={navLinkClassName}
+            localizeHref={localizeHref}
+            onClick={onNavigate}
+          />
         )
       })}
     </div>

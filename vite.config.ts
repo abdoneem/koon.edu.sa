@@ -9,5 +9,10 @@ export default defineConfig({
   server: {
     /** Shows VITE v... ready in ms and HMR updates in the console you launched `npm run dev` from. */
     strictPort: false,
+    /** When VITE_API_BASE_URL is unset, `fetch("/api/...")` hits Vite; forward to Laravel. */
+    proxy: {
+      "/api": { target: "http://127.0.0.1:8001", changeOrigin: true },
+      "/sanctum": { target: "http://127.0.0.1:8001", changeOrigin: true },
+    },
   },
 })

@@ -2,6 +2,8 @@ import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
 import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
+import { usePublicLocale } from "../hooks/usePublicLocale"
+import { stripLocaleFromPath } from "../i18n/localeRouting"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { academicsBlockImage, siteImagery } from "../content/siteImagery"
@@ -10,8 +12,10 @@ type Block = { title: string; description: string; photoAlt: string }
 
 export function AcademicsPage() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const { pathname } = useLocation()
-  const pathKey = pathname.replace(/\/$/, "") || "/"
+  const { pathWithoutLocale } = stripLocaleFromPath(pathname)
+  const pathKey = pathWithoutLocale.replace(/\/$/, "") || "/"
   const reduce = useReducedMotion()
 
   const blocksRaw = t("academicsPage.blocks", { returnObjects: true }) as Block[] | undefined
@@ -120,10 +124,10 @@ export function AcademicsPage() {
             </motion.article>
 
             <div className="site-page-cta-row site-page-cta-row--surface">
-              <Link to="/admissions" className="home-btn home-btn--primary home-btn--lg">
+              <Link to={href("/admissions")} className="home-btn home-btn--primary home-btn--lg">
                 {t("nav.admissions")}
               </Link>
-              <Link to="/registration" className="home-btn home-btn--secondary home-btn--lg">
+              <Link to={href("/registration")} className="home-btn home-btn--secondary home-btn--lg">
                 {t("nav.registration")}
               </Link>
             </div>

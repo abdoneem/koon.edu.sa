@@ -108,14 +108,23 @@ export function AdminDashboard() {
         }
         const res = await adminFetch("/api/admin/registrations/stats")
         if (!res.ok) {
-          throw new Error("stats")
+          const body = await res.text().catch(() => "")
+          if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
+            console.error("[AdminDashboard] GET /api/admin/registrations/stats failed", res.status, body.slice(0, 500))
+          }
+          throw new Error(`stats:${res.status}`)
         }
         const data = (await res.json()) as RegistrationStats
         if (!cancelled) {
           setStats(data)
         }
-      } catch {
+      } catch (e) {
         if (!cancelled) {
+          if (import.meta.env.DEV && e instanceof Error) {
+            // eslint-disable-next-line no-console
+            console.error("[AdminDashboard] stats load error", e.message)
+          }
           setError(t("admin.dashboard.statsLoadError"))
         }
       }

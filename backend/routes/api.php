@@ -132,6 +132,11 @@ Route::middleware('auth:sanctum')->group(function () {
         [AdminRegistrationSubmissionController::class, 'export']
     );
 
+    Route::middleware(['throttle:120,1', 'permission:registrations_update,sanctum'])->post(
+        'admin/registrations',
+        [AdminRegistrationSubmissionController::class, 'store']
+    );
+
     Route::middleware(['throttle:120,1', 'permission:registrations_update,sanctum'])->patch(
         'admin/registrations/{id}',
         [AdminRegistrationSubmissionController::class, 'update']

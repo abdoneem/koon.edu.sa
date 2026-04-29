@@ -6,6 +6,7 @@ import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
 import { newsCoverOrFallback } from "../content/siteImagery"
 import { useHomePageBundle } from "../hooks/useHomePageBundle"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 import type { HomeNewsItem } from "../types/homePageBundle"
 import { coalesceArray } from "../utils/coalesce"
 import { formatNewsDateForDisplay, newsDateTimeAttr } from "../utils/newsDateInput"
@@ -38,6 +39,7 @@ function normalizeNewsItems(raw: unknown): HomeNewsItem[] {
 
 export function NewsListPage() {
   const { t, i18n } = useTranslation()
+  const { href } = usePublicLocale()
   const { bundle } = useHomePageBundle()
 
   const i18nRaw = t("newsPage.items", { returnObjects: true }) as unknown
@@ -62,7 +64,10 @@ export function NewsListPage() {
             <ul className="home-news-grid" role="list">
               {items.map((item) => (
                 <li key={item.id} className="home-grid-item-li">
-                  <Link to={`/news/${encodeURIComponent(item.slug?.trim() || item.id)}`} className="home-news-card-elevated">
+                  <Link
+                    to={href(`/news/${encodeURIComponent(item.slug?.trim() || item.id)}`)}
+                    className="home-news-card-elevated"
+                  >
                     <div className="home-news-card__media">
                       <img
                         src={item.image?.trim() || newsCoverOrFallback(item.id)}

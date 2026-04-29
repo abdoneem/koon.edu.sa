@@ -6,9 +6,11 @@ import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
 import { useHomePageBundle } from "../hooks/useHomePageBundle"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 
 export function ArticlesDetailPage() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const { id } = useParams<{ id: string }>()
   const { bundle } = useHomePageBundle()
 
@@ -37,7 +39,7 @@ export function ArticlesDetailPage() {
         <section className="home-section home-section--surface site-page-premium__band-first site-page-article-band">
           <div className="container home-section__inner site-page-prose">
             <p className="site-page-article-back">
-              <Link className="home-text-link" to="/articles">
+              <Link className="home-text-link" to={href("/articles")}>
                 {t("articlesPage.title")}
               </Link>
             </p>

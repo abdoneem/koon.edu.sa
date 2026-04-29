@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { NavLink, useLocation } from "react-router-dom"
 import { useCmsSite } from "../context/CmsSiteContext"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 import { LanguageSwitcher } from "./LanguageSwitcher"
 import { Logo } from "./Logo"
 import { MainNavMenuDesktop, MainNavMenuMobile } from "./MainNavMenu"
@@ -11,12 +12,13 @@ import { PortalStrip } from "./PortalStrip"
 export function Header() {
   const { t } = useTranslation()
   const { navTree } = useCmsSite()
+  const { href } = usePublicLocale()
   const location = useLocation()
   const reduce = useReducedMotion()
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
-  const isHome = location.pathname === "/"
+  const isHome = /^\/(en|ar)\/?$/.test(location.pathname.replace(/\/$/, "") || "/")
   const transparentHero = isHome && !scrolled
 
   useEffect(() => {
@@ -46,20 +48,20 @@ export function Header() {
       <PortalStrip />
       <header className={headerMods}>
         <div className="container header-content">
-          <NavLink to="/" className="brand-logo-link" aria-label={t("brand")} end>
+          <NavLink to={href("/")} className="brand-logo-link" aria-label={t("brand")} end>
             <Logo />
           </NavLink>
 
           <nav className="main-nav main-nav--compact desktop-only" aria-label={t("nav.ariaMain")}>
-            <MainNavMenuDesktop items={navTree} navLinkClassName={navLinkClassName} />
+            <MainNavMenuDesktop items={navTree} navLinkClassName={navLinkClassName} localizeHref={href} />
           </nav>
 
           <div className="header-actions">
-            <a href="/#book-tour" className="btn-header btn-header--book desktop-only-inline">
+            <a href={`${href("/")}#book-tour`} className="btn-header btn-header--book desktop-only-inline">
               {t("nav.bookVisit")}
             </a>
             <NavLink
-              to="/registration"
+              to={href("/registration")}
               className={({ isActive }) =>
                 ["header-register-link", "desktop-only-inline", isActive ? "active" : ""].filter(Boolean).join(" ")
               }
@@ -94,11 +96,20 @@ export function Header() {
             >
               <div className="container mobile-drawer__inner">
                 <nav className="mobile-drawer__nav" aria-label={t("nav.ariaMobile")}>
-                  <MainNavMenuMobile items={navTree} navLinkClassName={navLinkClassName} onNavigate={() => setMenuOpen(false)} />
-                  <a href="/#book-tour" className="btn mobile-cta mobile-cta--book" onClick={() => setMenuOpen(false)}>
+                  <MainNavMenuMobile
+                    items={navTree}
+                    navLinkClassName={navLinkClassName}
+                    localizeHref={href}
+                    onNavigate={() => setMenuOpen(false)}
+                  />
+                  <a
+                    href={`${href("/")}#book-tour`}
+                    className="btn mobile-cta mobile-cta--book"
+                    onClick={() => setMenuOpen(false)}
+                  >
                     {t("nav.bookVisit")}
                   </a>
-                  <NavLink to="/registration" className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>
+                  <NavLink to={href("/registration")} className="btn btn-primary mobile-cta" onClick={() => setMenuOpen(false)}>
                     {t("nav.registration")}
                   </NavLink>
                 </nav>

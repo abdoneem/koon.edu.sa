@@ -12,6 +12,7 @@ import { PageLayout } from "../components/PageLayout"
 import { useInlineEdit } from "../context/InlineEditContext"
 import { newsCoverOrFallback } from "../content/siteImagery"
 import { useHomePageBundle } from "../hooks/useHomePageBundle"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 import type { HighlightContent } from "../types/cms"
 import type { HomeNewsItem } from "../types/homePageBundle"
 import { coalesceArray } from "../utils/coalesce"
@@ -19,6 +20,7 @@ import { formatNewsDateForDisplay, newsDateTimeAttr } from "../utils/newsDateInp
 
 export function HomePage() {
   const { t, i18n } = useTranslation()
+  const { href } = usePublicLocale()
   const location = useLocation()
   const reduce = useReducedMotion()
   const { bundle, hasLiveCms, locale, refetch } = useHomePageBundle()
@@ -114,7 +116,7 @@ export function HomePage() {
                     {t("inlineEdit.editLatestNews")}
                   </button>
                 ) : null}
-                <Link to="/news" className="home-text-link">
+                <Link to={href("/news")} className="home-text-link">
                   {t("homePage.homeNewsMore")}
                 </Link>
               </div>
@@ -122,7 +124,10 @@ export function HomePage() {
             <ul className="home-news-grid">
               {newsItems.map((item) => (
                 <li key={item.id} className="home-grid-item-li">
-                  <Link to={`/news/${encodeURIComponent(item.slug?.trim() || item.id)}`} className="home-news-card-link">
+                  <Link
+                    to={href(`/news/${encodeURIComponent(item.slug?.trim() || item.id)}`)}
+                    className="home-news-card-link"
+                  >
                     <motion.div
                       className="home-news-card-elevated"
                       initial={reduce ? false : { opacity: 0, y: 10 }}

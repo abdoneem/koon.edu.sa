@@ -2,9 +2,11 @@ import { ActionIcon, Modal, Stack, Text, Button } from "@mantine/core"
 import { useDisclosure } from "@mantine/hooks"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 
 export function ChatbotFab() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const [opened, { open, close }] = useDisclosure(false)
 
   return (
@@ -14,7 +16,7 @@ export function ChatbotFab() {
           <Text size="sm" style={{ lineHeight: 1.65 }}>
             {t("chatbot.body")}
           </Text>
-          <Button component={Link} to="/contact" variant="light" onClick={close}>
+          <Button component={Link} to={href("/contact")} variant="light" onClick={close}>
             {t("chatbot.contactCta")}
           </Button>
           <Button variant="default" onClick={close}>

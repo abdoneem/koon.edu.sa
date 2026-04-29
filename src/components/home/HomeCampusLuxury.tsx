@@ -1,9 +1,11 @@
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import { facilitiesTeaserImageForIndex } from "../../content/siteImagery"
 
 export function HomeCampusLuxury() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
 
   return (
     <section className="hl-section hl-campus" aria-labelledby="hl-campus-heading">
@@ -49,10 +51,10 @@ export function HomeCampusLuxury() {
               {t("homeLuxury.campus.body")}
             </p>
             <div className="hl-campus__actions">
-              <Link to="/facilities" className="hl-btn hl-btn--solid-dark">
+              <Link to={href("/facilities")} className="hl-btn hl-btn--solid-dark">
                 {t("homeLuxury.campus.ctaFacilities")}
               </Link>
-              <Link to="/contact" className="hl-btn hl-btn--outline-dark">
+              <Link to={href("/contact")} className="hl-btn hl-btn--outline-dark">
                 {t("homeLuxury.campus.ctaVisit")}
               </Link>
             </div>

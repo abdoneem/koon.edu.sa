@@ -1,7 +1,9 @@
 import {
+  Alert,
   Badge,
   Box,
   Button,
+  Grid,
   Group,
   Loader,
   Modal,
@@ -17,7 +19,13 @@ import {
   Title,
 } from "@mantine/core"
 import { useDebouncedValue, useDisclosure } from "@mantine/hooks"
-import { IconFileSpreadsheet, IconSearch, IconSortAscending, IconSortDescending } from "@tabler/icons-react"
+import {
+  IconFileSpreadsheet,
+  IconPlus,
+  IconSearch,
+  IconSortAscending,
+  IconSortDescending,
+} from "@tabler/icons-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRegistrationOptions } from "../hooks/useRegistrationOptions"
 import type {
@@ -28,6 +36,8 @@ import type {
 } from "../types/registration"
 import { adminFetch } from "./adminApi"
 import { useAdminI18n } from "./adminI18n"
+import { ADMIN_PERMISSIONS } from "./adminPermissions"
+import { hasAdminPermission } from "./authToken"
 
 const statusColors: Record<RegistrationStatus, string> = {
   pending: "yellow",
@@ -51,7 +61,34 @@ const sortFields: RegistrationSortField[] = [
 export function AdminRegistrationsPage() {
   const { t, isRtl, localeTag } = useAdminI18n()
   const optLang = isRtl ? "ar" : "en"
-  const { gradeLabel, nationalityLabel } = useRegistrationOptions()
+  const { data: options, loading: optionsLoading, error: optionsError, gradeLabel } =
+    useRegistrationOptions()
+  const canEdit = hasAdminPermission(ADMIN_PERMISSIONS.registrationsUpdate)
+
+  const genderData = useMemo(
+    () => [
+      { value: "male", label: t("admin.registrations.genderMale") },
+      { value: "female", label: t("admin.registrations.genderFemale") },
+    ],
+    [t],
+  )
+
+  const gradeData = useMemo(() => {
+    if (!options) return []
+    return [...options.grades]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((g) => ({ value: g.code, label: g.labels[optLang] }))
+  }, [options, optLang])
+
+  const nationalityData = useMemo(() => {
+    if (!options) return []
+    return [...options.nationalities]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((n) => ({
+        value: n.code,
+        label: isRtl ? n.labels.ar : `${n.labels.en} — ${n.labels.ar}`,
+      }))
+  }, [options, isRtl])
 
   const sortOptions = useMemo(
     () =>
@@ -66,24 +103,29 @@ export function AdminRegistrationsPage() {
     return t(`admin.registrations.status.${status}` as const)
   }
 
-  function genderLabel(code: string): string {
-    if (code === "male") {
-      return t("admin.registrations.genderMale")
-    }
-    if (code === "female") {
-      return t("admin.registrations.genderFemale")
-    }
-    return code
-  }
+  // (gender labels are handled via `genderData` for Select)
   const [list, setList] = useState<Paginated<RegistrationSubmission> | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<RegistrationSubmission | null>(null)
   const [modalOpened, { open, close }] = useDisclosure(false)
+  const [createOpened, { open: openCreate, close: closeCreate }] = useDisclosure(false)
   const [reply, setReply] = useState("")
   const [internalNotes, setInternalNotes] = useState("")
   const [status, setStatus] = useState<RegistrationStatus>("pending")
   const [saving, setSaving] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newCampus, setNewCampus] = useState<"" | "madinah" | "riyadh">("")
+  const [newFatherName, setNewFatherName] = useState("")
+  const [newFatherId, setNewFatherId] = useState("")
+  const [newParentMobile, setNewParentMobile] = useState("")
+  const [newStudentName, setNewStudentName] = useState("")
+  const [newStudentId, setNewStudentId] = useState("")
+  const [newGender, setNewGender] = useState<"" | "male" | "female">("")
+  const [newGrade, setNewGrade] = useState<string>("")
+  const [newNationality, setNewNationality] = useState<string>("")
+  const [newNotes, setNewNotes] = useState("")
+  const [newInternalNotes, setNewInternalNotes] = useState("")
 
   const [searchInput, setSearchInput] = useState("")
   const [debouncedSearch] = useDebouncedValue(searchInput, 350)
@@ -93,6 +135,16 @@ export function AdminRegistrationsPage() {
   const [perPage, setPerPage] = useState(25)
   const [page, setPage] = useState(1)
   const [exporting, setExporting] = useState(false)
+
+  const [editFatherName, setEditFatherName] = useState("")
+  const [editFatherId, setEditFatherId] = useState("")
+  const [editParentMobile, setEditParentMobile] = useState("")
+  const [editStudentName, setEditStudentName] = useState("")
+  const [editStudentId, setEditStudentId] = useState("")
+  const [editGender, setEditGender] = useState<"" | "male" | "female">("")
+  const [editGrade, setEditGrade] = useState<string>("")
+  const [editNationality, setEditNationality] = useState<string>("")
+  const [editNotes, setEditNotes] = useState("")
 
   useEffect(() => {
     setPage(1)
@@ -136,6 +188,15 @@ export function AdminRegistrationsPage() {
     setReply(row.staff_reply ?? "")
     setInternalNotes(row.internal_notes ?? "")
     setStatus(row.status)
+    setEditFatherName(row.father_full_name ?? "")
+    setEditFatherId(row.father_national_id ?? "")
+    setEditParentMobile(row.parent_mobile ?? "")
+    setEditStudentName(row.student_full_name ?? "")
+    setEditStudentId(row.student_national_id ?? "")
+    setEditGender(((row.gender as "" | "male" | "female") ?? "") || "")
+    setEditGrade(row.grade_level ?? "")
+    setEditNationality(row.nationality ?? "")
+    setEditNotes(row.notes ?? "")
     open()
   }
 
@@ -147,7 +208,20 @@ export function AdminRegistrationsPage() {
     try {
       const res = await adminFetch(`/api/admin/registrations/${selected.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ staff_reply: reply, status, internal_notes: internalNotes }),
+        body: JSON.stringify({
+          father_full_name: editFatherName.trim() || null,
+          father_national_id: editFatherId.trim() || null,
+          parent_mobile: editParentMobile.trim() || null,
+          student_full_name: editStudentName.trim() || null,
+          student_national_id: editStudentId.trim() || null,
+          gender: editGender || null,
+          grade_level: editGrade.trim() || null,
+          nationality: editNationality.trim() || null,
+          notes: editNotes.trim() || null,
+          staff_reply: reply,
+          status,
+          internal_notes: internalNotes,
+        }),
       })
       if (!res.ok) {
         throw new Error("save")
@@ -294,16 +368,40 @@ export function AdminRegistrationsPage() {
             style={{ width: 120 }}
           />
           </Group>
-          <Button
-            variant="light"
-            color="teal"
-            leftSection={<IconFileSpreadsheet size={18} />}
-            loading={exporting}
-            onClick={() => void exportExcel()}
-            style={{ alignSelf: "flex-end" }}
-          >
-            {t("admin.registrations.exportExcel")}
-          </Button>
+          <Group gap="sm" style={{ alignSelf: "flex-end" }}>
+            {hasAdminPermission(ADMIN_PERMISSIONS.registrationsUpdate) ? (
+              <Button
+                variant="filled"
+                color="blue"
+                leftSection={<IconPlus size={18} />}
+                onClick={() => {
+                  setNewCampus("")
+                  setNewFatherName("")
+                  setNewFatherId("")
+                  setNewParentMobile("")
+                  setNewStudentName("")
+                  setNewStudentId("")
+                  setNewGender("")
+                  setNewGrade("")
+                  setNewNationality("")
+                  setNewNotes("")
+                  setNewInternalNotes("")
+                  openCreate()
+                }}
+              >
+                {t("admin.registrations.addNew")}
+              </Button>
+            ) : null}
+            <Button
+              variant="light"
+              color="teal"
+              leftSection={<IconFileSpreadsheet size={18} />}
+              loading={exporting}
+              onClick={() => void exportExcel()}
+            >
+              {t("admin.registrations.exportExcel")}
+            </Button>
+          </Group>
         </Group>
       </Paper>
 
@@ -338,9 +436,11 @@ export function AdminRegistrationsPage() {
                   {list?.data.map((row) => (
                     <Table.Tr key={row.id}>
                       <Table.Td>{row.id}</Table.Td>
-                      <Table.Td>{row.student_full_name}</Table.Td>
+                      <Table.Td>{row.student_full_name || t("admin.common.emDash")}</Table.Td>
                       <Table.Td style={{ direction: "ltr", textAlign: "end" }}>{row.parent_mobile}</Table.Td>
-                      <Table.Td>{gradeLabel(row.grade_level, optLang)}</Table.Td>
+                      <Table.Td>
+                        {row.grade_level ? gradeLabel(row.grade_level, optLang) : t("admin.common.emDash")}
+                      </Table.Td>
                       <Table.Td>
                         <Badge variant="light" color={statusColors[row.status]} size="sm">
                           {statusLabel(row.status)}
@@ -380,84 +480,341 @@ export function AdminRegistrationsPage() {
         title={selected ? t("admin.registrations.modalTitle", { id: selected.id }) : ""}
         size="lg"
         radius="md"
+        styles={{
+          body: { display: "flex", flexDirection: "column", height: "min(70vh, 42rem)" },
+        }}
       >
         {selected ? (
-          <Stack gap="md">
-            <Text size="sm">
-              <strong>{t("admin.registrations.fatherName")}:</strong> {selected.father_full_name}
-            </Text>
-            <Text size="sm">
-              <strong>{t("admin.registrations.fatherId")}:</strong> {selected.father_national_id}
-            </Text>
-            <Text size="sm">
-              <strong>{t("admin.registrations.studentName")}:</strong> {selected.student_full_name}
-            </Text>
-            <Text size="sm">
-              <strong>{t("admin.registrations.studentId")}:</strong> {selected.student_national_id}
-            </Text>
-            <Text size="sm">
-              <strong>{t("admin.registrations.parentMobile")}:</strong> {selected.parent_mobile}
-            </Text>
-            <Text size="sm">
-              <strong>{t("admin.registrations.gender")}:</strong> {genderLabel(selected.gender)} ({selected.gender})
-            </Text>
-            <Text size="sm">
-              <strong>{t("admin.registrations.grade")}:</strong> {gradeLabel(selected.grade_level, optLang)}{" "}
-              <Text span size="xs" c="dimmed">
-                ({selected.grade_level})
-              </Text>
-            </Text>
-            <Text size="sm">
-              <strong>{t("admin.registrations.nationality")}:</strong>{" "}
-              {nationalityLabel(selected.nationality, optLang)}{" "}
-              <Text span size="xs" c="dimmed">
-                ({selected.nationality})
-              </Text>
-            </Text>
-            {selected.notes ? (
-              <Text size="sm">
-                <strong>{t("admin.registrations.applicantNotes")}:</strong> {selected.notes}
-              </Text>
-            ) : null}
+          <>
+            <ScrollArea type="auto" offsetScrollbars style={{ flex: 1 }}>
+              <Stack gap="md" pr="xs">
+                <Grid>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <TextInput
+                      label={t("admin.registrations.fatherName")}
+                      value={editFatherName}
+                      onChange={(e) => setEditFatherName(e.currentTarget.value)}
+                      disabled={!canEdit}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <TextInput
+                      label={t("admin.registrations.fatherId")}
+                      value={editFatherId}
+                      onChange={(e) => setEditFatherId(e.currentTarget.value)}
+                      disabled={!canEdit}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <TextInput
+                      label={t("admin.registrations.parentMobile")}
+                      value={editParentMobile}
+                      onChange={(e) => setEditParentMobile(e.currentTarget.value)}
+                      disabled={!canEdit}
+                      style={{ direction: "ltr" }}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <TextInput
+                      label={t("admin.registrations.studentName")}
+                      value={editStudentName}
+                      onChange={(e) => setEditStudentName(e.currentTarget.value)}
+                      disabled={!canEdit}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <TextInput
+                      label={t("admin.registrations.studentId")}
+                      value={editStudentId}
+                      onChange={(e) => setEditStudentId(e.currentTarget.value)}
+                      disabled={!canEdit}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <Select
+                      label={t("admin.registrations.gender")}
+                      placeholder={t("admin.common.emDash")}
+                      data={genderData}
+                      value={editGender}
+                      onChange={(v) => setEditGender((v as "" | "male" | "female") ?? "")}
+                      disabled={!canEdit}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <Select
+                      label={t("admin.registrations.grade")}
+                      placeholder={t("admin.common.emDash")}
+                      searchable
+                      data={gradeData}
+                      disabled={!canEdit || optionsLoading || !options}
+                      value={editGrade}
+                      onChange={(v) => setEditGrade(v ?? "")}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <Select
+                      label={t("admin.registrations.nationality")}
+                      placeholder={t("admin.common.emDash")}
+                      searchable
+                      data={nationalityData}
+                      disabled={!canEdit || optionsLoading || !options}
+                      value={editNationality}
+                      onChange={(v) => setEditNationality(v ?? "")}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={12}>
+                    <Textarea
+                      label={t("admin.registrations.applicantNotes")}
+                      minRows={3}
+                      value={editNotes}
+                      onChange={(e) => setEditNotes(e.currentTarget.value)}
+                      disabled={!canEdit}
+                    />
+                  </Grid.Col>
+                </Grid>
 
-            <Select
-              label={t("admin.registrations.statusField")}
-              data={[
-                { value: "pending", label: statusLabel("pending") },
-                { value: "reviewed", label: statusLabel("reviewed") },
-                { value: "replied", label: statusLabel("replied") },
-                { value: "new", label: statusLabel("new") },
-                { value: "contacted", label: statusLabel("contacted") },
-                { value: "closed", label: statusLabel("closed") },
-              ]}
-              value={status}
-              onChange={(v) => setStatus((v as RegistrationStatus) ?? "pending")}
-            />
+                <Select
+                  label={t("admin.registrations.statusField")}
+                  data={[
+                    { value: "pending", label: statusLabel("pending") },
+                    { value: "reviewed", label: statusLabel("reviewed") },
+                    { value: "replied", label: statusLabel("replied") },
+                    { value: "new", label: statusLabel("new") },
+                    { value: "contacted", label: statusLabel("contacted") },
+                    { value: "closed", label: statusLabel("closed") },
+                  ]}
+                  value={status}
+                  onChange={(v) => setStatus((v as RegistrationStatus) ?? "pending")}
+                  disabled={!canEdit}
+                />
 
-            <Textarea
-              label={t("admin.registrations.internalNotes")}
-              minRows={3}
-              value={internalNotes}
-              onChange={(e) => setInternalNotes(e.currentTarget.value)}
-            />
+                <Textarea
+                  label={t("admin.registrations.internalNotes")}
+                  minRows={3}
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.currentTarget.value)}
+                  disabled={!canEdit}
+                />
 
-            <Textarea
-              label={t("admin.registrations.staffReply")}
-              minRows={4}
-              value={reply}
-              onChange={(e) => setReply(e.currentTarget.value)}
-            />
+                <Textarea
+                  label={t("admin.registrations.staffReply")}
+                  minRows={4}
+                  value={reply}
+                  onChange={(e) => setReply(e.currentTarget.value)}
+                  disabled={!canEdit}
+                />
 
-            <Group justify="flex-end">
+                {!canEdit ? (
+                  <Alert color="yellow" title={t("admin.registrations.readOnlyTitle")} variant="light">
+                    {t("admin.registrations.readOnlyHint")}
+                  </Alert>
+                ) : null}
+              </Stack>
+            </ScrollArea>
+
+            <Group justify="flex-end" mt="md">
               <Button variant="default" onClick={close}>
                 {t("admin.registrations.cancel")}
               </Button>
-              <Button loading={saving} onClick={() => void saveReply()}>
-                {t("admin.registrations.save")}
-              </Button>
+              {canEdit ? (
+                <Button loading={saving} onClick={() => void saveReply()}>
+                  {t("admin.registrations.save")}
+                </Button>
+              ) : null}
             </Group>
-          </Stack>
+          </>
         ) : null}
+      </Modal>
+
+      <Modal
+        opened={createOpened}
+        onClose={closeCreate}
+        title={t("admin.registrations.createModalTitle")}
+        radius="md"
+        size="lg"
+        styles={{
+          body: { display: "flex", flexDirection: "column", height: "min(75vh, 46rem)" },
+        }}
+      >
+        <ScrollArea type="auto" offsetScrollbars style={{ flex: 1 }}>
+          <Stack gap="md" pr="xs">
+            {optionsError ? (
+              <Alert color="yellow" title={t("admin.layout.appTitle")}>
+                {optionsError}
+              </Alert>
+            ) : null}
+
+            <Grid>
+              <Grid.Col span={12}>
+                <Select
+                  label={t("admin.registrations.createCampusLabel")}
+                  placeholder={t("admin.registrations.createCampusPlaceholder")}
+                  data={[
+                    { value: "madinah", label: t("admin.registrations.createCampusMadinah") },
+                    { value: "riyadh", label: t("admin.registrations.createCampusRiyadh") },
+                  ]}
+                  value={newCampus}
+                  onChange={(v) => setNewCampus((v as "" | "madinah" | "riyadh") ?? "")}
+                />
+                {newCampus === "madinah" || newCampus === "riyadh" ? (
+                  <Text size="xs" c="dimmed" mt={6}>
+                    <strong>{t("admin.registrations.createPathLabel")}:</strong>{" "}
+                    {newCampus === "madinah"
+                      ? t("admin.registrations.createPathNationalBilingual")
+                      : t("admin.registrations.createPathInternational")}
+                  </Text>
+                ) : null}
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <TextInput
+                  label={t("admin.registrations.fatherName")}
+                  value={newFatherName}
+                  required
+                  withAsterisk
+                  onChange={(e) => setNewFatherName(e.currentTarget.value)}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <TextInput
+                  label={t("admin.registrations.fatherId")}
+                  value={newFatherId}
+                  onChange={(e) => setNewFatherId(e.currentTarget.value)}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <TextInput
+                  label={t("admin.registrations.parentMobile")}
+                  value={newParentMobile}
+                  required
+                  withAsterisk
+                  onChange={(e) => setNewParentMobile(e.currentTarget.value)}
+                  style={{ direction: "ltr" }}
+                />
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <TextInput
+                  label={t("admin.registrations.studentName")}
+                  value={newStudentName}
+                  onChange={(e) => setNewStudentName(e.currentTarget.value)}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <TextInput
+                  label={t("admin.registrations.studentId")}
+                  value={newStudentId}
+                  onChange={(e) => setNewStudentId(e.currentTarget.value)}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Select
+                  label={t("admin.registrations.gender")}
+                  placeholder={t("admin.common.emDash")}
+                  data={genderData}
+                  value={newGender}
+                  onChange={(v) => setNewGender((v as "" | "male" | "female") ?? "")}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Select
+                  label={t("admin.registrations.grade")}
+                  placeholder={t("admin.common.emDash")}
+                  searchable
+                  data={gradeData}
+                  disabled={optionsLoading || !options}
+                  value={newGrade}
+                  onChange={(v) => setNewGrade(v ?? "")}
+                />
+              </Grid.Col>
+              <Grid.Col span={12}>
+                <Select
+                  label={t("admin.registrations.nationality")}
+                  placeholder={t("admin.common.emDash")}
+                  searchable
+                  data={nationalityData}
+                  disabled={optionsLoading || !options}
+                  value={newNationality}
+                  onChange={(v) => setNewNationality(v ?? "")}
+                />
+              </Grid.Col>
+              <Grid.Col span={12}>
+                <Textarea
+                  label={t("admin.registrations.applicantNotes")}
+                  minRows={3}
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.currentTarget.value)}
+                />
+              </Grid.Col>
+              <Grid.Col span={12}>
+                <Textarea
+                  label={t("admin.registrations.internalNotes")}
+                  minRows={3}
+                  value={newInternalNotes}
+                  onChange={(e) => setNewInternalNotes(e.currentTarget.value)}
+                />
+              </Grid.Col>
+            </Grid>
+          </Stack>
+        </ScrollArea>
+
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={closeCreate}>
+            {t("admin.registrations.cancel")}
+          </Button>
+          <Button
+            loading={creating}
+            disabled={!newFatherName.trim() || !newParentMobile.trim()}
+            onClick={() => {
+              void (async () => {
+                setLoadError(null)
+                setCreating(true)
+                try {
+                  const campusNote =
+                    newCampus === "madinah"
+                      ? `${t("admin.registrations.createCampusLabel")}: ${t("admin.registrations.createCampusMadinah")}`
+                      : newCampus === "riyadh"
+                        ? `${t("admin.registrations.createCampusLabel")}: ${t("admin.registrations.createCampusRiyadh")}`
+                        : ""
+                  const pathNote =
+                    newCampus === "madinah"
+                      ? `${t("admin.registrations.createPathLabel")}: ${t("admin.registrations.createPathNationalBilingual")}`
+                      : newCampus === "riyadh"
+                        ? `${t("admin.registrations.createPathLabel")}: ${t("admin.registrations.createPathInternational")}`
+                        : ""
+                  const mergedNotes = [campusNote, pathNote, newNotes.trim()].filter(Boolean).join("\n")
+
+                  const res = await adminFetch("/api/admin/registrations", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      father_full_name: newFatherName.trim(),
+                      parent_mobile: newParentMobile.trim(),
+                      father_national_id: newFatherId.trim() || undefined,
+                      student_full_name: newStudentName.trim() || undefined,
+                      student_national_id: newStudentId.trim() || undefined,
+                      gender: newGender || undefined,
+                      grade_level: newGrade.trim() || undefined,
+                      nationality: newNationality.trim() || undefined,
+                      notes: mergedNotes || undefined,
+                      internal_notes: newInternalNotes.trim() || undefined,
+                    }),
+                  })
+                  if (!res.ok) {
+                    throw new Error("create")
+                  }
+                  closeCreate()
+                  await fetchList()
+                } catch {
+                  setLoadError(t("admin.registrations.createError"))
+                } finally {
+                  setCreating(false)
+                }
+              })()
+            }}
+          >
+            {t("admin.registrations.createSubmit")}
+          </Button>
+        </Group>
       </Modal>
     </Stack>
   )

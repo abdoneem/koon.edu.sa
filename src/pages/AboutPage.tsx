@@ -3,6 +3,8 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
 import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
+import { usePublicLocale } from "../hooks/usePublicLocale"
+import { stripLocaleFromPath } from "../i18n/localeRouting"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
@@ -15,8 +17,10 @@ type Pillar = { id: string; title: string; description: string }
 
 export function AboutPage() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const { pathname } = useLocation()
-  const pathKey = pathname.replace(/\/$/, "") || "/"
+  const { pathWithoutLocale } = stripLocaleFromPath(pathname)
+  const pathKey = pathWithoutLocale.replace(/\/$/, "") || "/"
   const reduce = useReducedMotion()
 
   const fallback = useMemo((): AboutPageContent => {
@@ -174,10 +178,10 @@ export function AboutPage() {
             </motion.article>
 
             <div className="site-page-cta-row">
-              <Link to="/registration" className="home-btn home-btn--primary home-btn--lg">
+              <Link to={href("/registration")} className="home-btn home-btn--primary home-btn--lg">
                 {t("nav.registration")}
               </Link>
-              <Link to="/contact" className="home-btn home-btn--ghost home-btn--lg">
+              <Link to={href("/contact")} className="home-btn home-btn--ghost home-btn--lg">
                 {t("nav.contact")}
               </Link>
             </div>

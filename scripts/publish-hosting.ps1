@@ -22,9 +22,10 @@ if (Test-Path $Dest) {
 }
 New-Item -ItemType Directory -Path $Dest -Force | Out-Null
 
+# Never bundle machine-local env (production .env lives only on the server).
 robocopy.exe (Join-Path $Root "backend") $Dest /E `
   /XD node_modules .git vendor `
-  /XF .env .env.backup `
+  /XF .env .env.backup .env.local .env.development .env.production `
   /NFL /NDL /NJH /NJS /nc /ns /np | Out-Null
 $rc = $LASTEXITCODE
 if ($rc -ge 8) {
@@ -135,3 +136,4 @@ if (Test-Path $hostingPath) {
 }
 
 Write-Host 'Done. Zip publish\koon-hosting and upload, or sync via FTP.'
+Write-Host 'Note: Local .env files are excluded. On the server, copy .env.production.example to .env and set APP_KEY, DB_*, etc.' -ForegroundColor DarkGray

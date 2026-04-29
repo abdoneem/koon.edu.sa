@@ -3,13 +3,15 @@ import { useState } from "react"
 import type { FormEvent } from "react"
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom"
 import { env } from "../config/env"
+import { i18nLangToPublicLocale, withLocalePath } from "../i18n/localeRouting"
 import { adminFetch } from "./adminApi"
 import { useAdminI18n } from "./adminI18n"
 import { AdminLanguageSwitcher } from "./AdminLanguageSwitcher"
 import { getAdminToken, setAdminSession } from "./authToken"
 
 export function AdminLoginPage() {
-  const { t, isRtl } = useAdminI18n()
+  const { t, isRtl, i18n } = useAdminI18n()
+  const publicSiteHome = withLocalePath(i18nLangToPublicLocale(i18n.language), "/")
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? "/admin"
@@ -31,7 +33,7 @@ export function AdminLoginPage() {
         </Group>
         <Title order={2}>{t("admin.login.title")}</Title>
         <Alert color="orange">{t("admin.login.configureApi")}</Alert>
-        <Anchor component={Link} to="/">
+        <Anchor component={Link} to={publicSiteHome}>
           {t("admin.login.backToSite")}
         </Anchor>
       </Stack>
@@ -118,7 +120,7 @@ export function AdminLoginPage() {
             <Button type="submit" fullWidth loading={pending}>
               {t("admin.login.submit")}
             </Button>
-            <Anchor component={Link} to="/" size="sm" ta="center" display="block">
+            <Anchor component={Link} to={publicSiteHome} size="sm" ta="center" display="block">
               {t("admin.login.backToSite")}
             </Anchor>
           </Stack>

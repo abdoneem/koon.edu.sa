@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import { siteImagery } from "../../content/siteImagery"
 import { coalesceString } from "../../utils/coalesce"
 import type { HomePageBundle } from "../../types/homePageBundle"
@@ -22,6 +23,7 @@ export function HomeDocHeroPremium({
   onInlineEditStats,
 }: Props) {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const reduce = useReducedMotion()
 
   const bgUrl = bundle.hero.backgroundImage?.url ?? siteImagery.hero
@@ -72,7 +74,7 @@ export function HomeDocHeroPremium({
             <a href="#book-tour" className="home-btn home-btn--hero-book home-btn--lg">
               {t("nav.bookTour")}
             </a>
-            <Link to="/registration" className="home-btn home-btn--secondary home-btn--lg">
+            <Link to={href("/registration")} className="home-btn home-btn--secondary home-btn--lg">
               {t("nav.registration")}
             </Link>
             <a href="#news" className="home-btn home-btn--ghost home-btn--lg home-hero-premium__cta--tertiary">

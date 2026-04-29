@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import { facilitiesTeaserImageForIndex } from "../../content/siteImagery"
 import { IconBadge } from "../IconBadge"
 import { IconBook, IconFlask, IconLandmark } from "../icons/schoolIcons"
@@ -15,6 +16,7 @@ const FACILITY_ALT_KEYS = [
 
 export function FacilitiesTeaserSection() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const reduce = useReducedMotion()
   const items = t("home.facilitiesTeaser.items", { returnObjects: true }) as {
     title: string
@@ -65,7 +67,7 @@ export function FacilitiesTeaserSection() {
           })}
         </div>
         <div className="facilities-teaser-cta-wrap">
-          <Link to="/facilities" className="btn btn-secondary facilities-teaser-cta">
+          <Link to={href("/facilities")} className="btn btn-secondary facilities-teaser-cta">
             {t("home.facilitiesTeaser.viewAll")}
           </Link>
         </div>

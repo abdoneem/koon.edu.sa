@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { NavLink } from "react-router-dom"
 import { brand } from "../config/brand"
 import { useCmsSite } from "../context/CmsSiteContext"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 import { Logo } from "./Logo"
 
 const HOME_ANCHORS: { hash: string; i18n: "nav.whyKoon" | "nav.media" | "nav.facilities" | "nav.accreditationsNav" | "nav.excellenceNav" | "nav.articlesNav" | "nav.bookTour" | "nav.virtualTour" | "nav.portalsNav" }[] = [
@@ -20,6 +21,7 @@ const HOME_ANCHORS: { hash: string; i18n: "nav.whyKoon" | "nav.media" | "nav.fac
 export function Footer() {
   const { t } = useTranslation()
   const { phoneDisplay, phoneHref, emailDisplay, emailHref } = useCmsSite()
+  const { href } = usePublicLocale()
 
   return (
     <footer className="site-footer">
@@ -79,22 +81,22 @@ export function Footer() {
           <span className="footer-heading">{t("footer.links")}</span>
           <ul className="footer-links">
             <li>
-              <NavLink to="/academics">{t("nav.academics")}</NavLink>
+              <NavLink to={href("/academics")}>{t("nav.academics")}</NavLink>
             </li>
             <li>
-              <NavLink to="/student-life">{t("nav.studentLife")}</NavLink>
+              <NavLink to={href("/student-life")}>{t("nav.studentLife")}</NavLink>
             </li>
             <li>
-              <NavLink to="/admissions">{t("nav.admissions")}</NavLink>
+              <NavLink to={href("/admissions")}>{t("nav.admissions")}</NavLink>
             </li>
             <li>
-              <NavLink to="/registration">{t("nav.registration")}</NavLink>
+              <NavLink to={href("/registration")}>{t("nav.registration")}</NavLink>
             </li>
             <li>
-              <NavLink to="/about">{t("nav.about")}</NavLink>
+              <NavLink to={href("/about")}>{t("nav.about")}</NavLink>
             </li>
             <li>
-              <NavLink to="/contact">{t("nav.contact")}</NavLink>
+              <NavLink to={href("/contact")}>{t("nav.contact")}</NavLink>
             </li>
           </ul>
         </div>
@@ -103,7 +105,7 @@ export function Footer() {
           <ul className="footer-links">
             {HOME_ANCHORS.map((a) => (
               <li key={a.hash}>
-                <a href={`/#${a.hash}`}>{t(a.i18n)}</a>
+                <a href={`${href("/")}#${a.hash}`}>{t(a.i18n)}</a>
               </li>
             ))}
           </ul>

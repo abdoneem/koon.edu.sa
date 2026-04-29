@@ -1,11 +1,13 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import { newsCoverOrFallback } from "../../content/siteImagery"
 import { IconTrending } from "../icons/schoolIcons"
 
 export function HomeNewsTeaserSection() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const reduce = useReducedMotion()
   const items = t("newsPage.items", { returnObjects: true }) as {
     id: string
@@ -60,7 +62,7 @@ export function HomeNewsTeaserSection() {
                   <time dateTime={item.iso}>{item.date}</time>
                   <h3>{item.title}</h3>
                   <p>{item.excerpt}</p>
-                  <Link to="/media" className="home-news-link">
+                  <Link to={href("/media")} className="home-news-link">
                     {t("home.newsTeaser.readMore")}
                   </Link>
                 </div>
@@ -69,7 +71,7 @@ export function HomeNewsTeaserSection() {
           })}
         </ul>
         <div className="home-news-footer-cta">
-          <Link to="/media" className="btn btn-primary">
+          <Link to={href("/media")} className="btn btn-primary">
             {t("home.newsTeaser.viewAll")}
           </Link>
         </div>

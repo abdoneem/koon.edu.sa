@@ -1,7 +1,9 @@
 import { Helmet } from "react-helmet-async"
 import { useTranslation } from "react-i18next"
 import { useLocation } from "react-router-dom"
+import { brand } from "../config/brand"
 import { usePathCmsSeo } from "../hooks/usePathCmsSeo"
+import { stripLocaleFromPath, withLocalePath } from "../i18n/localeRouting"
 
 const PUBLIC_SEO_PATHS: Record<string, { title: string; desc: string }> = {
   "/": { title: "seo.paths.home.title", desc: "seo.paths.home.description" },
@@ -26,8 +28,16 @@ const PUBLIC_SEO_PATHS: Record<string, { title: string; desc: string }> = {
 export function DocumentHead() {
   const { pathname } = useLocation()
   const { t } = useTranslation()
-  const pathKey = pathname.replace(/\/$/, "") || "/"
+  const { locale: pathLocale, pathWithoutLocale } = stripLocaleFromPath(pathname)
+  const pathKey = pathWithoutLocale.replace(/\/$/, "") || "/"
   const cmsSeo = usePathCmsSeo(pathKey)
+  const siteBase = brand.siteUrl.replace(/\/$/, "")
+  const canonicalPath = pathname.split(/[?#]/)[0] ?? pathname
+  const canonicalUrl = `${siteBase}${canonicalPath === "/" ? "/" : canonicalPath.replace(/\/$/, "") || "/"}`
+  const pathForAlternates = pathKey
+  const arAlternate = `${siteBase}${withLocalePath("ar", pathForAlternates)}`
+  const enAlternate = `${siteBase}${withLocalePath("en", pathForAlternates)}`
+  const xDefaultAlternate = `${siteBase}${withLocalePath("ar", pathForAlternates)}`
 
   if (pathname.startsWith("/admin/login")) {
     return (
@@ -53,11 +63,21 @@ export function DocumentHead() {
   const title = cmsSeo?.title ?? t(keys.title)
   const description = cmsSeo?.description ?? t(keys.desc)
 
+  const showHreflang = pathLocale !== null && (pathLocale === "en" || pathLocale === "ar")
+
   return (
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
       <meta name="robots" content="index, follow" />
+      <link rel="canonical" href={canonicalUrl} />
+      {showHreflang ? (
+        <>
+          <link rel="alternate" hrefLang="ar" href={arAlternate} />
+          <link rel="alternate" hrefLang="en" href={enAlternate} />
+          <link rel="alternate" hrefLang="x-default" href={xDefaultAlternate} />
+        </>
+      ) : null}
       <meta property="og:site_name" content={t("seo.siteName")} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />

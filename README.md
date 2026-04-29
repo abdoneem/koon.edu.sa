@@ -10,7 +10,7 @@ docker compose up -d
 
 In `backend/`, copy `.env.example` to `.env`, run `php artisan key:generate`, `php artisan migrate`, `php artisan storage:link`, and `php artisan db:seed`, then `php artisan serve`.
 
-For the Vite app, copy `.env.example` to `.env.local` and set `VITE_API_BASE_URL` to your API base (for example `http://127.0.0.1:8000`). Open **`/admin`** to sign in and edit CMS pages. If a public API call returns 404, the site falls back to static i18n copy.
+For the Vite app, copy `.env.example` to `.env.local` and set `VITE_API_BASE_URL` to your API base (for example `http://127.0.0.1:8001`). Open **`/admin`** to sign in and edit CMS pages. If a public API call returns 404, the site falls back to static i18n copy.
 
 ---
 

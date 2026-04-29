@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreRegistrationSubmissionRequest;
 use App\Http\Requests\Admin\UpdateRegistrationSubmissionRequest;
 use App\Models\RegistrationGrade;
 use App\Models\RegistrationNationality;
@@ -140,6 +141,29 @@ class AdminRegistrationSubmissionController extends Controller
         return response()->json($row);
     }
 
+    public function store(StoreRegistrationSubmissionRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        // DB table columns are non-null; admin form allows partial rows.
+        // Store missing optional fields as empty strings (not null).
+        $row = RegistrationSubmission::query()->create([
+            'father_full_name' => (string) ($data['father_full_name'] ?? ''),
+            'father_national_id' => (string) ($data['father_national_id'] ?? ''),
+            'student_full_name' => (string) ($data['student_full_name'] ?? ''),
+            'student_national_id' => (string) ($data['student_national_id'] ?? ''),
+            'parent_mobile' => (string) ($data['parent_mobile'] ?? ''),
+            'gender' => (string) ($data['gender'] ?? ''),
+            'grade_level' => (string) ($data['grade_level'] ?? ''),
+            'nationality' => (string) ($data['nationality'] ?? ''),
+            'notes' => $data['notes'] ?? null,
+            'internal_notes' => $data['internal_notes'] ?? null,
+            'status' => 'new',
+        ]);
+
+        return response()->json($row, 201);
+    }
+
     public function update(UpdateRegistrationSubmissionRequest $request, int $id): JsonResponse
     {
         $registration = RegistrationSubmission::query()->findOrFail($id);
@@ -147,6 +171,22 @@ class AdminRegistrationSubmissionController extends Controller
 
         if (array_key_exists('staff_reply', $data) && filled($data['staff_reply'])) {
             $registration->replied_at = now();
+        }
+
+        // DB columns are non-null; allow admin UI to clear values by sending null/empty.
+        foreach ([
+            'father_full_name',
+            'father_national_id',
+            'student_full_name',
+            'student_national_id',
+            'parent_mobile',
+            'gender',
+            'grade_level',
+            'nationality',
+        ] as $key) {
+            if (array_key_exists($key, $data) && $data[$key] === null) {
+                $data[$key] = '';
+            }
         }
 
         $registration->fill($data);

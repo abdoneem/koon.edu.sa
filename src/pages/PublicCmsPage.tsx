@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Navigate, useNavigate, useParams } from "react-router-dom"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 import { CmsStructuredBlocks } from "../components/cms/CmsStructuredBlocks"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
@@ -14,17 +15,18 @@ export function PublicCmsPage() {
   const { slug } = useParams<{ slug: string }>()
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { href } = usePublicLocale()
   const pathKey = slug ? `/${slug}` : "/"
   const { active, loading, page } = useCmsPageForPath(pathKey)
 
   useEffect(() => {
     if (!loading && !active) {
-      navigate("/", { replace: true })
+      navigate(href("/"), { replace: true })
     }
-  }, [loading, active, navigate])
+  }, [loading, active, navigate, href])
 
   if (!slug) {
-    return <Navigate to="/" replace />
+    return <Navigate to={href("/")} replace />
   }
 
   if (loading || !active || !page) {

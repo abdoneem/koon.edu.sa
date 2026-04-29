@@ -3,6 +3,7 @@ param(
   [ValidateSet(
     "install",
     "dev",
+    "frontend",
     "backend-serve",
     "backend-dev",
     "backend-setup",
@@ -17,6 +18,7 @@ param(
     "deploy",
     "publish-sftp",
     "sftp-sync",
+    "sftp-sync-public",
     "sftp-sync-full",
     "ssh-diagnose",
     "sftp-fetch-log",
@@ -24,6 +26,7 @@ param(
     "sftp-deploy-db-one-shot",
     "sftp-admin-password-reset",
     "sftp-set-admin-password-file",
+    "backend-log",
     "help"
   )]
   [string]$Action,
@@ -32,7 +35,16 @@ param(
   [switch]$NoPause,
 
   [Parameter(Mandatory = $false)]
-  [switch]$NewWindow
+  [switch]$NewWindow,
+
+  [Parameter(Mandatory = $false)]
+  [switch]$SkipVendor,
+
+  [Parameter(Mandatory = $false)]
+  [switch]$PublicOnly,
+
+  [Parameter(Mandatory = $false)]
+  [switch]$AppOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -118,11 +130,11 @@ function Get-DotEnvValue([string]$FilePath, [string]$Key) {
 
 function Get-LaravelDevServerUrl() {
   <#
-    URL where `php artisan serve` listens (default 127.0.0.1:8000).
+    URL where `php artisan serve` listens (default 127.0.0.1:8001).
     APP_URL alone is often http://localhost without a port - not the dev server.
     Optional overrides in backend/.env:
       ARTISAN_SERVE_HOST=127.0.0.1
-      ARTISAN_SERVE_PORT=8000
+      ARTISAN_SERVE_PORT=8001
     If APP_URL includes an explicit non-default port, that URL is used.
   #>
   $backendEnv = Join-Path (Join-Path $PSScriptRoot "backend") ".env"
@@ -130,7 +142,7 @@ function Get-LaravelDevServerUrl() {
   $portOverride = Get-DotEnvValue $backendEnv "ARTISAN_SERVE_PORT"
   if ($hostOverride -or $portOverride) {
     $h = if ($hostOverride) { $hostOverride.Trim() } else { "127.0.0.1" }
-    $p = if ($portOverride) { ($portOverride.Trim() -replace '^:', '') } else { "8000" }
+    $p = if ($portOverride) { ($portOverride.Trim() -replace '^:', '') } else { "8001" }
     return "http://${h}:${p}"
   }
 
@@ -150,11 +162,23 @@ function Get-LaravelDevServerUrl() {
     }
   }
 
-  return "http://127.0.0.1:8000"
+  return "http://127.0.0.1:8001"
 }
 
 function Get-ViteDevUrl() {
   return "http://localhost:5173/"
+}
+
+function Get-LaravelLogPath() {
+  return Join-Path (Join-Path $PSScriptRoot "backend") "storage\logs\laravel.log"
+}
+
+function Write-LaravelLogTailHint() {
+  Write-Host ""
+  Write-Host "Laravel log (below):" -ForegroundColor White
+  Write-Host "  - Live tail of backend\storage\logs\laravel.log (LOG_LEVEL, errors, slow SQL, deprecations)" -ForegroundColor DarkGray
+  Write-Host "  - Ctrl+C stops this tail only; other dev windows keep running" -ForegroundColor DarkGray
+  Write-SeparatorLine
 }
 
 function Write-OpenUrlHint([string]$Label, [string]$Url) {
@@ -202,7 +226,7 @@ function Write-NpmInstallHint() {
 function Write-NpmBuildHint() {
   Write-Host ""
   Write-Host "Build progress (below):" -ForegroundColor White
-  Write-Host "  - tsc -b then vite build; output goes to .\dist\" -ForegroundColor DarkGray
+  Write-Host "  - tsc -b then vite build; output goes to .\dist" -ForegroundColor DarkGray
   Write-SeparatorLine
 }
 
@@ -247,7 +271,9 @@ function Write-ComposerDevProgressHint() {
 function Write-BackendSetupHint() {
   Write-Host ""
   Write-Host "composer run setup (below):" -ForegroundColor White
-  Write-Host "  - Can take several minutes: composer install, key, migrate, npm install, npm run build" -ForegroundColor DarkGray
+  Write-Host "  - Requires MySQL running (XAMPP or docker compose up -d mysql)" -ForegroundColor DarkGray
+  Write-Host "  - Create DB koon_local (see scripts\mysql-local-xampp.sql) unless you changed DB_DATABASE in backend\.env" -ForegroundColor DarkGray
+  Write-Host "  - Runs: composer install, key, migrate, db:seed, backend npm install + build" -ForegroundColor DarkGray
   Write-Host "  - Watch for errors before using php artisan serve or npm run dev" -ForegroundColor DarkGray
   Write-SeparatorLine
 }
@@ -264,16 +290,19 @@ function Show-Help() {
   Write-Host "Usage:" -ForegroundColor White
   Write-Host "  .\scripts.ps1" -ForegroundColor Gray
   Write-Host "  .\scripts.ps1 -Action dev" -ForegroundColor Gray
-  Write-Host "  .\scripts.ps1 -Action dev-all -NewWindow" -ForegroundColor Gray
+  Write-Host "  .\scripts.ps1 -Action frontend" -ForegroundColor Gray
+  Write-Host "  .\scripts.ps1 -Action dev-all" -ForegroundColor Gray
   Write-Host "  .\scripts.ps1 -Action build -NoPause" -ForegroundColor Gray
   Write-Host ""
   Write-Host "Actions:" -ForegroundColor White
   Write-Host "  install  - npm install" -ForegroundColor Gray
   Write-Host "  dev      - start Vite dev server" -ForegroundColor Gray
+  Write-Host "  frontend - SPA frontend (npm run dev; same as dev)" -ForegroundColor Gray
   Write-Host "  backend-serve - php artisan serve (./backend)" -ForegroundColor Gray
   Write-Host "  backend-dev - composer run dev (serve + queue + logs + vite)" -ForegroundColor Gray
+  Write-Host "  backend-log - tail backend\storage\logs\laravel.log in this terminal (-Wait)" -ForegroundColor Gray
   Write-Host "  backend-setup - composer install + key + migrate + npm build" -ForegroundColor Gray
-  Write-Host "  dev-all  - start frontend + backend (artisan serve)" -ForegroundColor Gray
+  Write-Host "  dev-all  - backend + live laravel.log in new windows; Vite in this terminal" -ForegroundColor Gray
   Write-Host "  build    - production build" -ForegroundColor Gray
   Write-Host "  build-backend - backend build (./backend)" -ForegroundColor Gray
   Write-Host "  preview  - preview production build" -ForegroundColor Gray
@@ -282,8 +311,9 @@ function Show-Help() {
   Write-Host "  clean    - remove dist + node_modules (asks confirmation)" -ForegroundColor Gray
   Write-Host "  deploy   - build + show next steps (safe; no git push)" -ForegroundColor Gray
   Write-Host "  publish-sftp   - publish-hosting.ps1 + SFTP incremental (needs secrets/sftp.env)" -ForegroundColor Gray
-  Write-Host "  sftp-sync      - SFTP incremental only (menu 16; needs publish\koon-hosting + secrets\sftp.env)" -ForegroundColor Gray
-  Write-Host "  sftp-sync-full - SFTP full upload (menu 17; same bundle + --full)" -ForegroundColor Gray
+  Write-Host "  sftp-sync         - SFTP incremental (menu 16); optional: -SkipVendor to skip vendor folder" -ForegroundColor Gray
+  Write-Host "  sftp-sync-public  - SFTP public_html only (menu 24; frontend-only, no Laravel tree)" -ForegroundColor Gray
+  Write-Host '  sftp-sync-full    - SFTP full upload (menu 17; same bundle + --full)' -ForegroundColor Gray
   Write-Host "  ssh-diagnose   - SSH using secrets/sftp.env; print artisan about + laravel.log tail" -ForegroundColor Gray
   Write-Host "  sftp-fetch-log - SFTP tail of storage/logs/laravel.log (no SSH shell required)" -ForegroundColor Gray
   Write-Host "  sftp-clear-cache - SFTP clear Laravel file cache (fixes admin Too Many Attempts when CACHE_STORE=file)" -ForegroundColor Gray
@@ -380,6 +410,17 @@ function Start-CommandInNewWindow([string]$Title, [string]$WorkingDir, [string]$
   return $false
 }
 
+function Start-ProcessInNewPowerShellWindow([string]$Title, [string]$WorkingDir, [string]$Command) {
+  $wd = $WorkingDir.Replace("'", "''")
+  Start-Process -FilePath "powershell" -WorkingDirectory $WorkingDir -ArgumentList @(
+    "-NoProfile",
+    "-NoExit",
+    "-Command",
+    "Set-Location -LiteralPath '$wd'; $Command"
+  ) | Out-Null
+  Write-Host ("Started in new window: {0}" -f $Title) -ForegroundColor Green
+}
+
 function Action-BackendServe() {
   Write-Rule "Laravel: php artisan serve"
   $backendDir = Join-Path $PSScriptRoot "backend"
@@ -391,14 +432,20 @@ function Action-BackendServe() {
   Write-OpenUrlHint "Backend (API)" (Get-LaravelDevServerUrl)
   Write-Host "Customize host/port: set ARTISAN_SERVE_HOST / ARTISAN_SERVE_PORT in backend\.env" -ForegroundColor DarkGray
 
-  if (Start-CommandInNewWindow "backend (artisan serve)" $backendDir "php artisan serve") {
+  $devUrl = Get-LaravelDevServerUrl
+  $u = [Uri]$devUrl
+  $serveCmd = "php artisan serve --host $($u.Host) --port $($u.Port)"
+
+  if (Start-CommandInNewWindow "backend (artisan serve)" $backendDir $serveCmd) {
     Write-Host ""
     Write-Host "Watch the new PowerShell window for Laravel startup and request logs." -ForegroundColor DarkGray
+    Write-Host "App log file (errors, SQL, deprecations): .\scripts.ps1 -Action backend-log" -ForegroundColor DarkGray
     return
   }
 
   Write-LaravelServeProgressHint
-  Invoke-Artisan @("serve")
+  Write-Host "App log file (errors, SQL): .\scripts.ps1 -Action backend-log in another terminal." -ForegroundColor DarkGray
+  Invoke-Artisan @("serve", "--host", $u.Host, "--port", "$($u.Port)")
 }
 
 function Action-BackendDev() {
@@ -467,6 +514,32 @@ function Action-BuildBackend() {
   Invoke-BackendNpm @("run", "build")
 }
 
+function Start-LaravelLogTailInNewWindow() {
+  $logPath = Get-LaravelLogPath
+  $lp = $logPath.Replace("'", "''")
+  $cmd = (
+    "Write-Host 'Laravel log tail (Ctrl+C to stop this window only):' -ForegroundColor Cyan; " +
+    "if (-not (Test-Path -LiteralPath '$lp')) { Write-Host 'Waiting for log file...' -ForegroundColor DarkYellow; " +
+    "while (-not (Test-Path -LiteralPath '$lp')) { Start-Sleep -Seconds 1 } }; " +
+    "Get-Content -LiteralPath '$lp' -Wait -Tail 80"
+  )
+  Start-ProcessInNewPowerShellWindow "backend (laravel.log)" $PSScriptRoot $cmd
+}
+
+function Action-BackendLog() {
+  Write-Rule "Laravel: tail laravel.log"
+  $logPath = Get-LaravelLogPath
+  Write-Host ("Log file: {0}" -f $logPath) -ForegroundColor DarkGray
+  Write-LaravelLogTailHint
+  if (-not (Test-Path -LiteralPath $logPath)) {
+    Write-Host "Log file not found yet. Waiting for Laravel to create it (start artisan serve or hit the API)..." -ForegroundColor DarkYellow
+    while (-not (Test-Path -LiteralPath $logPath)) {
+      Start-Sleep -Seconds 1
+    }
+  }
+  Get-Content -LiteralPath $logPath -Wait -Tail 80
+}
+
 function Action-DevAll() {
   Write-Rule "Run frontend + backend"
 
@@ -479,27 +552,20 @@ function Action-DevAll() {
   Write-Host "Open these in your browser:" -ForegroundColor White
   Write-LocalDevUrlsSummary
 
-  if ($NewWindow) {
-    Write-Host "Starting backend (artisan serve) in a new window..." -ForegroundColor Gray
-    Write-Host "Watch that window for Laravel request logs." -ForegroundColor DarkGray
-    Start-CommandInNewWindow "backend (artisan serve)" $backendDir "php artisan serve" | Out-Null
-
-    Write-Host "Starting frontend in this terminal..." -ForegroundColor Gray
-    Write-ViteProgressHint
-    Push-Location $frontendDir
-    try {
-      Invoke-Npm @("run", "dev")
-    } finally {
-      Pop-Location
-    }
-    return
-  }
-
-  Write-Host "This terminal will run the backend only (it keeps running)." -ForegroundColor Gray
-  Write-Host "Start the frontend in another terminal: .\scripts.ps1 -Action dev" -ForegroundColor DarkGray
-  Write-Host "Or run both at once: .\scripts.ps1 -Action dev-all -NewWindow" -ForegroundColor DarkGray
+  Write-Host "Starting backend (php artisan serve) in a new PowerShell window - leave it open." -ForegroundColor Gray
+  Write-Host "Opening another window: live tail of laravel.log (errors, SQL, deprecations)." -ForegroundColor Gray
+  Write-Host "Vite runs in this terminal. If port 5173 is busy, use the URL Vite prints (Local:)." -ForegroundColor DarkGray
   Write-Host ""
-  Action-BackendServe
+  Start-ProcessInNewPowerShellWindow "backend (artisan serve)" $backendDir "php artisan serve"
+  Start-LaravelLogTailInNewWindow
+
+  Write-ViteProgressHint
+  Push-Location $frontendDir
+  try {
+    Invoke-Npm @("run", "dev")
+  } finally {
+    Pop-Location
+  }
 }
 
 function Action-Clean() {
@@ -585,7 +651,10 @@ function Invoke-SftpDeploy {
   param(
     [switch]$Full,
     [switch]$DryRun,
-    [switch]$NoBaseline
+    [switch]$NoBaseline,
+    [switch]$SkipVendor,
+    [switch]$PublicOnly,
+    [switch]$AppOnly
   )
   Ensure-RepoRoot
   Ensure-Paramiko
@@ -599,23 +668,36 @@ function Invoke-SftpDeploy {
   if ($Full) { $argList += "--full" }
   if ($DryRun) { $argList += "--dry-run" }
   if ($NoBaseline) { $argList += "--no-baseline" }
+  if ($SkipVendor) { $argList += "--skip-vendor" }
+  if ($PublicOnly) { $argList += "--public-only" }
+  if ($AppOnly) { $argList += "--app-only" }
   Write-Host ""
   Write-Host "SFTP deploy (below):" -ForegroundColor White
   Write-Host "  - python -u: unbuffered output (lines appear as they are printed)" -ForegroundColor DarkGray
-  Write-Host "  - First lines appear immediately; then paramiko/cryptography may load 10-60s on Windows" -ForegroundColor DarkGray
+  Write-Host "  - While paramiko/cryptography loads (10-60s on Windows): 'still initializing SSH libraries' every 2s" -ForegroundColor DarkGray
   Write-Host "  - Local rglob over publish\koon-hosting can take 30-90s before the first [app] PUT line" -ForegroundColor DarkGray
   Write-Host "  - Each phase: file counts, then PUT lines every 10 files + current path + elapsed time" -ForegroundColor DarkGray
-  Write-Host "  - Every 300 paths: heartbeat while scanning/skipping (so it never looks stuck)" -ForegroundColor DarkGray
-  Write-Host "  - Optional: python ... --verbose  (log every single uploaded file)" -ForegroundColor DarkGray
+  Write-Host "  - While indexing: scan heartbeat every 500 files found; while skipping/uploading: heartbeat every 300 paths" -ForegroundColor DarkGray
+  Write-Host '  - Optional: python ... --verbose  (log every single uploaded file)' -ForegroundColor DarkGray
   if ($Full) {
-    Write-Host "  - Full sync (--full): uploads all eligible files; ignores publish\last baseline" -ForegroundColor DarkGray
+    Write-Host '  - Full sync (--full): uploads all eligible files; ignores publish\last baseline' -ForegroundColor DarkGray
   }
   else {
     Write-Host "  - Incremental: uploads files that differ from .\publish\last\koon-hosting (or all if no baseline)" -ForegroundColor DarkGray
   }
+  if ($SkipVendor -and -not $PublicOnly) {
+    Write-Host "  - --skip-vendor: excludes vendor\ (use when composer.lock unchanged; else run composer on server)" -ForegroundColor DarkGray
+  }
+  if ($PublicOnly) {
+    Write-Host "  - --public-only: only dist/web files under public/ -> public_html (no Laravel app upload)" -ForegroundColor DarkGray
+  }
+  if ($AppOnly) {
+    Write-Host "  - --app-only: Laravel tree only; skips public_html" -ForegroundColor DarkGray
+  }
+  Write-Host "  - Why many files? Fresh composer install changes most of vendor vs old baseline - use -SkipVendor or public-only when appropriate." -ForegroundColor DarkGray
   Write-SeparatorLine
   Write-Host ""
-  Write-Host ("Running: python -u {0}" -f ($argList -join " ")) -ForegroundColor Yellow
+  Write-Host ('Running: python -u {0}' -f ($argList -join ' ')) -ForegroundColor Yellow
   # -u: unbuffered stdout/stderr so SFTP progress shows live in PowerShell / IDE terminals
   & python -u @argList
 }
@@ -642,6 +724,22 @@ function Action-SftpFetchLog() {
   Ensure-Paramiko
   Assert-SftpSecretsPresent
   $py = Join-Path $PSScriptRoot "scripts\sftp_fetch_laravel_log.py"
+  if (-not (Test-Path -LiteralPath $py)) {
+    throw "Missing: $py"
+  }
+  Write-Host ""
+  Write-Host "Running: python -u $py" -ForegroundColor Yellow
+  & python -u $py
+}
+
+function Action-SftpDiagnose500() {
+  Write-Rule "SFTP diagnose 500 (no SSH)"
+  Write-Host "Checks docroot index.php/index.html and prints the last laravel.log error block." -ForegroundColor DarkGray
+  Write-Host "Uses secrets\\sftp.env - no SSH shell required." -ForegroundColor DarkGray
+  Ensure-RepoRoot
+  Ensure-Paramiko
+  Assert-SftpSecretsPresent
+  $py = Join-Path $PSScriptRoot "scripts\\sftp_diagnose_500.py"
   if (-not (Test-Path -LiteralPath $py)) {
     throw "Missing: $py"
   }
@@ -727,7 +825,7 @@ function Action-PublishSftp() {
   & powershell -NoProfile -ExecutionPolicy Bypass -File $pub
   Write-Host ""
   Write-Host "Step 2/2: SFTP upload" -ForegroundColor DarkGray
-  Invoke-SftpDeploy
+  Invoke-SftpDeploy -SkipVendor:$SkipVendor -PublicOnly:$PublicOnly -AppOnly:$AppOnly
 }
 
 function Action-SftpSync() {
@@ -735,9 +833,19 @@ function Action-SftpSync() {
   Write-Host ""
   Write-Host "Uploads only files that changed vs .\publish\last\koon-hosting (size/mtime)." -ForegroundColor Gray
   Write-Host "First time (no baseline): uploads all eligible files, then saves the baseline." -ForegroundColor DarkGray
+  Write-Host "Vendor is huge after publish: use menu 24 for web-only, or CLI: .\scripts.ps1 -Action sftp-sync -SkipVendor" -ForegroundColor DarkGray
   Write-Host "Uses secrets\sftp.env and python -u scripts\sftp_deploy.py (progress in the console)." -ForegroundColor DarkGray
   Write-SeparatorLine
-  Invoke-SftpDeploy
+  Invoke-SftpDeploy -SkipVendor:$SkipVendor -PublicOnly:$PublicOnly -AppOnly:$AppOnly
+}
+
+function Action-SftpSyncPublic() {
+  Write-Rule "SFTP web root only (public_html) - menu 24"
+  Write-Host ""
+  Write-Host "Uploads only publish\koon-hosting\public -> remote public_html (incremental vs baseline public)." -ForegroundColor Gray
+  Write-Host "Skips Laravel app (routes, vendor, etc.). Use after npm build when only the SPA changed." -ForegroundColor DarkGray
+  Write-SeparatorLine
+  Invoke-SftpDeploy -PublicOnly
 }
 
 function Action-SftpSyncFull() {
@@ -745,15 +853,16 @@ function Action-SftpSyncFull() {
   Write-Host ""
   Write-Host "Uploads every eligible file under publish\koon-hosting (ignores publish\last baseline)." -ForegroundColor Gray
   Write-Host "Slower but safest after hosting moves, baseline corruption, or vendor changes." -ForegroundColor DarkGray
-  Write-Host "Uses secrets\sftp.env and python -u scripts\sftp_deploy.py --full" -ForegroundColor DarkGray
+  Write-Host 'Uses secrets\sftp.env and python -u scripts\sftp_deploy.py --full' -ForegroundColor DarkGray
   Write-SeparatorLine
-  Invoke-SftpDeploy -Full
+  Invoke-SftpDeploy -Full -SkipVendor:$SkipVendor -PublicOnly:$PublicOnly -AppOnly:$AppOnly
 }
 
 function Run-Action([string]$A) {
   switch ($A) {
     "install" { Action-Install }
     "dev" { Action-Dev }
+    "frontend" { Action-Dev }
     "backend-serve" { Action-BackendServe }
     "backend-dev" { Action-BackendDev }
     "backend-setup" { Action-BackendSetup }
@@ -768,13 +877,16 @@ function Run-Action([string]$A) {
     "deploy" { Action-Deploy }
     "publish-sftp" { Action-PublishSftp }
     "sftp-sync" { Action-SftpSync }
+    "sftp-sync-public" { Action-SftpSyncPublic }
     "sftp-sync-full" { Action-SftpSyncFull }
     "ssh-diagnose" { Action-SshDiagnose }
+    "sftp-diagnose-500" { Action-SftpDiagnose500 }
     "sftp-fetch-log" { Action-SftpFetchLog }
     "sftp-clear-cache" { Action-SftpClearCache }
     "sftp-deploy-db-one-shot" { Action-SftpDeployDbOneShot }
     "sftp-admin-password-reset" { Action-SftpAdminPasswordReset }
     "sftp-set-admin-password-file" { Action-SftpSetAdminPasswordFile }
+    "backend-log" { Action-BackendLog }
     "help" { Show-Help }
     default { throw "Unknown action: $A" }
   }
@@ -790,7 +902,7 @@ function Show-Menu() {
   Write-Host "  3) Backend: serve - optional: -Action backend-serve -NewWindow" -ForegroundColor Cyan
   Write-Host "  4) Backend: dev (composer: server+queue+logs+Vite together)" -ForegroundColor Cyan
   Write-Host "  5) Backend: npm install" -ForegroundColor Cyan
-  Write-Host "  6) Dev (frontend + backend serve) (use -NewWindow)" -ForegroundColor Cyan
+  Write-Host '  6) Dev (backend + log tail in new windows; Vite here)' -ForegroundColor Cyan
   Write-Host "  7) Build (npm run build)" -ForegroundColor Cyan
   Write-Host "  8) Build (backend assets) (cd backend; npm run build)" -ForegroundColor Cyan
   Write-Host "  9) Backend: setup (composer run setup)" -ForegroundColor Cyan
@@ -801,16 +913,20 @@ function Show-Menu() {
   Write-Host "  14) Deploy (build + instructions)" -ForegroundColor Cyan
   Write-Host "  15) Publish hosting + SFTP incremental (publish-hosting + upload)" -ForegroundColor Cyan
   Write-Host "  16) SFTP only - incremental (needs publish\koon-hosting + secrets\sftp.env)" -ForegroundColor Cyan
-  Write-Host "  17) SFTP only - full upload (--full; same requirements as 16)" -ForegroundColor Cyan
+  Write-Host '  17) SFTP only - full upload (--full; same requirements as 16)' -ForegroundColor Cyan
+  Write-Host "  24) SFTP web root only (public_html only; --public-only; SPA/dist hotfix)" -ForegroundColor Cyan
   Write-Host "  18) SFTP clear Laravel file cache (admin login Too Many Attempts)" -ForegroundColor Cyan
+  Write-Host "  18.5) SFTP diagnose 500 (docroot + laravel.log tail; no SSH)" -ForegroundColor Cyan
   Write-Host "  19) SFTP one-shot: migrate + seed on server (upload script, HTTPS, delete)" -ForegroundColor Cyan
   Write-Host "  20) SFTP one-shot: reset admin password (AdminUserSeeder; server .env DEFAULT_ADMIN_*)" -ForegroundColor Cyan
   Write-Host "  21) SFTP one-shot: set admin password from secrets\\admin_password_reset.txt (fixes `$ in .env)" -ForegroundColor Cyan
+  Write-Host "  22) Backend: tail laravel.log (live log in this terminal)" -ForegroundColor Cyan
+  Write-Host "  23) Frontend: Vite dev (npm run dev; optional: -Action frontend -NewWindow)" -ForegroundColor Cyan
   Write-Host ""
   Write-Host "  0) Exit" -ForegroundColor DarkGray
   Write-Host ""
 
-  $choice = (Read-Host "Enter 0-21").Trim()
+  $choice = (Read-Host "Enter 0-24").Trim()
   switch ($choice) {
     "1" { Run-Action "install" }
     "2" { Run-Action "dev" }
@@ -829,10 +945,14 @@ function Show-Menu() {
     "15" { Run-Action "publish-sftp" }
     "16" { Run-Action "sftp-sync" }
     "17" { Run-Action "sftp-sync-full" }
+    "24" { Run-Action "sftp-sync-public" }
     "18" { Run-Action "sftp-clear-cache" }
+    "18.5" { Run-Action "sftp-diagnose-500" }
     "19" { Run-Action "sftp-deploy-db-one-shot" }
     "20" { Run-Action "sftp-admin-password-reset" }
     "21" { Run-Action "sftp-set-admin-password-file" }
+    "22" { Run-Action "backend-log" }
+    "23" { Run-Action "frontend" }
     "0" { return $false }
     default {
       Write-Host "Invalid choice." -ForegroundColor DarkYellow

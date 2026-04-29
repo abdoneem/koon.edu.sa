@@ -17,10 +17,11 @@ return [
     |
     */
 
-    'default' => env(
-        'DB_CONNECTION',
-        env('APP_ENV') === 'production' ? 'mysql' : 'sqlite'
-    ),
+    /*
+    | Local dev is expected to use MySQL (e.g. XAMPP / Docker) like production.
+    | Use DB_CONNECTION=sqlite in .env if you prefer SQLite instead.
+    */
+    'default' => env('DB_CONNECTION', 'mysql'),
 
     /*
     |--------------------------------------------------------------------------

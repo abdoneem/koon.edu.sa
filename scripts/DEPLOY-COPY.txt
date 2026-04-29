@@ -15,7 +15,8 @@ public_html/index.php: $laravelFolder = '' when Laravel is in HOME;
   $laravelFolder = 'koon-hosting' when Laravel is in ~/koon-hosting.
 secrets/sftp.env: SFTP_APP_DIR empty (HOME) or SFTP_APP_DIR=koon-hosting.
 
-Then: .env in the Laravel root, php artisan key:generate, migrate, storage:link.
+Then: .env on the server only (from backend/.env.production.example — not your PC's .env),
+php artisan key:generate, migrate, db:seed, storage:link.
 See HOSTING.txt for details.
 
 3) Automated SFTP (after publish-hosting.ps1)

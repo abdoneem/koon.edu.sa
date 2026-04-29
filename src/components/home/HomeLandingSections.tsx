@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { brand } from "../../config/brand"
 import { useCmsSite } from "../../context/CmsSiteContext"
+import { usePublicLocale } from "../../hooks/usePublicLocale"
 import { studentLifeBlockImage } from "../../content/siteImagery"
 import type { HighlightContent } from "../../types/cms"
 import type { HomePageBundle } from "../../types/homePageBundle"
@@ -53,6 +54,7 @@ export function HomeLandingSections({
 }: Props) {
   const { phoneDisplay, phoneHref, emailDisplay, emailHref } = useCmsSite()
   const { t, i18n } = useTranslation()
+  const { href } = usePublicLocale()
   const reduce = useReducedMotion()
 
   const highlights = highlightsProp
@@ -181,7 +183,7 @@ export function HomeLandingSections({
               <span className="home-eyebrow home-eyebrow--navy">{stages.title}</span>
               <h2 className="home-display">{t("academicsPage.title")}</h2>
               <p className="home-lead home-lead--tight">{t("academicsPage.lead")}</p>
-              <Link to="/academics" className="home-btn home-btn--primary">
+              <Link to={href("/academics")} className="home-btn home-btn--primary">
                 {t("homePage.ctaFullPage")}
               </Link>
             </div>
@@ -247,7 +249,7 @@ export function HomeLandingSections({
                     <h3 className="home-program-card__title">{prog.name}</h3>
                     <p className="home-program-card__desc">{prog.description}</p>
                     <p className="home-program-card__fee">{prog.annualFee}</p>
-                    <Link to="/academics" className="home-program-card__cta">
+                    <Link to={href("/academics")} className="home-program-card__cta">
                       {t("homePage.programDetailCta")}
                     </Link>
                   </motion.div>
@@ -358,7 +360,7 @@ export function HomeLandingSections({
               <p className="home-adm-cta__hook">{t("homePage.admissionsCtaHook")}</p>
               <div className="home-adm-cta__actions">
                 <Link
-                  to="/registration"
+                  to={href("/registration")}
                   className="home-btn home-btn--primary home-btn--lg home-btn--wide home-adm-cta__primary"
                 >
                   {t("nav.registration")}
@@ -366,7 +368,7 @@ export function HomeLandingSections({
                 <a href="#book-tour" className="home-btn home-btn--hero-book home-btn--lg home-btn--wide">
                   {t("nav.bookVisit")}
                 </a>
-                <Link to="/admissions" className="home-btn home-btn--on-dark home-btn--lg home-btn--wide">
+                <Link to={href("/admissions")} className="home-btn home-btn--on-dark home-btn--lg home-btn--wide">
                   {t("homePage.ctaAdmissionsDetail")}
                 </Link>
               </div>
@@ -381,7 +383,7 @@ export function HomeLandingSections({
             <h2 className="home-display">{t("studentLifePage.title")}</h2>
             <p className="home-lead">{t("studentLifePage.lead")}</p>
             <div className="home-section__cta-row">
-              <Link to="/student-life" className="home-btn home-btn--primary">
+              <Link to={href("/student-life")} className="home-btn home-btn--primary">
                 {t("homePage.ctaFullPage")}
               </Link>
               <a href="#book-tour" className="home-btn home-btn--hero-book">
@@ -525,7 +527,7 @@ export function HomeLandingSections({
               {coalesceString(bundle.articlesSectionTitle, t("articlesTeaser.title"))}
             </h2>
             <p className="home-lead">{articlesIntro}</p>
-            <Link to="/articles" className="home-text-link">
+            <Link to={href("/articles")} className="home-text-link">
               {t("homePage.ctaFullPage")}
             </Link>
           </header>
@@ -538,7 +540,10 @@ export function HomeLandingSections({
                     <span className="home-editorial-card__meta">{a.meta}</span>
                     <h3>{a.title}</h3>
                     <p>{a.excerpt}</p>
-                    <Link to={`/articles/${encodeURIComponent(a.slug?.trim() || a.id)}`} className="home-editorial-card__faux-link">
+                    <Link
+                      to={href(`/articles/${encodeURIComponent(a.slug?.trim() || a.id)}`)}
+                      className="home-editorial-card__faux-link"
+                    >
                       {t("homePage.ctaFullPage")}
                     </Link>
                   </li>
@@ -587,14 +592,17 @@ export function HomeLandingSections({
             <div className="home-media-news-block">
               <div className="home-media-news-block__head">
                 <h3 className="home-subdisplay home-subdisplay--light">{t("mediaCenterPage.newsTitle")}</h3>
-                <Link to="/news" className="home-text-link home-text-link--on-dark">
+                <Link to={href("/news")} className="home-text-link home-text-link--on-dark">
                   {t("mediaCenterPage.newsAllLabel")}
                 </Link>
               </div>
               <ul className="home-media-news-list" aria-label={t("mediaCenterPage.newsTitle")}>
                 {bundle.news.slice(0, 4).map((item) => (
                   <li key={item.id} className="home-media-news-list__item">
-                    <Link to={`/news/${encodeURIComponent(item.slug?.trim() || item.id)}`} className="home-media-news-list__link">
+                    <Link
+                      to={href(`/news/${encodeURIComponent(item.slug?.trim() || item.id)}`)}
+                      className="home-media-news-list__link"
+                    >
                       <span className="home-media-news-list__title">{item.title}</span>
                       {item.date ? (
                         <time

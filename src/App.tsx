@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { Navigate, Route, Routes } from "react-router-dom"
+import { Route, Routes } from "react-router-dom"
 import { AdminDashboard } from "./admin/AdminDashboard"
 import { AdminLayout } from "./admin/AdminLayout"
 import { AdminLoginPage } from "./admin/AdminLoginPage"
@@ -18,6 +18,9 @@ import { ContentPageEditor } from "./admin/ContentPageEditor"
 import { ContentPagesList } from "./admin/ContentPagesList"
 import { RequireAdminAuth } from "./admin/RequireAdminAuth"
 import { DocumentHead } from "./components/DocumentHead"
+import { HomeHashRedirect } from "./components/HomeHashRedirect"
+import { LegacyLocaleRedirect } from "./components/LegacyLocaleRedirect"
+import { LocaleLayout } from "./components/LocaleLayout"
 import { CmsSiteProvider } from "./context/CmsSiteContext"
 import { InlineEditProvider } from "./context/InlineEditContext"
 import { AboutPage } from "./pages/AboutPage"
@@ -32,11 +35,7 @@ import { NewsListPage } from "./pages/NewsListPage"
 import { PublicCmsPage } from "./pages/PublicCmsPage"
 import RegistrationPage from "./pages/RegistrationPage"
 import { StudentLifePage } from "./pages/StudentLifePage"
-
-/** يعيد التوجيه إلى الصفحة الرئيسية مع مرساة — المحتوى مدمج هناك. */
-function HomeHashRedirect({ hash }: { hash: string }) {
-  return <Navigate to={{ pathname: "/", hash: `#${hash}` }} replace />
-}
+import type { PublicLocale } from "./i18n/localeRouting"
 
 function App() {
   const { i18n } = useTranslation()
@@ -77,27 +76,31 @@ function App() {
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="roles" element={<AdminRolesPage />} />
         </Route>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/academics" element={<AcademicsPage />} />
-        <Route path="/student-life" element={<StudentLifePage />} />
-        <Route path="/admissions" element={<AdmissionsPage />} />
-        <Route path="/registration" element={<RegistrationPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/why-koon" element={<HomeHashRedirect hash="why-koon" />} />
-        <Route path="/media" element={<HomeHashRedirect hash="media" />} />
-        <Route path="/book-tour" element={<HomeHashRedirect hash="book-tour" />} />
-        <Route path="/virtual-tour" element={<HomeHashRedirect hash="virtual-tour" />} />
-        <Route path="/portals" element={<HomeHashRedirect hash="portals" />} />
-        <Route path="/accreditations" element={<HomeHashRedirect hash="accreditations" />} />
-        <Route path="/excellence" element={<HomeHashRedirect hash="excellence" />} />
-        <Route path="/news" element={<NewsListPage />} />
-        <Route path="/news/:id" element={<NewsDetailPage />} />
-        <Route path="/articles" element={<ArticlesListPage />} />
-        <Route path="/articles/:id" element={<ArticlesDetailPage />} />
-        <Route path="/facilities" element={<HomeHashRedirect hash="facilities" />} />
-        <Route path="/:slug" element={<PublicCmsPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {(["en", "ar"] as const).map((lang: PublicLocale) => (
+          <Route key={lang} path={lang} element={<LocaleLayout lang={lang} />}>
+            <Route index element={<HomePage />} />
+            <Route path="about" element={<AboutPage />} />
+            <Route path="academics" element={<AcademicsPage />} />
+            <Route path="student-life" element={<StudentLifePage />} />
+            <Route path="admissions" element={<AdmissionsPage />} />
+            <Route path="registration" element={<RegistrationPage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="why-koon" element={<HomeHashRedirect hash="why-koon" />} />
+            <Route path="media" element={<HomeHashRedirect hash="media" />} />
+            <Route path="book-tour" element={<HomeHashRedirect hash="book-tour" />} />
+            <Route path="virtual-tour" element={<HomeHashRedirect hash="virtual-tour" />} />
+            <Route path="portals" element={<HomeHashRedirect hash="portals" />} />
+            <Route path="accreditations" element={<HomeHashRedirect hash="accreditations" />} />
+            <Route path="excellence" element={<HomeHashRedirect hash="excellence" />} />
+            <Route path="news" element={<NewsListPage />} />
+            <Route path="news/:id" element={<NewsDetailPage />} />
+            <Route path="articles" element={<ArticlesListPage />} />
+            <Route path="articles/:id" element={<ArticlesDetailPage />} />
+            <Route path="facilities" element={<HomeHashRedirect hash="facilities" />} />
+            <Route path=":slug" element={<PublicCmsPage />} />
+          </Route>
+        ))}
+        <Route path="*" element={<LegacyLocaleRedirect />} />
         </Routes>
       </InlineEditProvider>
     </CmsSiteProvider>

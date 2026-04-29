@@ -4,9 +4,11 @@ import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { siteImagery } from "../content/siteImagery"
 import { useHomePageBundle } from "../hooks/useHomePageBundle"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 
 export function ArticlesListPage() {
   const { t } = useTranslation()
+  const { href } = usePublicLocale()
   const { bundle } = useHomePageBundle()
 
   return (
@@ -30,7 +32,10 @@ export function ArticlesListPage() {
                   <span className="home-editorial-card__meta">{a.meta}</span>
                   <h3>{a.title}</h3>
                   <p>{a.excerpt}</p>
-                  <Link to={`/articles/${encodeURIComponent(a.slug?.trim() || a.id)}`} className="home-editorial-card__faux-link">
+                  <Link
+                    to={href(`/articles/${encodeURIComponent(a.slug?.trim() || a.id)}`)}
+                    className="home-editorial-card__faux-link"
+                  >
                     {t("homePage.ctaFullPage")}
                   </Link>
                 </li>
