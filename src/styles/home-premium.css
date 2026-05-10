@@ -977,6 +977,46 @@
   border-top: 3px solid #fb7185;
 }
 
+.home-value-tile--editable {
+  cursor: pointer;
+}
+
+.home-value-tile--editable:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.95);
+  outline-offset: 3px;
+}
+
+.home-value-tile__icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.home-program-card--editable {
+  cursor: pointer;
+}
+
+.home-program-card--editable:focus-visible {
+  outline: 2px solid var(--primary-500, #2b6cb0);
+  outline-offset: 3px;
+}
+
+.home-program-card__media {
+  margin: calc(var(--home-space-4) * -1) calc(var(--home-space-4) * -1) var(--home-space-3);
+  border-radius: var(--home-radius) var(--home-radius) 0 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: #e8eef5;
+}
+
+.home-program-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* ——— Academics split + programs ——— */
 .home-split {
   display: grid;

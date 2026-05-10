@@ -176,6 +176,7 @@ export function HomeLandingBulkEditModal({ opened, onClose, locale, section, bun
               name: p.name,
               description: p.description,
               annualFee: p.annualFee,
+              ...(p.image?.trim() ? { image: p.image.trim() } : {}),
             })),
           )
           break
@@ -365,6 +366,12 @@ export function HomeLandingBulkEditModal({ opened, onClose, locale, section, bun
                       setPrograms((prev) => prev.map((r, j) => (j === i ? { ...r, annualFee: e.currentTarget.value } : r)))
                     }
                   />
+                  <CmsMediaUploadField
+                    compact
+                    label={t("inlineEdit.fieldProgramImage")}
+                    value={row.image ?? ""}
+                    onChange={(url) => setPrograms((prev) => prev.map((r, j) => (j === i ? { ...r, image: url } : r)))}
+                  />
                   <Button
                     size="compact-xs"
                     color="red"
@@ -379,7 +386,10 @@ export function HomeLandingBulkEditModal({ opened, onClose, locale, section, bun
                 size="xs"
                 variant="light"
                 onClick={() =>
-                  setPrograms((prev) => [...prev, { id: `gen_${Date.now()}`, name: "", description: "", annualFee: "" }])
+                  setPrograms((prev) => [
+                    ...prev,
+                    { id: `gen_${Date.now()}`, name: "", description: "", annualFee: "", image: "" },
+                  ])
                 }
               >
                 {t("inlineEdit.addRow")}

@@ -140,6 +140,46 @@ function mergeGalleryItems(
   })
 }
 
+function mergeProgramItems(
+  cmsItems: LandingPageContent["programs"],
+  defaults: ProgramContent[],
+): ProgramContent[] {
+  if (!cmsItems || cmsItems.length === 0) {
+    return defaults
+  }
+  return cmsItems.map((item, i) => {
+    const base = defaults.find((d) => d.id === item.id) ?? defaults[i] ?? defaults[0]
+    const imageRaw = typeof item.image === "string" ? item.image.trim() : ""
+    const baseImage = typeof base.image === "string" ? base.image.trim() : ""
+    const image = imageRaw.length > 0 ? imageRaw : baseImage || undefined
+    return {
+      ...base,
+      ...item,
+      image,
+    }
+  })
+}
+
+function mergeHighlightItems(
+  cmsItems: LandingPageContent["highlights"],
+  defaults: HighlightContent[],
+): HighlightContent[] {
+  if (!cmsItems || cmsItems.length === 0) {
+    return defaults
+  }
+  return cmsItems.map((item, i) => {
+    const base = defaults.find((d) => d.id === item.id) ?? defaults[i] ?? defaults[0]
+    const imageRaw = typeof item.image === "string" ? item.image.trim() : ""
+    const baseImage = typeof base.image === "string" ? base.image.trim() : ""
+    const image = imageRaw.length > 0 ? imageRaw : baseImage || undefined
+    return {
+      ...base,
+      ...item,
+      image,
+    }
+  })
+}
+
 function mergeNewsItems(
   cmsItems: LandingPageContent["news"],
   defaults: HomeNewsItem[],
@@ -208,9 +248,9 @@ export function mergeLandingIntoBundle(
       backgroundImage: cms.hero.backgroundImage ?? defaults.hero.backgroundImage,
       trustLine: pickString(cms.hero.trustLine, defaults.hero.trustLine ?? ""),
     },
-    programs: pickArray(cms.programs, defaults.programs),
+    programs: mergeProgramItems(cms.programs, defaults.programs),
     programsSection,
-    highlights: pickArray(cms.highlights, defaults.highlights),
+    highlights: mergeHighlightItems(cms.highlights, defaults.highlights),
     stats: pickArray(cms.stats, defaults.stats),
     news: mergeNewsItems(cms.news, defaults.news),
     gallery: mergeGalleryItems(cms.gallery, defaults.gallery),

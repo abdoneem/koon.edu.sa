@@ -18,6 +18,7 @@ import {
   IconTrendingUp,
 } from "@tabler/icons-react"
 import { motion, useReducedMotion } from "framer-motion"
+import type { KeyboardEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { brand } from "../../config/brand"
@@ -60,7 +61,7 @@ export function HomeLandingSections({
   const highlights = highlightsProp
     ? highlightsProp
     : coalesceArray(
-        t("highlights.items", { returnObjects: true }) as { id: string; title: string; description: string }[],
+        t("highlights.items", { returnObjects: true }) as HighlightContent[],
         bundle.highlights,
       )
   const stages = t("academicsStagesDetail", { returnObjects: true }) as Record<string, string>
@@ -150,17 +151,43 @@ export function HomeLandingSections({
             <ul className="home-value-grid home-value-grid--bento">
               {highlights.map((item, i) => {
                 const ValueIcon = VALUE_ICONS[i % VALUE_ICONS.length]
+                const imgSrc = item.image?.trim()
+                const editableTile = Boolean(inlineEditEnabled && onInlineEditHighlights)
+                function openHighlightsEditor(e?: KeyboardEvent) {
+                  if (!editableTile || !onInlineEditHighlights) {
+                    return
+                  }
+                  e?.preventDefault()
+                  onInlineEditHighlights()
+                }
                 return (
                   <li key={item.id ?? item.title} className="home-grid-item-li">
                     <motion.div
-                      className={`home-value-tile home-value-tile--${(i % 5) + 1}`}
+                      className={`home-value-tile home-value-tile--${(i % 5) + 1}${editableTile ? " home-value-tile--editable" : ""}`}
                       initial={reduce ? false : { opacity: 0, y: 16 }}
                       whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-40px" }}
                       transition={{ duration: 0.42, delay: reduce ? 0 : i * 0.04 }}
+                      {...(editableTile
+                        ? {
+                            role: "button" as const,
+                            tabIndex: 0,
+                            onClick: () => openHighlightsEditor(),
+                            onKeyDown: (e: KeyboardEvent) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                openHighlightsEditor(e)
+                              }
+                            },
+                            "aria-label": t("inlineEdit.editHighlightsAria"),
+                          }
+                        : {})}
                     >
                       <span className="home-value-tile__icon" aria-hidden>
-                        <ValueIcon size={28} stroke={1.5} />
+                        {imgSrc ? (
+                          <img className="home-value-tile__icon-img" src={imgSrc} alt="" width={28} height={28} />
+                        ) : (
+                          <ValueIcon size={28} stroke={1.5} />
+                        )}
                       </span>
                       <span className="home-value-tile__idx" aria-hidden>
                         {String(i + 1).padStart(2, "0")}
@@ -237,24 +264,55 @@ export function HomeLandingSections({
               </p>
             </div>
             <ul className="home-program-grid home-program-grid--three">
-              {bundle.programs.map((prog, i) => (
-                <li key={prog.id ?? prog.name} className="home-grid-item-li">
-                  <motion.div
-                    className="home-program-card"
-                    initial={reduce ? false : { opacity: 0, y: 12 }}
-                    whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-24px" }}
-                    transition={{ duration: 0.35, delay: reduce ? 0 : i * 0.03 }}
-                  >
-                    <h3 className="home-program-card__title">{prog.name}</h3>
-                    <p className="home-program-card__desc">{prog.description}</p>
-                    <p className="home-program-card__fee">{prog.annualFee}</p>
-                    <Link to={href("/academics")} className="home-program-card__cta">
-                      {t("homePage.programDetailCta")}
-                    </Link>
-                  </motion.div>
-                </li>
-              ))}
+              {bundle.programs.map((prog, i) => {
+                const coverSrc = prog.image?.trim() ? prog.image.trim() : studentLifeBlockImage(i)
+                const editablePrograms = Boolean(inlineEditEnabled && onEditBulkSection)
+                function openProgramsEditor(e?: KeyboardEvent) {
+                  if (!editablePrograms || !onEditBulkSection) {
+                    return
+                  }
+                  e?.preventDefault()
+                  onEditBulkSection("programs")
+                }
+                return (
+                  <li key={prog.id ?? prog.name} className="home-grid-item-li">
+                    <motion.div
+                      className={`home-program-card${editablePrograms ? " home-program-card--editable" : ""}`}
+                      initial={reduce ? false : { opacity: 0, y: 12 }}
+                      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-24px" }}
+                      transition={{ duration: 0.35, delay: reduce ? 0 : i * 0.03 }}
+                      {...(editablePrograms
+                        ? {
+                            role: "button" as const,
+                            tabIndex: 0,
+                            onClick: () => openProgramsEditor(),
+                            onKeyDown: (e: KeyboardEvent) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                openProgramsEditor(e)
+                              }
+                            },
+                            "aria-label": t("inlineEdit.editProgramsAria"),
+                          }
+                        : {})}
+                    >
+                      <div className="home-program-card__media">
+                        <img src={coverSrc} alt="" width={640} height={400} loading="lazy" decoding="async" />
+                      </div>
+                      <h3 className="home-program-card__title">{prog.name}</h3>
+                      <p className="home-program-card__desc">{prog.description}</p>
+                      <p className="home-program-card__fee">{prog.annualFee}</p>
+                      {editablePrograms ? (
+                        <span className="home-program-card__cta">{t("homePage.programDetailCta")}</span>
+                      ) : (
+                        <Link to={href("/academics")} className="home-program-card__cta">
+                          {t("homePage.programDetailCta")}
+                        </Link>
+                      )}
+                    </motion.div>
+                  </li>
+                )
+              })}
             </ul>
             <div className="home-programs-block__foot">
               <a href="#book-tour" className="home-btn home-btn--hero-book home-btn--lg">

@@ -1,6 +1,7 @@
 import { Button, Group, Modal, ScrollArea, Stack, Text, TextInput, Textarea } from "@mantine/core"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { CmsMediaUploadField } from "../../admin/CmsMediaUploadField"
 import { putLandingCollection } from "../../services/landingPayloadAdmin"
 import type { HighlightContent, Locale } from "../../types/cms"
 
@@ -38,6 +39,7 @@ export function HomeHighlightsInlineModal({ opened, onClose, locale, highlights,
         ...(r.id ? { id: r.id } : {}),
         title: r.title,
         description: r.description,
+        ...(r.image?.trim() ? { image: r.image.trim() } : {}),
       }))
       const res = await putLandingCollection(locale, "highlights", payload)
       const data = (await res.json().catch(() => ({}))) as {
@@ -104,13 +106,19 @@ export function HomeHighlightsInlineModal({ opened, onClose, locale, highlights,
                 onChange={(e) => patchRow(i, { description: e.currentTarget.value })}
                 minRows={2}
               />
+              <CmsMediaUploadField
+                compact
+                label={t("inlineEdit.fieldValueCardImage")}
+                value={row.image ?? ""}
+                onChange={(url) => patchRow(i, { image: url })}
+              />
             </Stack>
           ))}
           <Button
             type="button"
             variant="light"
             size="xs"
-            onClick={() => setRows((prev) => [...prev, { id: "", title: "", description: "" }])}
+            onClick={() => setRows((prev) => [...prev, { id: "", title: "", description: "", image: "" }])}
           >
             {t("inlineEdit.addRow")}
           </Button>

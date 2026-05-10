@@ -22,6 +22,7 @@ class PatchLandingHighlightsInlineRequest extends FormRequest
             'highlights.*.id' => ['nullable', 'string', 'max:64'],
             'highlights.*.title' => ['required', 'string', 'max:500'],
             'highlights.*.description' => ['required', 'string', 'max:2000'],
+            'highlights.*.image' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

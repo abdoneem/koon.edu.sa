@@ -159,7 +159,7 @@ class AdminContentPageController extends Controller
 
         /** @var array<string, mixed> $payload */
         $payload = is_array($page->payload) ? $page->payload : [];
-        /** @var list<array{id?: string, title: string, description: string}> $incoming */
+        /** @var list<array{id?: string, title: string, description: string, image?: string|null}> $incoming */
         $incoming = $request->validated('highlights');
 
         $normalized = [];
@@ -170,6 +170,9 @@ class AdminContentPageController extends Controller
             ];
             if (! empty($row['id'])) {
                 $item['id'] = (string) $row['id'];
+            }
+            if (array_key_exists('image', $row) && $row['image'] !== null && $row['image'] !== '') {
+                $item['image'] = (string) $row['image'];
             }
             $normalized[] = $item;
         }

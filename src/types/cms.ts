@@ -21,12 +21,16 @@ export interface ProgramContent {
   name: string
   description: string
   annualFee: string
+  /** Optional photo URL; when empty the homepage uses a stock image by card index. */
+  image?: string
 }
 
 export interface HighlightContent {
   id?: string
   title: string
   description: string
+  /** Optional image URL; when empty the default icon is shown. */
+  image?: string
 }
 
 /** Homepage “Why KOON” intro + vision/mission/philosophy strip + accordion (optional in API). */

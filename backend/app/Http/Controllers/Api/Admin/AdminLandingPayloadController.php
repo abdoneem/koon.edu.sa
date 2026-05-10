@@ -385,12 +385,14 @@ class AdminLandingPayloadController extends Controller
                 'data.*.id' => ['nullable', 'string', 'max:64'],
                 'data.*.title' => ['required', 'string', 'max:500'],
                 'data.*.description' => ['required', 'string', 'max:2000'],
+                'data.*.image' => ['nullable', 'string', 'max:2000'],
             ],
             'programs' => $base + [
                 'data.*.id' => ['nullable', 'string', 'max:64'],
                 'data.*.name' => ['required', 'string', 'max:500'],
                 'data.*.description' => ['required', 'string', 'max:2000'],
                 'data.*.annualFee' => ['required', 'string', 'max:200'],
+                'data.*.image' => ['nullable', 'string', 'max:2000'],
             ],
             'stats' => $base + [
                 'data.*.id' => ['nullable', 'string', 'max:64'],
@@ -448,12 +450,14 @@ class AdminLandingPayloadController extends Controller
                 'id' => ['sometimes', 'nullable', 'string', 'max:64'],
                 'title' => ['sometimes', 'nullable', 'string', 'max:500'],
                 'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
+                'image' => ['sometimes', 'nullable', 'string', 'max:2000'],
             ],
             'programs' => [
                 'id' => ['sometimes', 'nullable', 'string', 'max:64'],
                 'name' => ['sometimes', 'nullable', 'string', 'max:500'],
                 'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
                 'annualFee' => ['sometimes', 'nullable', 'string', 'max:200'],
+                'image' => ['sometimes', 'nullable', 'string', 'max:2000'],
             ],
             'stats' => [
                 'id' => ['sometimes', 'nullable', 'string', 'max:64'],
@@ -508,12 +512,14 @@ class AdminLandingPayloadController extends Controller
                 'id' => ['nullable', 'string', 'max:64'],
                 'title' => ['required', 'string', 'max:500'],
                 'description' => ['required', 'string', 'max:2000'],
+                'image' => ['nullable', 'string', 'max:2000'],
             ],
             'programs' => [
                 'id' => ['nullable', 'string', 'max:64'],
                 'name' => ['required', 'string', 'max:500'],
                 'description' => ['required', 'string', 'max:2000'],
                 'annualFee' => ['required', 'string', 'max:200'],
+                'image' => ['nullable', 'string', 'max:2000'],
             ],
             'stats' => [
                 'id' => ['nullable', 'string', 'max:64'],
