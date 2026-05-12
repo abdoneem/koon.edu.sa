@@ -15,7 +15,7 @@ import { useHomePageBundle } from "../hooks/useHomePageBundle"
 import { usePublicLocale } from "../hooks/usePublicLocale"
 import type { HighlightContent } from "../types/cms"
 import type { HomeNewsItem } from "../types/homePageBundle"
-import { coalesceArray } from "../utils/coalesce"
+import { cmsOrI18nArray } from "../utils/coalesce"
 import { formatNewsDateForDisplay, newsDateTimeAttr } from "../utils/newsDateInput"
 
 export function HomePage() {
@@ -30,10 +30,10 @@ export function HomePage() {
   const [bulkSection, setBulkSection] = useState<LandingBulkSection | null>(null)
 
   const i18nHighlights = t("highlights.items", { returnObjects: true }) as HighlightContent[] | undefined
-  const displayHighlights = coalesceArray(i18nHighlights, bundle.highlights)
+  const displayHighlights = cmsOrI18nArray(hasLiveCms, bundle.highlights, i18nHighlights)
 
   const i18nNews = t("newsPage.items", { returnObjects: true }) as HomeNewsItem[] | undefined
-  const newsItems = coalesceArray(i18nNews, bundle.news)
+  const newsItems = cmsOrI18nArray(hasLiveCms, bundle.news, i18nNews)
 
   useEffect(() => {
     const raw = location.hash.replace(/^#/, "")
@@ -72,6 +72,7 @@ export function HomePage() {
 
         <HomeLandingSections
           bundle={bundle}
+          hasLiveCms={hasLiveCms}
           highlights={displayHighlights}
           inlineEditEnabled={showHeroInline}
           onInlineEditHighlights={() => setHighlightsModalOpen(true)}

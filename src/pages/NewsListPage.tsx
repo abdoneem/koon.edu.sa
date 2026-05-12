@@ -8,7 +8,7 @@ import { newsCoverOrFallback } from "../content/siteImagery"
 import { useHomePageBundle } from "../hooks/useHomePageBundle"
 import { usePublicLocale } from "../hooks/usePublicLocale"
 import type { HomeNewsItem } from "../types/homePageBundle"
-import { coalesceArray } from "../utils/coalesce"
+import { cmsOrI18nArray } from "../utils/coalesce"
 import { formatNewsDateForDisplay, newsDateTimeAttr } from "../utils/newsDateInput"
 
 function normalizeNewsItems(raw: unknown): HomeNewsItem[] {
@@ -40,11 +40,11 @@ function normalizeNewsItems(raw: unknown): HomeNewsItem[] {
 export function NewsListPage() {
   const { t, i18n } = useTranslation()
   const { href } = usePublicLocale()
-  const { bundle } = useHomePageBundle()
+  const { bundle, hasLiveCms } = useHomePageBundle()
 
   const i18nRaw = t("newsPage.items", { returnObjects: true }) as unknown
   const i18nItems = useMemo(() => normalizeNewsItems(i18nRaw), [i18nRaw])
-  const items = coalesceArray(i18nItems, bundle.news)
+  const items = cmsOrI18nArray(hasLiveCms, bundle.news, i18nItems)
 
   return (
     <PageLayout>

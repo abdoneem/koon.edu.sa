@@ -394,6 +394,46 @@
   max-width: min(19rem, calc(100vw - 2rem));
 }
 
+.inline-edit-toolbar--collapsed {
+  cursor: pointer;
+  max-width: min(10rem, calc(100vw - 2rem));
+  user-select: none;
+}
+
+.inline-edit-toolbar--collapsed--on {
+  border-color: rgba(37, 99, 235, 0.45);
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.98) 0%, #fff 100%);
+  box-shadow:
+    0 4px 14px rgba(37, 99, 235, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.inline-edit-toolbar--collapsed--off {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.inline-edit-toolbar__collapsed-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.inline-edit-toolbar--collapsed--on .inline-edit-toolbar__collapsed-dot {
+  background: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28);
+}
+
+.inline-edit-toolbar--collapsed--off .inline-edit-toolbar__collapsed-dot {
+  background: #94a3b8;
+}
+
+.inline-edit-toolbar--collapsed:hover {
+  filter: brightness(0.98);
+}
+
 .inline-edit-toolbar__structured {
   margin-top: 0.35rem;
   padding-top: 0.5rem;

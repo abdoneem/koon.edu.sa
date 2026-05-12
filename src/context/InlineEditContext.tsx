@@ -1,4 +1,5 @@
-import { Anchor, Paper, Switch, Text } from "@mantine/core"
+import { ActionIcon, Anchor, Group, Paper, Switch, Text } from "@mantine/core"
+import { IconChevronDown, IconChevronUp } from "@tabler/icons-react"
 import { type ReactNode, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation } from "react-router-dom"
@@ -9,6 +10,7 @@ import { contentPageSlugFromPublicPath } from "../inline/contentPageSlugFromPath
 import { canUseInlineEdit } from "../inline/inlineEditGate"
 
 const STORAGE_KEY = "koon_inline_edit_mode"
+const TOOLBAR_COLLAPSED_KEY = "koon_inline_edit_toolbar_collapsed"
 
 type InlineEditContextValue = {
   /** User may use inline tools (logged in + permissions). */
@@ -96,6 +98,12 @@ function InlineEditPublicToolbar() {
   const { available, enabled, setEnabled } = useInlineEdit()
   const [structuredHref, setStructuredHref] = useState<string | null>(null)
   const [structuredState, setStructuredState] = useState<"idle" | "loading" | "missing">("idle")
+  const [toolbarCollapsed, setToolbarCollapsed] = useState(() => sessionStorage.getItem(TOOLBAR_COLLAPSED_KEY) === "1")
+
+  const setCollapsed = useCallback((collapsed: boolean) => {
+    setToolbarCollapsed(collapsed)
+    sessionStorage.setItem(TOOLBAR_COLLAPSED_KEY, collapsed ? "1" : "0")
+  }, [])
 
   const contentSlug = contentPageSlugFromPublicPath(pathname)
   const locale = i18n.language.startsWith("ar") ? "ar" : "en"
@@ -146,6 +154,38 @@ function InlineEditPublicToolbar() {
 
   const structuredLabelKey = contentSlug ? (STRUCTURED_EDITOR_LABEL[contentSlug] ?? null) : null
 
+  if (toolbarCollapsed) {
+    return (
+      <Paper
+        shadow="md"
+        px="xs"
+        py={4}
+        radius="xl"
+        withBorder
+        className={`inline-edit-toolbar inline-edit-toolbar--collapsed inline-edit-toolbar--collapsed--${enabled ? "on" : "off"}`}
+        role="button"
+        tabIndex={0}
+        aria-expanded={false}
+        aria-label={enabled ? t("inlineEdit.toolbarExpandPillAriaOn") : t("inlineEdit.toolbarExpandPillAriaOff")}
+        onClick={() => setCollapsed(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setCollapsed(false)
+          }
+        }}
+      >
+        <Group gap={4} wrap="nowrap" justify="center" align="center">
+          <span className="inline-edit-toolbar__collapsed-dot" aria-hidden />
+          <IconChevronUp size={16} stroke={1.75} aria-hidden />
+          <Text component="span" size="xs" fw={700}>
+            {t("inlineEdit.toolbarExpandShort")}
+          </Text>
+        </Group>
+      </Paper>
+    )
+  }
+
   return (
     <Paper
       shadow="md"
@@ -155,14 +195,30 @@ function InlineEditPublicToolbar() {
       className="inline-edit-toolbar"
       role="region"
       aria-label={t("inlineEdit.toolbarAria")}
+      aria-expanded
     >
-      <Switch
-        label={t("inlineEdit.modeLabel")}
-        description={t("inlineEdit.modeHint")}
-        checked={enabled}
-        onChange={(e) => setEnabled(e.currentTarget.checked)}
-        size="sm"
-      />
+      <Group gap="xs" align="flex-start" justify="space-between" wrap="nowrap" mb={6}>
+        <Switch
+          style={{ flex: 1, minWidth: 0 }}
+          label={t("inlineEdit.modeLabel")}
+          description={t("inlineEdit.modeHint")}
+          checked={enabled}
+          onChange={(e) => setEnabled(e.currentTarget.checked)}
+          size="sm"
+        />
+        <ActionIcon
+          type="button"
+          variant="subtle"
+          color="gray"
+          size="lg"
+          radius="md"
+          aria-label={t("inlineEdit.toolbarMinimizeAria", { state: enabled ? t("inlineEdit.toolbarCollapsedStatusOn") : t("inlineEdit.toolbarCollapsedStatusOff") })}
+          title={t("inlineEdit.toolbarMinimizeAria", { state: enabled ? t("inlineEdit.toolbarCollapsedStatusOn") : t("inlineEdit.toolbarCollapsedStatusOff") })}
+          onClick={() => setCollapsed(true)}
+        >
+          <IconChevronDown size={18} stroke={1.75} />
+        </ActionIcon>
+      </Group>
       {enabled && contentSlug && structuredLabelKey ? (
         <div className="inline-edit-toolbar__structured">
           {structuredState === "loading" ? (

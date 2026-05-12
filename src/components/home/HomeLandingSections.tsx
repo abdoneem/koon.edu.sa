@@ -18,7 +18,7 @@ import {
   IconTrendingUp,
 } from "@tabler/icons-react"
 import { motion, useReducedMotion } from "framer-motion"
-import type { KeyboardEvent } from "react"
+import { useState, type KeyboardEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { brand } from "../../config/brand"
@@ -28,13 +28,15 @@ import { studentLifeBlockImage } from "../../content/siteImagery"
 import type { HighlightContent } from "../../types/cms"
 import type { HomePageBundle } from "../../types/homePageBundle"
 import { formatNewsDateForDisplay, newsDateTimeAttr } from "../../utils/newsDateInput"
-import { coalesceArray, coalesceString } from "../../utils/coalesce"
+import { cmsOrI18nArray, coalesceString } from "../../utils/coalesce"
 import type { LandingBulkSection } from "../inline/HomeLandingBulkEditModal"
 import { HomeBookTourForm } from "./HomeBookTourForm"
 import { HomePortalCards } from "./HomePortalCards"
 
 interface Props {
   bundle: HomePageBundle
+  /** When API returned landing payload, CMS slices win over static i18n arrays. */
+  hasLiveCms?: boolean
   /** When set, used for the value grid (keeps HomePage + inline modal in sync). */
   highlights?: HighlightContent[]
   inlineEditEnabled?: boolean
@@ -48,6 +50,7 @@ const ADMISSIONS_STEP_ICONS = [IconMapPin, IconBooks, IconSend, IconFileCheck] a
 
 export function HomeLandingSections({
   bundle,
+  hasLiveCms = false,
   highlights: highlightsProp,
   inlineEditEnabled,
   onInlineEditHighlights,
@@ -57,22 +60,22 @@ export function HomeLandingSections({
   const { t, i18n } = useTranslation()
   const { href } = usePublicLocale()
   const reduce = useReducedMotion()
+  const [bookAccordionOpen, setBookAccordionOpen] = useState(true)
+  const [virtualAccordionOpen, setVirtualAccordionOpen] = useState(true)
 
   const highlights = highlightsProp
     ? highlightsProp
-    : coalesceArray(
-        t("highlights.items", { returnObjects: true }) as HighlightContent[],
-        bundle.highlights,
-      )
+    : cmsOrI18nArray(hasLiveCms, bundle.highlights, t("highlights.items", { returnObjects: true }) as HighlightContent[])
   const stages = t("academicsStagesDetail", { returnObjects: true }) as Record<string, string>
   const studentBlocks = t("studentLifePage.blocks", { returnObjects: true }) as {
     title: string
     description: string
     photoAlt: string
   }[]
-  const policiesBullets = coalesceArray(
-    t("admissionsPage.policiesBullets", { returnObjects: true }) as string[],
+  const policiesBullets = cmsOrI18nArray(
+    hasLiveCms,
     bundle.policyBullets,
+    t("admissionsPage.policiesBullets", { returnObjects: true }) as string[],
   )
   const i18nAdmissionsSteps = t("homePage.admissionsSteps", { returnObjects: true }) as {
     id: string
@@ -84,7 +87,7 @@ export function HomeLandingSections({
     title: s.title,
     blurb: s.description,
   }))
-  const admissionsSteps = coalesceArray(i18nAdmissionsSteps, bundleAdmissionsSteps)
+  const admissionsSteps = cmsOrI18nArray(hasLiveCms, bundleAdmissionsSteps, i18nAdmissionsSteps)
 
   const excellenceBody = coalesceString(bundle.excellence.body, t("excellenceCorner.body"))
   const articlesIntro = coalesceString(bundle.articlesSectionLead, t("articlesTeaser.body"))
@@ -757,8 +760,11 @@ export function HomeLandingSections({
         <div className="container home-section__inner home-book-split">
           <div className="home-book-copy card-elevated">
             <h2 className="home-display">{t("bookTourPage.title")}</h2>
-            {/* @ts-expect-error defaultOpen: valid HTML; types omit it. Needed because ≥769px hides summary (home-mobile.css). */}
-            <details className="home-m-accordion home-m-accordion--book" defaultOpen>
+            <details
+              className="home-m-accordion home-m-accordion--book"
+              open={bookAccordionOpen}
+              onToggle={(e) => setBookAccordionOpen(e.currentTarget.open)}
+            >
               <summary className="home-m-accordion__summary">{t("homePage.accordionBookDetails")}</summary>
               <div className="home-m-accordion__panel">
                 <p className="home-lead">{t("bookTourPage.intro")}</p>
@@ -805,8 +811,11 @@ export function HomeLandingSections({
           ) : null}
           <div className="home-virtual-copy card-elevated">
             <h2 className="home-display">{t("virtualTourPage.title")}</h2>
-            {/* @ts-expect-error — valid HTML; @types/react omits defaultOpen on <details> */}
-            <details className="home-m-accordion home-m-accordion--virtual" defaultOpen>
+            <details
+              className="home-m-accordion home-m-accordion--virtual"
+              open={virtualAccordionOpen}
+              onToggle={(e) => setVirtualAccordionOpen(e.currentTarget.open)}
+            >
               <summary className="home-m-accordion__summary">{t("homePage.accordionVirtualMore")}</summary>
               <div className="home-m-accordion__panel">
                 <p className="home-lead">{t("virtualTourPage.body")}</p>
