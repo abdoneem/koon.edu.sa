@@ -337,6 +337,11 @@ export const siteDocumentEn = {
           "We commit to leaders of global citizenship who compete internationally while their ethical and national roots stay firm.",
       },
     ],
+    schoolProfileTitle: "School profile (PDF)",
+    schoolProfileLead:
+      "Official KOON brochure: vision, mission, values, stages, programmes (STEM, SEL, Noor Al Bayan, robotics, Ma’een), languages, faculty, and learner attributes — as published for families and partners.",
+    schoolProfileDownload: "Download PDF",
+    schoolProfileView: "Open in new tab",
   },
   aboutExtended: {
     strategicGoalsLead:
@@ -1052,6 +1057,11 @@ export const siteDocumentAr = {
           "التزام استراتيجي بإعداد جيل ينافس دولياً مع جذور قيمية ووطنية راسخة.",
       },
     ],
+    schoolProfileTitle: "بروفايل المدرسة (PDF)",
+    schoolProfileLead:
+      "النشرة الرسمية لمدارس كون: الرؤية والرسالة والقيم، المراحل والبرامج (STEM، الرفاه النفسي الاجتماعي، نور البيان، الروبوت، معين)، اللغات، الكادر التعليمي، وسمات المتعلّم — كما صدرت للأسر والشركاء.",
+    schoolProfileDownload: "تحميل PDF",
+    schoolProfileView: "فتح في نافذة جديدة",
   },
   aboutExtended: {
     strategicGoalsLead:

@@ -29,13 +29,35 @@ if (class_exists(\Dedoc\Scramble\Scramble::class)) {
 $serveSpa = static function () {
     $path = request()->path();
 
+    // Uploaded CMS images should be served as static files via public/storage → storage/app/public
+    // (`php artisan storage:link`). If the request still reaches Laravel (missing symlink, or
+    // everything forwarded to index.php), stream the file when it exists on the public disk.
+    if ($path !== '' && str_starts_with($path, 'storage/')) {
+        $relative = substr($path, strlen('storage/'));
+        $candidate = storage_path('app/public/'.$relative);
+        $publicDir = realpath(storage_path('app/public'));
+        $resolved = is_file($candidate) ? realpath($candidate) : false;
+        if ($publicDir && $resolved && str_starts_with($resolved, $publicDir.DIRECTORY_SEPARATOR)) {
+            return response()->file($resolved);
+        }
+
+        return response(
+            "Not found.\n".
+            "CMS/media files are stored under storage/app/public and exposed via the public/storage symlink.\n".
+            "On the server: run `php artisan storage:link`, ensure storage/app/public/cms is writable, then re-upload if needed.\n",
+            404,
+            ['Content-Type' => 'text/plain; charset=UTF-8'],
+        );
+    }
+
     // If the web server forwarded here, there is no matching file under public/.
     // Do not serve index.html for hashed Vite assets — that yields text/html for a .js URL and
     // browsers report: "Expected a JavaScript module script but the server responded with MIME text/html".
     $looksLikePublicStatic =
         str_starts_with($path, 'assets/')
         || str_starts_with($path, 'brand/')
-        || preg_match('/\.(?:js|mjs|cjs|css|map|woff2?|ttf|eot|svg|png|jpe?g|gif|webp|ico)$/i', $path);
+        || str_starts_with($path, 'documents/')
+        || preg_match('/\.(?:js|mjs|cjs|css|map|woff2?|ttf|eot|svg|png|jpe?g|gif|webp|ico|pdf)$/i', $path);
 
     if ($path !== '' && $looksLikePublicStatic) {
         return response(

@@ -21,6 +21,8 @@ param(
     "sftp-sync-public",
     "sftp-sync-full",
     "ssh-diagnose",
+    "ssh-storage-link",
+    "sftp-storage-link",
     "sftp-fetch-log",
     "sftp-clear-cache",
     "sftp-deploy-db-one-shot",
@@ -315,6 +317,9 @@ function Show-Help() {
   Write-Host "  sftp-sync-public  - SFTP public_html only (menu 24; frontend-only, no Laravel tree)" -ForegroundColor Gray
   Write-Host '  sftp-sync-full    - SFTP full upload (menu 17; same bundle + --full)' -ForegroundColor Gray
   Write-Host "  ssh-diagnose   - SSH using secrets/sftp.env; print artisan about + laravel.log tail" -ForegroundColor Gray
+  Write-Host "  ssh-storage-link - SSH: php artisan storage:link --force (fixes /storage/cms 404s if symlink missing)" -ForegroundColor Gray
+  Write-Host "  sftp-storage-link - SFTP: create public_html/storage -> storage/app/public (no SSH shell)" -ForegroundColor Gray
+  Write-Host "                      If web_root/storage is a folder: python scripts/sftp_storage_symlink.py --move-aside-existing-dir" -ForegroundColor DarkGray
   Write-Host "  sftp-fetch-log - SFTP tail of storage/logs/laravel.log (no SSH shell required)" -ForegroundColor Gray
   Write-Host "  sftp-clear-cache - SFTP clear Laravel file cache (fixes admin Too Many Attempts when CACHE_STORE=file)" -ForegroundColor Gray
   Write-Host "  sftp-deploy-db-one-shot - Upload one-shot PHP, run koon:deploy-database via HTTPS, delete script" -ForegroundColor Gray
@@ -717,6 +722,36 @@ function Action-SshDiagnose() {
   & python -u $py
 }
 
+function Action-SshStorageLink() {
+  Write-Rule "SSH: php artisan storage:link --force"
+  Write-Host "Uses secrets/sftp.env (SFTP_APP_DIR / SFTP_REMOTE_HOME same as sftp_deploy). Requires SSH shell." -ForegroundColor DarkGray
+  Ensure-RepoRoot
+  Ensure-Paramiko
+  Assert-SftpSecretsPresent
+  $py = Join-Path $PSScriptRoot "scripts\ssh_storage_link.py"
+  if (-not (Test-Path -LiteralPath $py)) {
+    throw "Missing: $py"
+  }
+  Write-Host ""
+  Write-Host "Running: python -u $py" -ForegroundColor Yellow
+  & python -u $py
+}
+
+function Action-SftpStorageLink() {
+  Write-Rule "SFTP: public web storage symlink (storage:link equivalent)"
+  Write-Host "Creates public_html/storage -> Laravel storage/app/public. No SSH shell required." -ForegroundColor DarkGray
+  Ensure-RepoRoot
+  Ensure-Paramiko
+  Assert-SftpSecretsPresent
+  $py = Join-Path $PSScriptRoot "scripts\sftp_storage_symlink.py"
+  if (-not (Test-Path -LiteralPath $py)) {
+    throw "Missing: $py"
+  }
+  Write-Host ""
+  Write-Host "Running: python -u $py" -ForegroundColor Yellow
+  & python -u $py
+}
+
 function Action-SftpFetchLog() {
   Write-Rule "SFTP fetch laravel.log (tail)"
   Write-Host "Uses secrets\sftp.env - no SSH shell required (SFTP read only)." -ForegroundColor DarkGray
@@ -880,6 +915,8 @@ function Run-Action([string]$A) {
     "sftp-sync-public" { Action-SftpSyncPublic }
     "sftp-sync-full" { Action-SftpSyncFull }
     "ssh-diagnose" { Action-SshDiagnose }
+    "ssh-storage-link" { Action-SshStorageLink }
+    "sftp-storage-link" { Action-SftpStorageLink }
     "sftp-diagnose-500" { Action-SftpDiagnose500 }
     "sftp-fetch-log" { Action-SftpFetchLog }
     "sftp-clear-cache" { Action-SftpClearCache }

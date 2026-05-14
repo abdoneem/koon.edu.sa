@@ -13,7 +13,7 @@
 - **Admin API (Sanctum token):** `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/user`, and `GET|POST|PUT|DELETE /api/admin/content-pages` (+ `/{id}`). Send `Authorization: Bearer {token}` after login.
 - **Editor UI:** the Vite app serves **React admin** at **`/admin`** (login + content pages). Same app as the public site; set `VITE_API_BASE_URL` to this Laravel origin.
 - **Users:** create with `AdminUserSeeder` / `db:seed`, or insert a row in `users` (password must be hashed).
-- **Media:** `php artisan storage:link` — hero uploads go to `storage/app/public/content/hero`; public URLs use `hero.backgroundImage` in the landing payload.
+- **Media (CMS uploads):** Run **`php artisan storage:link`** once per deploy so `public/storage` → `storage/app/public`. Admin uploads (`POST /api/admin/cms-media`) save under **`storage/app/public/cms/`**; URLs look like **`/storage/cms/{uuid}.webp`**. On production: directory **`storage/`** and **`bootstrap/cache/`** must be writable by the PHP user; PHP needs **`upload_max_filesize`** / **`post_max_size`** ≥ 5M (validator allows 5120 KB) and the **GD** extension for WebP optimization. If images work locally but 404 on the server, usually the symlink is missing, permissions block writes, or the DB points to a file that was never uploaded on that host (re-save content or re-upload).
 - **CORS:** `CORS_ALLOWED_ORIGINS` must include your Vite dev origin (e.g. `http://localhost:5173`).
 
 ## About Laravel

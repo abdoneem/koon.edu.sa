@@ -70,6 +70,34 @@ export function AboutPage() {
           imageAlt={t("imagery.aboutHeroAlt")}
         />
 
+        <section className="home-section home-section--muted site-page-profile-pdf" aria-labelledby="school-profile-heading">
+          <div className="container home-section__inner">
+            <motion.article className="card-elevated site-content-card" {...motionBlock}>
+              <h2 id="school-profile-heading" className="home-display home-display--sm">
+                {t("aboutPage.schoolProfileTitle")}
+              </h2>
+              <p className="home-lead home-lead--tight">{t("aboutPage.schoolProfileLead")}</p>
+              <div className="site-profile-pdf__actions">
+                <a
+                  className="home-btn home-btn--primary"
+                  href="/documents/profile.pdf"
+                  download="KOON-school-profile.pdf"
+                >
+                  {t("aboutPage.schoolProfileDownload")}
+                </a>
+                <a
+                  className="home-btn home-btn--ghost"
+                  href="/documents/profile.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("aboutPage.schoolProfileView")}
+                </a>
+              </div>
+            </motion.article>
+          </div>
+        </section>
+
         <CmsStructuredBlocks pathKey={pathKey} />
 
         <section className="home-section home-section--surface site-page-premium__band-first">

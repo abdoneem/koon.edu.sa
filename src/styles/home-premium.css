@@ -2927,6 +2927,19 @@ a.home-news-card-elevated:focus-visible {
   margin: var(--home-gap-3) 0;
 }
 
+.site-profile-pdf__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--home-gap-2);
+  margin-top: var(--home-space-3);
+  align-items: center;
+}
+
+.site-page-profile-pdf .site-content-card {
+  max-width: min(40rem, 100%);
+  margin-inline: auto;
+}
+
 .site-page-callout {
   margin: var(--home-gap-3) 0 0;
   padding: var(--home-gap-3) var(--home-gap-4);
