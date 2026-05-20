@@ -56,6 +56,11 @@ export const resources = {
             description:
               "Submit your son’s details—our admissions team will follow up with placement and next steps.",
           },
+          registrationThankyou: {
+            title: "Registration received | KOON International Schools",
+            description:
+              "Thank you—your registration request was received. Our admissions team will contact you soon.",
+          },
           news: {
             title: "News & Events | KOON Riyadh",
             description:
@@ -739,6 +744,11 @@ export const resources = {
             title: "التسجيل | مدارس كون العالمية",
             description:
               "أرسلوا بيانات ابنكم—يتابعكم فريق القبول بالصف والخطوات التالية.",
+          },
+          registrationThankyou: {
+            title: "تم استلام طلب التسجيل | مدارس كون العالمية",
+            description:
+              "شكراً لكم—استلمنا طلب التسجيل وسيتواصل معكم فريق القبول قريباً.",
           },
           news: {
             title: "الأخبار والفعاليات | كون الرياض",

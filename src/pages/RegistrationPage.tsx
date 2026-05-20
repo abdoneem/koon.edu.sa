@@ -15,15 +15,18 @@ import {
   Title,
 } from "@mantine/core"
 import { useForm } from "@mantine/form"
-import { IconBolt, IconCircleCheck, IconHeadset, IconShieldCheck } from "@tabler/icons-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { IconBolt, IconHeadset, IconShieldCheck } from "@tabler/icons-react"
+import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { PageLayout } from "../components/PageLayout"
 import { SitePageHero } from "../components/site/SitePageHero"
 import { useCmsSite } from "../context/CmsSiteContext"
 import { siteImagery } from "../content/siteImagery"
 import { env } from "../config/env"
+import { usePublicLocale } from "../hooks/usePublicLocale"
 import { useRegistrationOptions } from "../hooks/useRegistrationOptions"
+import { REGISTRATION_THANKYOU_PATH } from "./RegistrationThankYouPage"
 import type { RegistrationOptionLocale } from "../types/registrationOptions"
 
 function focusFirstInvalidControl(formEl: HTMLFormElement | null) {
@@ -39,8 +42,9 @@ export function RegistrationPage() {
   const isRtl = i18n.language.startsWith("ar")
   const lang: RegistrationOptionLocale = isRtl ? "ar" : "en"
   const { data: options, loading: optionsLoading, error: optionsError } = useRegistrationOptions()
+  const navigate = useNavigate()
+  const { href } = usePublicLocale()
   const formRef = useRef<HTMLFormElement>(null)
-  const successRef = useRef<HTMLDivElement>(null)
 
   const genderData = useMemo(
     () => [
@@ -74,7 +78,6 @@ export function RegistrationPage() {
       }))
   }, [options, isRtl])
 
-  const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -103,12 +106,6 @@ export function RegistrationPage() {
       nationality: (v) => (v.trim() ? null : t("registrationPage.fieldRequired")),
     },
   })
-
-  useEffect(() => {
-    if (done) {
-      successRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
-  }, [done])
 
   const fieldDisabled = loading || !options || !!optionsError
 
@@ -162,8 +159,7 @@ export function RegistrationPage() {
         setError(first)
         return
       }
-      setDone(true)
-      form.reset()
+      navigate(href(REGISTRATION_THANKYOU_PATH), { replace: true })
     } catch {
       setError(t("registrationPage.errorNetwork"))
     } finally {
@@ -206,62 +202,7 @@ export function RegistrationPage() {
         />
         <section className="home-section home-section--surface site-page-premium__band-first">
           <Container size="md" py="xl" className="site-registration-shell" dir={isRtl ? "rtl" : "ltr"}>
-            {done ? (
-              <Paper
-                ref={successRef}
-                className="registration-success-panel"
-                shadow="md"
-                p={{ base: "lg", sm: "xl" }}
-                radius="lg"
-                withBorder
-                role="status"
-                aria-live="polite"
-              >
-                <Stack gap="lg" align="stretch">
-                  <Group gap="md" wrap="nowrap" align="flex-start">
-                    <ThemeIcon size={54} radius="md" variant="light" color="teal" aria-hidden>
-                      <IconCircleCheck size={30} stroke={1.75} />
-                    </ThemeIcon>
-                    <Stack gap="xs" style={{ flex: 1 }}>
-                      <Title order={2} className="registration-success-panel__title">
-                        {t("registrationPage.successTitle")}
-                      </Title>
-                      <Text size="md" c="dimmed" lh={1.65}>
-                        {t("registrationPage.successBody")}
-                      </Text>
-                      <Text size="sm" c="dimmed" lh={1.6}>
-                        {t("registrationPage.successNextSteps")}
-                      </Text>
-                    </Stack>
-                  </Group>
-                  <Alert color="blue" variant="light" title={phoneDisplay}>
-                    <Stack gap="xs">
-                      <Text size="sm">{t("registrationPage.contactBanner")}</Text>
-                      <Group gap="sm" justify="flex-start" wrap="wrap">
-                        <Button component="a" href={phoneHref} size="sm" variant="filled">
-                          {t("chatbot.call")}
-                        </Button>
-                        <Button component="a" href={whatsappHref} target="_blank" size="sm" variant="light">
-                          {t("chatbot.whatsapp")}
-                        </Button>
-                      </Group>
-                    </Stack>
-                  </Alert>
-                  <Button
-                    variant="default"
-                    size="md"
-                    fullWidth
-                    onClick={() => {
-                      setDone(false)
-                      setError(null)
-                    }}
-                  >
-                    {t("registrationPage.registerAnother")}
-                  </Button>
-                </Stack>
-              </Paper>
-            ) : (
-              <Stack gap="xl">
+            <Stack gap="xl">
                 <Stack gap="xs" className="registration-form-intro">
                   <Title order={2} className="registration-form-intro__title">
                     {t("registrationPage.formHeadline")}
@@ -510,7 +451,6 @@ export function RegistrationPage() {
                   </form>
                 </Paper>
               </Stack>
-            )}
           </Container>
         </section>
       </div>

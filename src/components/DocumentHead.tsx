@@ -14,6 +14,10 @@ const PUBLIC_SEO_PATHS: Record<string, { title: string; desc: string }> = {
   "/facilities": { title: "seo.paths.facilities.title", desc: "seo.paths.facilities.description" },
   "/admissions": { title: "seo.paths.admissions.title", desc: "seo.paths.admissions.description" },
   "/registration": { title: "seo.paths.registration.title", desc: "seo.paths.registration.description" },
+  "/registration/thankyou": {
+    title: "seo.paths.registrationThankyou.title",
+    desc: "seo.paths.registrationThankyou.description",
+  },
   "/media": { title: "seo.paths.media.title", desc: "seo.paths.media.description" },
   "/news": { title: "seo.paths.media.title", desc: "seo.paths.media.description" },
   "/book-tour": { title: "seo.paths.bookTour.title", desc: "seo.paths.bookTour.description" },

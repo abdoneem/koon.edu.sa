@@ -34,6 +34,7 @@ import { NewsDetailPage } from "./pages/NewsDetailPage"
 import { NewsListPage } from "./pages/NewsListPage"
 import { PublicCmsPage } from "./pages/PublicCmsPage"
 import RegistrationPage from "./pages/RegistrationPage"
+import RegistrationThankYouPage from "./pages/RegistrationThankYouPage"
 import { StudentLifePage } from "./pages/StudentLifePage"
 import type { PublicLocale } from "./i18n/localeRouting"
 
@@ -84,6 +85,7 @@ function App() {
             <Route path="student-life" element={<StudentLifePage />} />
             <Route path="admissions" element={<AdmissionsPage />} />
             <Route path="registration" element={<RegistrationPage />} />
+            <Route path="registration/thankyou" element={<RegistrationThankYouPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="why-koon" element={<HomeHashRedirect hash="why-koon" />} />
             <Route path="media" element={<HomeHashRedirect hash="media" />} />
